@@ -3,6 +3,7 @@
 #include "grrvm/evaluation.h"
 #include "grrvm/opcodes.h"
 #include "grrvm/vm_log.h"
+#include "grrvm/vm_thread.h"
 #include <stdlib.h>
 
 void vm_loop(VM* vm){
@@ -12,7 +13,7 @@ void vm_loop(VM* vm){
 
             if(!is_thread_active(thread)) continue;
 
-            word opcode = vm->program[thread->pc];
+            word opcode = get_instruction(thread);
 
             switch (get_opcode_cat(opcode)) {
                 case OPC_STACK_OPERAND      : eval_stack_operand(thread, opcode); break;

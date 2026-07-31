@@ -23,7 +23,7 @@ typedef enum prim_type {
 
 typedef struct prim_val{
     word data;
-    byte metadata;
+    byte metadata; // metadata 0xEF, E - state, F - type
 } prim_val;
 
 
