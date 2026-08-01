@@ -2,8 +2,8 @@
 #include "grrvm/vm.h"
 #include "grrvm/vm_thread.h"
 #include "grrvm/vm_log.h"
-#include "grrvm/type_promotion.h"
 #include "grrvm/evaluation.h"
+#include "grrvm/type_arithmetic.h"
 
 void eval_arithmetic_operand(VM_Thread *thread, word opcode) {
     switch (opcode) {

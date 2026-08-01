@@ -11,7 +11,9 @@ typedef enum OPCODE_CATEGORY{
     OPC_BITWISE         = 0x40,
     OPC_MEMORY_LOCAL    = 0x50,
     OPC_MEMORY_GLOBAL   = 0x60,
-    OPC_MEMORY_HEAP     = 0x70
+    OPC_MEMORY_HEAP     = 0x70,
+    OPC_SYS             = 0x80,
+    OPC_UART            = 0x90
 
 } OPCODE_CATEGORY;
 

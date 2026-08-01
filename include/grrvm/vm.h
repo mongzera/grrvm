@@ -81,6 +81,14 @@ static inline prim_val make_prim_val(word data, prim_state state, prim_type type
     return pv;
 }
 
+static inline prim_type get_prim_type(prim_val val){
+    return ((prim_type)((val).metadata & 0x0F));
+}
+
+static inline prim_state get_prim_state(prim_val val){
+    return ((prim_state)(((val).metadata >> 4) & 0x0F));
+}
+
 static inline void set_thread_active(VM_Thread* thread) {
     thread->status |= (byte)0x01;
 }

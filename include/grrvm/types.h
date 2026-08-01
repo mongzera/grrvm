@@ -9,8 +9,15 @@
         defined(__x86_64__) || defined(__riscv) || defined(ESP32) || \
         (defined(__INT_MAX__) && __INT_MAX__ > 32767)
         #define VM_WORD_SIZE 32
+        #define EPSILON 0x1.0p-23f
     #else
         #define VM_WORD_SIZE 16
+        #if defined(__FLT16_MANT_DIG__)
+            #define EPSILON 0x1.0p-10f16
+        #else
+            /* Fallback to 32-bit float literal if 16-bit type isn't native */
+            #define EPSILON 0x1.0p-10f
+        #endif
     #endif
 #endif
 
