@@ -104,7 +104,7 @@ void eval_arithmetic_operand(VM_Thread *thread, word opcode) {
                 set_thread_inactive(thread);
                 return;
             }
-            prim_val one = make_prim_val(1, STATE_OPEN, TYPE_BYTE); // Promotes safely to top's type
+            prim_val one = make_prim_val(1, STATE_OPEN, TYPE_U8); // Promotes safely to top's type
             prim_val res;
             if (!type_safe_add(*top, one, &res)) {
                 vm_error("TYPE ERROR", "Cannot INC non-numeric stack top!");
@@ -122,7 +122,7 @@ void eval_arithmetic_operand(VM_Thread *thread, word opcode) {
                 set_thread_inactive(thread);
                 return;
             }
-            prim_val one = make_prim_val(1, STATE_OPEN, TYPE_BYTE);
+            prim_val one = make_prim_val(1, STATE_OPEN, TYPE_U8);
             prim_val res;
             if (!type_safe_sub(*top, one, &res)) {
                 vm_error("TYPE ERROR", "Cannot DEC non-numeric stack top!");

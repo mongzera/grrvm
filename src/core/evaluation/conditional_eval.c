@@ -6,7 +6,7 @@
 #include "grrvm/vm_log.h"
 #include "grrvm/vm_thread.h"
 
-void eval_arithmetic_operand(VM_Thread *thread, word opcode){
+void eval_conditional_operand(VM_Thread *thread, word opcode){
     switch (opcode) {
         case CMPEQ: {
             prim_val* a = 0;

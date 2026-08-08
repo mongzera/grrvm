@@ -19,11 +19,11 @@ void vm_loop(VM* vm){
                 case OPC_STACK_OPERAND      : eval_stack_operand(thread, opcode); break;
                 case OPC_ARITHMETIC         : eval_arithmetic_operand(thread, opcode); break;
                 case OPC_CONDITIONAL        : eval_conditional_operand(thread, opcode); break;
-                case OPC_BRANCHING          : eval_branching_operand(thread, opcode); break;
-                case OPC_BITWISE            : eval_bitwise_operand(thread, opcode); break;
-                case OPC_MEMORY_LOCAL       : eval_memory_local_operand(thread, opcode); break;
-                case OPC_MEMORY_GLOBAL      : eval_memory_global_operand(thread, opcode); break;
-                case OPC_MEMORY_HEAP        : eval_memory_heap_operand(thread, opcode); break;
+                // case OPC_BRANCHING          : eval_branching_operand(thread, opcode); break;
+                // case OPC_BITWISE            : eval_bitwise_operand(thread, opcode); break;
+                // case OPC_MEMORY_LOCAL       : eval_memory_local_operand(thread, opcode); break;
+                // case OPC_MEMORY_GLOBAL      : eval_memory_global_operand(thread, opcode); break;
+                // case OPC_MEMORY_HEAP        : eval_memory_heap_operand(thread, opcode); break;
                 default:{
                     vm_error("OPCODE INVALID", "Cannot recognize [0x%X] as opcode!", opcode);
                     set_thread_inactive(thread);

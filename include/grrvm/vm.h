@@ -13,11 +13,13 @@ typedef enum prim_state {
 } prim_state;
 
 typedef enum prim_type {
-    TYPE_UINT = 0x0,
-    TYPE_INT,
+    TYPE_U8 = 0x0,
+    TYPE_I8,
+    TYPE_U16,
+    TYPE_I16,
+    TYPE_U32,
+    TYPE_I32,
     TYPE_FLOAT,
-    TYPE_CHAR,
-    TYPE_BYTE,
     TYPE_REFERENCE
 } prim_type;
 

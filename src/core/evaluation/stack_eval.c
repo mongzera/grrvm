@@ -1,4 +1,5 @@
 #include "grrvm/evaluation.h"
+#include "grrvm/vm.h"
 #include "grrvm/vm_log.h"
 #include "grrvm/opcodes.h"
 #include "grrvm/vm_thread.h"
@@ -14,7 +15,7 @@ void eval_stack_operand(VM_Thread *thread, word opcode) {
 
         case PUSH: {
             word raw_data = get_instruction(thread);
-            prim_val val = make_prim_val(raw_data, STATE_OPEN, TYPE_INT);
+            prim_val val = make_prim_val(raw_data, STATE_OPEN, TYPE_I32);
 
             if (!push_stack(thread, val)) {
                 vm_error("STACK OVERFLOW", "Thread operand stack limit reached during PUSH!");

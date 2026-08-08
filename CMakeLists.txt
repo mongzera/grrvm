@@ -27,11 +27,12 @@ file(GLOB VM_SOURCES CONFIGURE_DEPENDS
 # 2. Target Creation
 # ------------------------------------------------------------------------------
 add_executable(grrvm ${VM_SOURCES})
+target_link_libraries(grrvm m) # math library
 
 # Specify include directories (PUBLIC/PRIVATE scope)
 target_include_directories(grrvm PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/core
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/hal
 )
 
 # ------------------------------------------------------------------------------
