@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 #include <string.h>
+#include "grrvm/type_checks.h"
+#include "grrvm/types.h"
 #include "grrvm/vm.h"
 /* --- TYPE RANKING & PROMOTION --- */
 static inline int get_type_rank(prim_type type) {
@@ -29,31 +31,59 @@ static inline int promote_types(prim_type a, prim_type b, prim_type *out_promote
     return 1;
 }
 
-static inline float prim_to_float(prim_val val) {
-    switch (get_prim_type(val)) {
-        case TYPE_BYTE:  return (float)(uint8_t)val.data;
-        case TYPE_CHAR:  return (float)(int8_t)val.data;
-        case TYPE_UINT:  return (float)(uint32_t)val.data;
-        case TYPE_INT:   return (float)(int32_t)val.data;
-        case TYPE_FLOAT: {
-            float f;
-            uint32_t raw = (uint32_t)val.data;
-            memcpy(&f, &raw, sizeof(float));
-            return f;
-        }
-        default: return 0.0f;
+static inline int signed_unsigned_comparison(g_int a, g_uint b){
+    if(a < 0) return -1;
+    g_uint ua = (g_uint) a;
+    return (ua > b) - (ua < b);
+}
+
+static inline int compare_prim(prim_val a, prim_val b) {
+    prim_type ta = get_prim_type(a);
+    prim_type tb = get_prim_type(b);
+
+    // 1. Float Path (Explicit float involved)
+    if (ta == TYPE_FLOAT || tb == TYPE_FLOAT) {
+        g_float fa = prim_to_float(a);
+        g_float fb = prim_to_float(b);
+        return (fa > fb) - (fa < fb);
     }
+
+    if(is_unsigned_type(ta) && is_unsigned_type(tb)){
+        g_uint ua = (g_uint)a.data, ub = (g_uint)b.data;
+
+        return (ua > ub) - (ua < ub);
+    }
+
+    if(!is_unsigned_type(ta) && !is_unsigned_type(tb)){
+        g_int ua = (g_int)a.data, ub = (g_int)b.data;
+
+        return (ua > ub) - (ua < ub);
+    }
+
+    if(is_unsigned_type(ta)){
+        return signed_unsigned_comparison((g_int) b.data, (g_uint) a.data) * -1;
+    }
+
+    return signed_unsigned_comparison((g_int) a.data, (g_uint) b.data);
+}
+
+static inline int compare_prim_lte(prim_val a, prim_val b){
+
+}
+
+static inline int compare_prim_gte(prim_val a, prim_val b){
+
 }
 
 static inline word float_to_prim_data(float f, prim_type target_type) {
     switch (target_type) {
-        case TYPE_BYTE:  return (word)(uint8_t)f;
-        case TYPE_CHAR:  return (word)(int8_t)f;
-        case TYPE_UINT:  return (word)(uint32_t)f;
-        case TYPE_INT:   return (word)(int32_t)f;
+        case TYPE_BYTE:  return (word)(g_byte)f;
+        case TYPE_CHAR:  return (word)(g_char)f;
+        case TYPE_UINT:  return (word)(g_uint)f;
+        case TYPE_INT:   return (word)(g_int)f;
         case TYPE_FLOAT: {
             uint32_t raw;
-            memcpy(&raw, &f, sizeof(float));
+            memcpy(&raw, &f, sizeof(g_float));
             return (word)raw;
         }
         default: return 0;

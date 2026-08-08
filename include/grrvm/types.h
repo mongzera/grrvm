@@ -52,7 +52,7 @@ typedef uint8_t byte;
 #endif
 
 /* Generic primitive aliases */
-typedef char g_char;
-typedef byte g_byte;
+typedef uint8_t g_char;
+typedef int8_t g_byte;
 
 #endif /* TYPES_H */
