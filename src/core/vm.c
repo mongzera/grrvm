@@ -6,6 +6,14 @@
 #include "grrvm/vm_thread.h"
 #include <stdlib.h>
 
+void vm_start(VM* vm_instance){
+    // initialize system
+    // initialize hal
+    // initialize vm_instance
+    vm_loop(vm_instance);
+
+}
+
 void vm_loop(VM* vm){
     while(1){
         for (int i = 0; i < VM_MAX_THREADS; i++) {

@@ -3,6 +3,7 @@
 
 #include "config.h"
 #include "types.h"
+#include <stddef.h>
 
 
 typedef enum prim_state {
@@ -56,6 +57,7 @@ typedef struct VM {
     VM_Thread vm_threads[VM_MAX_THREADS];
 } VM;
 
+void vm_start(VM* vm_instance);
 void vm_loop(VM* vm);
 void vm_terminate(VM* vm);
 void vm_new_thread(VM* vm, word program_counter, int id);

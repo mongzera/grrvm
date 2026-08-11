@@ -1,0 +1,13 @@
+:=_const_data
+    uint32 word >> 12
+    uint8 data >> 56, 23,24,  42,213
+
+:=_data
+
+
+::_global
+    PUSH _data.health
+    LOAD
+
+
+    HALT
