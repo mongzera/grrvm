@@ -1,0 +1,17 @@
+Dumpfile for [asm_test1.grr]
+Created at: 2026-08-18T05:50:42.437018300
+=======================================================================
+::add [Instruction Count: 2]
+0 | ADD
+1 | RET
+
+::sub [Instruction Count: 2]
+2 | SUB
+3 | RET
+
+::_global [Instruction Count: 7]
+4 | PUSH 5
+6 | PUSH 6
+8 | CALL sub
+10 | HALT
+

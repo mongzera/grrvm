@@ -1,0 +1,12 @@
+::add
+    ADD
+    RET
+::sub
+    SUB
+    RET
+
+::hello
+    PUSH 5
+    PUSH 6
+    CALL sub
+    HALT

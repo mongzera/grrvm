@@ -16,4 +16,6 @@ public abstract class Segment{
     public abstract void feed(String line);
     public abstract void compile();
     public abstract void resolve();
+    public abstract void parse();
+    public abstract void printDump(StringBuilder dump);
 }

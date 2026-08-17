@@ -79,6 +79,16 @@ public class DataSubroutine extends Segment {
         DebugMsg.asm_info("RESOLVER", "Resolving Data Subroutine: " + name);
     }
 
+    @Override
+    public void parse() {
+
+    }
+
+    @Override
+    public void printDump(StringBuilder dump) {
+
+    }
+
     public List<Data> getEntries() {
         return entries;
     }

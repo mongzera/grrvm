@@ -17,33 +17,7 @@ public class Assembler{
         String currentWorkingDir = System.getProperty("user.dir");
 
         Path path = Path.of(currentWorkingDir, args[0]);
-        Bytecode bytecode = new Bytecode();
-        // Read File
-        try (Stream<String> lines = Files.lines(path)) {
-            lines.forEach((line)->{
-                line = line.trim();
-
-                if(line.startsWith(":=")) {
-                    bytecode.setMode(Bytecode.PARSE_DATA);
-                    bytecode.setDataSubroutine(line.substring(2).trim());
-                    return;
-                }
-
-                if(line.startsWith("::")) {
-                    bytecode.setMode(Bytecode.PARSE_SUBROUTINE);
-                    bytecode.setSubroutine(line.substring(2).trim());
-                    return;
-                }
-
-                bytecode.feed(line);
-            });
-
-            bytecode.compile();
-            bytecode.resolve();
-        } catch (IOException e) {
-            e.printStackTrace();
-            DebugMsg.asm_error(GrrError.FILE_CANNOT_READ);
-        }
+        Bytecode bytecode = BytecodeLoader.fromPath(path);
 
     }
 }

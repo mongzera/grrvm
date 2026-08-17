@@ -3,21 +3,32 @@ package src.com.mongzera.grrvm_assembler.bytecode;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 import src.com.mongzera.grrvm_assembler.DebugMsg;
 import src.com.mongzera.grrvm_assembler.GrrError;
+import src.com.mongzera.grrvm_assembler.ISA;
 
 public class Bytecode{
     public static final int PARSE_DATA       = 0;
     public static final int PARSE_SUBROUTINE = 1;
 
+    private String filename;
     private int mode = -1;
     private Segment currentSegment = null;
     private boolean hasGlobalSubroutine = false;
     private ArrayList<Segment> segments = new ArrayList<>();
+    private int currentInstructionLine = 0;
+
+    private ISA isa;
 
     private final ByteArrayOutputStream stream = new ByteArrayOutputStream();
+
+    public Bytecode(String filename){
+        this.filename   = filename;
+        this.isa        = new ISA();
+    }
 
     public void setMode(int mode){
         this.mode = mode;
@@ -61,6 +72,34 @@ public class Bytecode{
             segment.resolve();
         });
     }
+
+    public void parse(){
+        segments.forEach((segment) -> {
+            segment.parse();
+        });
+    }
+
+    public String createBytecodeDumpFile(){
+        StringBuilder dump = new StringBuilder();
+
+        dump.append(String.format("Dumpfile for [%s]\n", filename));
+        dump.append(String.format("Created at: %s\n", LocalDateTime.now()));
+        dump.append("=======================================================================\n");
+
+        for(int i = 0; i < segments.size(); i++){
+
+            // only print the subroutines, not data subroutines
+            if(segments.get(i) instanceof Subroutine) segments.get(i).printDump(dump);
+        }
+
+        return dump.toString();
+    }
+
+    public void addInstructionLine(int nLines){
+        this.currentInstructionLine += nLines;
+    }
+
+    public int getCurrentInstructionLine(){return currentInstructionLine;}
 
     /**
          * Appends an array of bytes to the bytecode binary stream.
@@ -129,4 +168,11 @@ public class Bytecode{
             stream.reset();
         }
 
+    public ISA getIsa() {
+        return isa;
+    }
+
+    public void setIsa(ISA isa) {
+        this.isa = isa;
+    }
 }
