@@ -65,7 +65,7 @@ public class DataSubroutine extends Segment {
                     dataEntry.streamBinary(dos);
 
                     dos.flush();
-                    bytecode.writeBytes(baos.toByteArray());
+                    //bytecode.writeBytes(baos.toByteArray());
                 }
 
             } catch (Exception e) {

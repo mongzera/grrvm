@@ -101,72 +101,6 @@ public class Bytecode{
 
     public int getCurrentInstructionLine(){return currentInstructionLine;}
 
-    /**
-         * Appends an array of bytes to the bytecode binary stream.
-         *
-         * @param bytes Byte array to write into bytecode.
-         */
-        public synchronized void writeBytes(byte[] bytes) {
-            if (bytes == null || bytes.length == 0) return;
-            try {
-                stream.write(bytes);
-            } catch (IOException e) {
-                DebugMsg.asm_error("BYTECODE", "Failed to write bytes to stream: " + e.getMessage());
-            }
-        }
-
-        /**
-         * Appends a sub-slice of a byte array to the bytecode binary stream.
-         */
-        public synchronized void writeBytes(byte[] bytes, int off, int len) {
-            if (bytes == null || len <= 0) return;
-            stream.write(bytes, off, len);
-        }
-
-        /**
-         * Writes a single byte into the bytecode binary stream.
-         */
-        public synchronized void writeByte(byte b) {
-            stream.write(b & 0xFF);
-        }
-
-        /**
-         * Writes a 32-bit big-endian integer into the bytecode binary stream.
-         */
-        public synchronized void writeInt(int value) {
-            stream.write((value >>> 24) & 0xFF);
-            stream.write((value >>> 16) & 0xFF);
-            stream.write((value >>> 8) & 0xFF);
-            stream.write(value & 0xFF);
-        }
-
-        /**
-         * Retrieves the entire compiled bytecode as a raw byte array.
-         */
-        public byte[] getBytes() {
-            return stream.toByteArray();
-        }
-
-        /**
-         * Gets the total size of the compiled bytecode in bytes.
-         */
-        public int getByteCount() {
-            return stream.size();
-        }
-
-        /**
-         * Writes the bytecode directly to an output stream (e.g., FileOutputStream).
-         */
-        public void writeToStream(OutputStream out) throws IOException {
-            stream.writeTo(out);
-        }
-
-        /**
-         * Resets/clears the output bytecode buffer.
-         */
-        public synchronized void clear() {
-            stream.reset();
-        }
 
     public ISA getIsa() {
         return isa;
@@ -174,5 +108,17 @@ public class Bytecode{
 
     public void setIsa(ISA isa) {
         this.isa = isa;
+    }
+
+    public Subroutine findSubroutine(String name){
+        for(int i = 0; i < segments.size(); i++){
+            // check if segment is a subroutine
+            Segment s = segments.get(i);
+            if(!(s instanceof Subroutine subroutine)) continue;
+
+            if(subroutine.name.equals(name)) return subroutine;
+        }
+
+        return null;
     }
 }

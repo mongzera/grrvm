@@ -28,6 +28,9 @@ public class Subroutine extends Segment{
 	public void resolve() {
 	    DebugMsg.asm_info("RESOLVER", "Resolving Subroutine: " + name);
 		// TODO:: Resolve subroutines especially with CALL and RET address that needs absolute instruction lines
+		for(int i = 0; i < instructions.size(); i++){
+			instructions.get(i).resolve(bytecode);
+		}
 	}
 
 	@Override
@@ -57,8 +60,11 @@ public class Subroutine extends Segment{
 		if(match == null) DebugMsg.asm_error(GrrError.INVALID_OPCODE, tokens[0]);
 
 		assert match != null;
-		instructions.add(match.resolveInstruction(bytecode, tokens));
+		instructions.add(match.parseInstruction(bytecode, tokens));
 	}
 
+	public int getSubroutineOffset(){
+		return subroutineOffset;
+	}
 
 }

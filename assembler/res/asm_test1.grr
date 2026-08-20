@@ -5,8 +5,8 @@
     SUB
     RET
 
-::hello
+::_global
     PUSH 5
     PUSH 6
-    CALL sub
+    CALL add
     HALT

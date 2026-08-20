@@ -1,5 +1,8 @@
 package src.com.mongzera.grrvm_assembler;
 
+import src.com.mongzera.grrvm_assembler.bytecode.Bytecode;
+import src.com.mongzera.grrvm_assembler.bytecode.Subroutine;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -48,7 +51,19 @@ public class ISA {
         operationCodes.add(new OpCode(OPC_BRANCHING, (byte) 0x00, (byte) 1, "JUMP"));
         operationCodes.add(new OpCode(OPC_BRANCHING, (byte) 0x01, (byte) 1, "JZ"));
         operationCodes.add(new OpCode(OPC_BRANCHING, (byte) 0x02, (byte) 1, "JNZ"));
-        operationCodes.add(new OpCode(OPC_BRANCHING, (byte) 0x03, (byte) 1, "CALL"));
+        operationCodes.add(new OpCode(OPC_BRANCHING, (byte) 0x03, (byte) 1, "CALL", (bytecode, instruction) -> {
+            // get name of the subroutine
+            String subroutine = instruction.getArg(0);
+            Subroutine targetSubroutine = bytecode.findSubroutine(subroutine);
+
+            if(targetSubroutine == null){
+                DebugMsg.asm_error(GrrError.SUBROUTINE_NOT_DEFINED, subroutine);
+            }
+
+            assert targetSubroutine != null;
+            instruction.setArg(0, Integer.toString(targetSubroutine.getSubroutineOffset()));
+
+        }));
         operationCodes.add(new OpCode(OPC_BRANCHING, (byte) 0x04, (byte) 0, "RET"));
 
         // BITWISE OPERAND
@@ -60,8 +75,8 @@ public class ISA {
         operationCodes.add(new OpCode (OPC_BITWISE, (byte) 0x05, (byte) 0, "RSHIFT"));
 
         // MEMORY (LOCAL) OPERAND
-        operationCodes.add(new OpCode(OPC_MEMORY_LOCAL , (byte) 0x00, (byte) 0, "STORE_L"));
-        operationCodes.add(new OpCode(OPC_MEMORY_LOCAL , (byte) 0x01, (byte) 0, "LOAD_L"));
+        operationCodes.add(new OpCode(OPC_MEMORY_LOCAL , (byte) 0x00, (byte) 1, "STORE_L"));
+        operationCodes.add(new OpCode(OPC_MEMORY_LOCAL , (byte) 0x01, (byte) 1, "LOAD_L"));
 
         // MEMORY (GLOBAL) OPERAND
         operationCodes.add(new OpCode(OPC_MEMORY_GLOBAL, (byte) 0x00, (byte) 0, "STORE"));

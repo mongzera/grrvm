@@ -8,14 +8,23 @@ public class OpCode {
     private byte opcodeArgCount = 0;
     private String opcodeStrForm = "";
     private int opcodeIdForm = -1;
+    private ResolverCallback resolverCallback = null;
+
+    public OpCode(byte opcodeCategory, byte opcodeIndex, byte opcodeArgCount, String opcodeStrForm, ResolverCallback resolverCallback){
+        this.init(opcodeCategory, opcodeIndex, opcodeArgCount, opcodeStrForm, resolverCallback);
+    }
 
     public OpCode(byte opcodeCategory, byte opcodeIndex, byte opcodeArgCount, String opcodeStrForm){
+        this.init(opcodeCategory, opcodeIndex, opcodeArgCount, opcodeStrForm, null);
+    }
+
+    private void init(byte opcodeCategory, byte opcodeIndex, byte opcodeArgCount, String opcodeStrForm, ResolverCallback resolverCallback){
         this.opcodeCategory = opcodeCategory;
         this.opcodeIndex = opcodeIndex;
         this.opcodeArgCount = opcodeArgCount;
         this.opcodeStrForm = opcodeStrForm.trim().toUpperCase();
         this.opcodeIdForm = (byte)(opcodeCategory | opcodeIndex);
-
+        this.resolverCallback = resolverCallback;
     }
 
     public boolean matchStr(String val){
@@ -34,7 +43,7 @@ public class OpCode {
         return opcodeCategory;
     }
 
-    public Instruction resolveInstruction(Bytecode bytecode, String[] tokens){
+    public Instruction parseInstruction(Bytecode bytecode, String[] tokens){
         Instruction instruction = new Instruction(this, bytecode);
         instruction.matchArgs(tokens);
 
@@ -65,13 +74,21 @@ public class OpCode {
             return "";
         }
 
+        public void setArg(int idx, String value){
+            if(opcodeArgCount > idx && idx >= 0) inTextArg[idx] = value;
+        }
+
         public void matchArgs(String[] tokens){
             //skip tokens[0] since this is the OPCODE str
             if(tokens.length - 1 != opcodeArgCount) DebugMsg.asm_error(GrrError.ARGUMENT_COUNT_NOT_MATCH);
 
             for(int i = 0; i < opcodeArgCount; i++){
-                inTextArg[i] = tokens[i + 1];
+                setArg(i, tokens[i + 1]);
             }
+        }
+
+        public void resolve(Bytecode bytecode){
+            if(opCode.resolverCallback != null) opCode.resolverCallback.resolve(bytecode, this);
         }
 
         public int getInstructionLineNumber(){return instructionLineNumber;}
@@ -85,5 +102,9 @@ public class OpCode {
 
             return line.toString();
         }
+    }
+
+    public interface ResolverCallback{
+        void resolve(Bytecode bytecode, Instruction instruction);
     }
 }

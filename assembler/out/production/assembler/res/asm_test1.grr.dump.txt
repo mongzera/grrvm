@@ -1,5 +1,5 @@
 Dumpfile for [asm_test1.grr]
-Created at: 2026-08-18T05:50:42.437018300
+Created at: 2026-08-20T08:13:44.695098900
 =======================================================================
 ::add [Instruction Count: 2]
 0 | ADD
@@ -12,6 +12,6 @@ Created at: 2026-08-18T05:50:42.437018300
 ::_global [Instruction Count: 7]
 4 | PUSH 5
 6 | PUSH 6
-8 | CALL sub
+8 | CALL 0
 10 | HALT
 
