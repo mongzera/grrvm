@@ -1,6 +1,7 @@
 package src.com.mongzera.grrvm_assembler.bytecode;
 
 import src.com.mongzera.grrvm_assembler.DebugMsg;
+
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -29,64 +30,50 @@ public class DataSubroutine extends Segment {
     public void compile() {
         DebugMsg.asm_info("COMPILER", "Compiling Data Subroutine: " + name);
 
-        for (String line : lines) {
-            DebugMsg.asm_info(name, ">> " + line);
-
-            String[] var = line.split(">>");
-            if (var.length < 2) {
-                DebugMsg.asm_error(name, "Invalid syntax line: " + line);
-                continue;
-            }
-
-            String[] type_and_name = var[0].trim().split("\\s+");
-            if (type_and_name.length < 2) {
-                DebugMsg.asm_error(name, "Missing type or name in: " + var[0]);
-                continue;
-            }
-
-            String typeStr = type_and_name[0].trim().toLowerCase();
-            String varName = type_and_name[1].trim();
-            String rawValues = var[1].trim();
-
-            try {
-                byte typeId = getTypeByte(typeStr);
-                byte[] rawDataBytes = parseValueData(typeStr, rawValues);
-
-                // Instantiate standalone Data object
-                Data dataEntry = new Data(typeId, rawDataBytes);
-                entries.add(dataEntry);
-
-                // Stream binary payload into output bytecode
-                if (bytecode != null) {
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    DataOutputStream dos = new DataOutputStream(baos);
-
-                    // Stream out binary format (Type -> Size -> Payload)
-                    dataEntry.streamBinary(dos);
-
-                    dos.flush();
-                    //bytecode.writeBytes(baos.toByteArray());
-                }
-
-            } catch (Exception e) {
-                DebugMsg.asm_error(name, "Error compiling line: '" + line + "' -> " + e.getMessage());
-            }
-        }
     }
 
     @Override
     public void resolve() {
         DebugMsg.asm_info("RESOLVER", "Resolving Data Subroutine: " + name);
+        entries.forEach(entry -> {
+            entry.resolve(bytecode);
+        });
     }
 
     @Override
     public void parse() {
+        DebugMsg.asm_info("PARSER", "Parsing Subroutine: " + name);
+        for(int i = 0; i < lines.size(); i++){
+            evaluate(lines.get(i));
+        }
+    }
 
+    private void evaluate(String line){
+        String[] tokens = line.trim().split("[\\s,]+");
+        byte datatype = Data.matchTypeStr(tokens[0]);
+        String name = tokens[1];
+
+        String[] values = new String[tokens.length - 2];
+        System.arraycopy(tokens, 2, values, 0, values.length);
+
+        Data data = new Data(datatype, name, values);
+        entries.add(data);
     }
 
     @Override
     public void printDump(StringBuilder dump) {
-
+        dump.append(":=").append(name).append(String.format(" [Variable Count: %s]", entries.size())).append("\n");
+        for(int i = 0; i < entries.size(); i++){
+            Data entry = entries.get(i);
+            int[] stream = entry.asStream();
+            dump.append(String.format("|%s|%s|\n", isConstant ? "CONST" : "IMMUT", entry.getName()));
+            dump.append(String.format("\t\t TYPE: %s\n", stream[0]));
+            dump.append(String.format("\t\t LENGTH: %s\n", stream[1]));
+            for(int j = 0; j < stream.length-2; j++){
+                dump.append(String.format("\t\t\t [%s]: %s | HEX: 0x%s\n", j, stream[j+2], Integer.toHexString(stream[j+2]).toUpperCase()));
+            }
+        }
+        dump.append("\n");
     }
 
     public List<Data> getEntries() {

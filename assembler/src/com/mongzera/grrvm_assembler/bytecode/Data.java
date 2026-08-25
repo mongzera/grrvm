@@ -1,13 +1,19 @@
 package src.com.mongzera.grrvm_assembler.bytecode;
 
+import src.com.mongzera.grrvm_assembler.DebugMsg;
+import src.com.mongzera.grrvm_assembler.GrrError;
+import src.com.mongzera.grrvm_assembler.util.DataValueParser;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 
 public class Data {
     private final byte type;
     private final int size;
-    private final byte[] payload;
-
+    private final String[] values;
+    private final String name;
+    private int[] raw_values;
+    private final int binaryOffset = 0;
     // Type Identifier Constants
     public static final byte TYPE_UINT8  = 0x01;
     public static final byte TYPE_UINT16 = 0x02;
@@ -21,11 +27,14 @@ public class Data {
     public static final byte TYPE_DOUBLE = 0x0A;
     public static final byte TYPE_CHAR   = 0x0B;
 
-    public Data(byte type, byte[] payload) {
+    public Data(byte type, String name, String[] values) {
         this.type = type;
-        this.payload = payload;
-        this.size = payload.length;
+        this.values = values;
+        this.name = name;
+        this.size = values.length;
     }
+
+    public String getName(){return name;}
 
     public byte getType() {
         return type;
@@ -35,16 +44,54 @@ public class Data {
         return size;
     }
 
-    public byte[] getPayload() {
-        return payload;
+    public boolean isArray() {return values.length > 1;}
+
+    public String[] getValuesStr() {
+        return values;
     }
 
-    /**
-     * Streams binary in exact layout format: Type (1 byte) -> Size (4 bytes) -> Actual Data Payload
+    // TODO: Create a method that will parse the value, 1203, 12.23, 0xFE, etc according to type
+
+    public static byte matchTypeStr(String typeStr){
+        switch (typeStr.toUpperCase()){
+            case "UINT8": return TYPE_UINT8;
+            case "UINT16": return TYPE_UINT16;
+            case "UINT32": return TYPE_UINT32;
+            case "UINT64": return TYPE_UINT64;
+            case "INT8": return TYPE_INT8;
+            case "INT16": return TYPE_INT16;
+            case "INT32": return TYPE_INT32;
+            case "INT64": return TYPE_INT64;
+            case "FLOAT": return TYPE_FLOAT;
+            case "DOUBLE": return TYPE_DOUBLE;
+            case "CHAR": return TYPE_CHAR;
+            default:
+                DebugMsg.asm_error(GrrError.INVALID_DATATYPE, typeStr);
+                break;
+        }
+
+        return 0;
+    }
+
+    public void resolve(Bytecode bytecode) {
+        this.raw_values = new int[this.values.length];
+        for (int i = 0; i < this.values.length; i++) {
+            this.raw_values[i] = DataValueParser.parse(this.type, this.values[i]);
+        }
+    }
+
+    /*
+     * The stream is arranged in this manner
+     * [type]
+     * [length]
+     * [elements...]
      */
-    public void streamBinary(DataOutputStream dos) throws IOException {
-        dos.writeByte(type);
-        dos.writeInt(size);
-        dos.write(payload);
+    public int[] asStream(){
+        int[] raw = new int[values.length + 2];
+        raw[0] = type;
+        raw[1] = values.length;
+        System.arraycopy(raw_values, 0, raw, 2, values.length);
+
+        return raw;
     }
 }

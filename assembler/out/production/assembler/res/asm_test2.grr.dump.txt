@@ -1,0 +1,44 @@
+Dumpfile for [asm_test2.grr]
+Created at: 2026-08-25T18:32:17.590294800
+=======================================================================
+:=_const_user_data [Variable Count: 3]
+|CONST|age|
+		 TYPE: 5
+		 LENGTH: 5
+			 [0]: 10 | HEX: 0xA
+			 [1]: 12 | HEX: 0xC
+			 [2]: 16 | HEX: 0x10
+			 [3]: 23 | HEX: 0x17
+			 [4]: 10 | HEX: 0xA
+|CONST|year|
+		 TYPE: 2
+		 LENGTH: 5
+			 [0]: 2004 | HEX: 0x7D4
+			 [1]: 2004 | HEX: 0x7D4
+			 [2]: 2002 | HEX: 0x7D2
+			 [3]: 2008 | HEX: 0x7D8
+			 [4]: 2016 | HEX: 0x7E0
+|CONST|height|
+		 TYPE: 9
+		 LENGTH: 2
+			 [0]: 1102698250 | HEX: 0x41B9D70A
+			 [1]: -1044748698 | HEX: 0xC1BA6666
+
+:=fib_data [Variable Count: 1]
+|IMMUT|i|
+		 TYPE: 1
+		 LENGTH: 1
+			 [0]: 0 | HEX: 0x0
+
+::_global [Instruction Count: 14]
+0 | PUSH fib_data.i
+2 | LOAD
+3 | PUSH fib_data.i
+5 | LOAD
+6 | PUSH 1
+8 | ADD
+9 | ADD
+10 | PUSH fib_data.i
+12 | STORE
+13 | HALT
+

@@ -68,15 +68,20 @@ public class Bytecode{
 
 
     public void resolve(){
+
+        // resolve data segment first
         segments.forEach((segment) -> {
-            segment.resolve();
+            if(segment instanceof DataSubroutine) segment.resolve();
+        });
+
+        // then resolve subroutines
+        segments.forEach((segment) -> {
+            if(segment instanceof Subroutine) segment.resolve();
         });
     }
 
     public void parse(){
-        segments.forEach((segment) -> {
-            segment.parse();
-        });
+        segments.forEach(Segment::parse);
     }
 
     public String createBytecodeDumpFile(){
@@ -87,9 +92,7 @@ public class Bytecode{
         dump.append("=======================================================================\n");
 
         for(int i = 0; i < segments.size(); i++){
-
-            // only print the subroutines, not data subroutines
-            if(segments.get(i) instanceof Subroutine) segments.get(i).printDump(dump);
+            segments.get(i).printDump(dump);
         }
 
         return dump.toString();
