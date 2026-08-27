@@ -13,7 +13,7 @@ public class Data {
     private final String[] values;
     private final String name;
     private int[] raw_values;
-    private final int binaryOffset = 0;
+    private int assignedRAMAddress = -1;
     // Type Identifier Constants
     public static final byte TYPE_UINT8  = 0x01;
     public static final byte TYPE_UINT16 = 0x02;
@@ -74,9 +74,12 @@ public class Data {
     }
 
     public void resolve(Bytecode bytecode) {
+
+        assignedRAMAddress = bytecode.getCurrentRAMAddress();
         this.raw_values = new int[this.values.length];
         for (int i = 0; i < this.values.length; i++) {
             this.raw_values[i] = DataValueParser.parse(this.type, this.values[i]);
+            bytecode.incrementCurrrentRamAddress();
         }
     }
 
@@ -93,5 +96,9 @@ public class Data {
         System.arraycopy(raw_values, 0, raw, 2, values.length);
 
         return raw;
+    }
+
+    public int getAssignedRAMAddress(){
+        return assignedRAMAddress;
     }
 }

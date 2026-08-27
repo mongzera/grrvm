@@ -35,7 +35,7 @@ public class BytecodeLoader {
 
             bytecode.parse();
             bytecode.resolve();
-            bytecode.compile();
+            Bytecode.Stream stream = bytecode.compile();
 
             return bytecode;
         } catch (IOException e) {

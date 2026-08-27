@@ -14,12 +14,14 @@ public class Bytecode{
     public static final int PARSE_DATA       = 0;
     public static final int PARSE_SUBROUTINE = 1;
 
+    private boolean dataSubroutineResovled = false;
     private String filename;
     private int mode = -1;
     private Segment currentSegment = null;
     private boolean hasGlobalSubroutine = false;
     private ArrayList<Segment> segments = new ArrayList<>();
     private int currentInstructionLine = 0;
+    private int currentRAMAddressAlloc = 0;
 
     private ISA isa;
 
@@ -57,13 +59,13 @@ public class Bytecode{
         currentSegment.feed(line);
     }
 
-    public void compile(){
+    public Stream compile(){
         // check first if ::_global exists, main method
         if(!hasGlobalSubroutine) DebugMsg.asm_error(GrrError.NO_GLOBAL_SUBROUTINE);
 
-        segments.forEach((segment) -> {
-            segment.compile();
-        });
+        Stream stream = new Stream(segments);
+
+        return stream;
     }
 
 
@@ -73,6 +75,8 @@ public class Bytecode{
         segments.forEach((segment) -> {
             if(segment instanceof DataSubroutine) segment.resolve();
         });
+
+        dataSubroutineResovled = true;
 
         // then resolve subroutines
         segments.forEach((segment) -> {
@@ -123,5 +127,46 @@ public class Bytecode{
         }
 
         return null;
+    }
+
+    public int getAbsoluteMemAddr(String dataSubroutineVar){
+        if(!dataSubroutineResovled) DebugMsg.asm_error("DATA SUBROUTINE", "Data subroutines are still unresolved!");
+        DebugMsg.asm_info("DATA SUBROUTINE", "Variable: " + dataSubroutineVar);
+
+        for(int i = 0; i < segments.size(); i++){
+            // check if segment is a subroutine
+            Segment s = segments.get(i);
+            if(s instanceof DataSubroutine){
+                DataSubroutine dataSubroutine = (DataSubroutine) s;
+                String[] tokens = dataSubroutineVar.split("\\.");
+                if(!dataSubroutine.name.equals(tokens[0].trim())) continue;
+
+                Data data = dataSubroutine.getVarName(tokens[1].trim());
+                if(data == null) DebugMsg.asm_error("UNKNOWN VARIABLE", String.format("Variable [%s] is not defined!", dataSubroutineVar));
+
+                assert data != null;
+                return data.getAssignedRAMAddress();
+            }
+        }
+
+        return -1;
+    }
+
+    public int getCurrentRAMAddress(){return currentRAMAddressAlloc;}
+    public void incrementCurrrentRamAddress(){currentRAMAddressAlloc++;}
+
+    public static class Stream{
+        private int programSize;
+        private int programStart;
+        private int constDataSize;
+        private int constDataStart;
+        private int dataSize;
+        private int dataStart;
+
+        private int[] program;
+
+        public Stream(ArrayList<Segment> segments){
+            
+        }
     }
 }

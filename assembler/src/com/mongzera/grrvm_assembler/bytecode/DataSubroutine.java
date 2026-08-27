@@ -80,6 +80,14 @@ public class DataSubroutine extends Segment {
         return entries;
     }
 
+    public Data getVarName(String varName){
+        for(int i = 0; i < entries.size(); i++){
+            if(entries.get(i).getName().equals(varName)) return entries.get(i);
+        }
+
+        return null;
+    }
+
     private byte getTypeByte(String type) {
         switch (type) {
             case "uint8":  case "u8":  return Data.TYPE_UINT8;
@@ -98,55 +106,4 @@ public class DataSubroutine extends Segment {
         }
     }
 
-    private byte[] parseValueData(String type, String rawValues) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        DataOutputStream dos = new DataOutputStream(baos);
-
-        if (type.equals("char") || type.equals("string")) {
-            String cleaned = rawValues;
-            if (cleaned.startsWith("\"") && cleaned.endsWith("\"")) {
-                cleaned = cleaned.substring(1, cleaned.length() - 1);
-            }
-            dos.write(cleaned.getBytes(StandardCharsets.UTF_8));
-            dos.flush();
-            return baos.toByteArray();
-        }
-
-        String[] tokens = rawValues.split(",");
-        for (String token : tokens) {
-            String val = token.trim();
-            if (val.isEmpty()) continue;
-
-            long parsedNum = 0;
-            if (val.startsWith("0x") || val.startsWith("0X")) {
-                parsedNum = Long.parseUnsignedLong(val.substring(2), 16);
-            } else if (!type.equals("float") && !type.equals("double")) {
-                parsedNum = Long.parseLong(val);
-            }
-
-            switch (type) {
-                case "uint8": case "u8": case "int8": case "i8":
-                    dos.writeByte((int) (parsedNum & 0xFF));
-                    break;
-                case "uint16": case "u16": case "int16": case "i16":
-                    dos.writeShort((int) (parsedNum & 0xFFFF));
-                    break;
-                case "uint32": case "u32": case "int32": case "i32":
-                    dos.writeInt((int) (parsedNum & 0xFFFFFFFFL));
-                    break;
-                case "uint64": case "u64": case "int64": case "i64":
-                    dos.writeLong(parsedNum);
-                    break;
-                case "float": case "f32":
-                    dos.writeFloat(Float.parseFloat(val));
-                    break;
-                case "double": case "f64":
-                    dos.writeDouble(Double.parseDouble(val));
-                    break;
-            }
-        }
-
-        dos.flush();
-        return baos.toByteArray();
-    }
 }

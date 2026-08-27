@@ -29,6 +29,13 @@ public class ISA {
         operationCodes.add(new OpCode(OPC_STACK_OPERAND, (byte) 0x03, (byte) 0, "DUP"));
         operationCodes.add(new OpCode(OPC_STACK_OPERAND, (byte) 0x04, (byte) 0, "ROT"));
         operationCodes.add(new OpCode(OPC_STACK_OPERAND, (byte) 0x05, (byte) 0, "SWAP"));
+        operationCodes.add(new OpCode(OPC_STACK_OPERAND, (byte) 0x06, (byte) 1, "PUSH_ADDR", (bytecode, instruction) -> {
+            DebugMsg.asm_info("ARGUMENTS", String.format("ARG0: %s, ARG1: %s, ARG2", instruction.getArg(0), instruction.getArg(1), instruction.getArg(2)));
+            String var_name = instruction.getArg(0);
+            if(var_name.isEmpty()) DebugMsg.asm_error("ARGUMENT INVALID", "Argument is required for PUSH_ADDR");
+
+            instruction.setArg(0, Integer.toString(bytecode.getAbsoluteMemAddr(var_name)));
+        }));
 
         // ARITHMETIC OPERAND
         operationCodes.add(new OpCode(OPC_ARITHMETIC , (byte) 0x00, (byte) 0, "ADD"));

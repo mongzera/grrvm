@@ -7,13 +7,13 @@
     uint8 i 0
 
 ::_global
-    PUSH fib_data.i
+    PUSH_ADDR fib_data.i
     LOAD
-    PUSH fib_data.i
+    PUSH_ADDR _const_user_data.height
     LOAD
     PUSH 1
     ADD
     ADD
-    PUSH fib_data.i
+    PUSH_ADDR fib_data.i
     STORE
     HALT

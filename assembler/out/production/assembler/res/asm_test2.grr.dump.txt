@@ -1,5 +1,5 @@
 Dumpfile for [asm_test2.grr]
-Created at: 2026-08-25T18:32:17.590294800
+Created at: 2026-08-27T20:46:20.305537800
 =======================================================================
 :=_const_user_data [Variable Count: 3]
 |CONST|age|
@@ -31,14 +31,14 @@ Created at: 2026-08-25T18:32:17.590294800
 			 [0]: 0 | HEX: 0x0
 
 ::_global [Instruction Count: 14]
-0 | PUSH fib_data.i
+0 | PUSH_ADDR 12
 2 | LOAD
-3 | PUSH fib_data.i
+3 | PUSH_ADDR 10
 5 | LOAD
 6 | PUSH 1
 8 | ADD
 9 | ADD
-10 | PUSH fib_data.i
+10 | PUSH_ADDR 12
 12 | STORE
 13 | HALT
 
