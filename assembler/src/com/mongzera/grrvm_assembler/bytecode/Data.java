@@ -14,6 +14,9 @@ public class Data {
     private final String name;
     private int[] raw_values;
     private int assignedRAMAddress = -1;
+
+    private boolean isConstant = false;
+
     // Type Identifier Constants
     public static final byte TYPE_UINT8  = 0x01;
     public static final byte TYPE_UINT16 = 0x02;
@@ -73,8 +76,8 @@ public class Data {
         return 0;
     }
 
-    public void resolve(Bytecode bytecode) {
-
+    public void resolve(Bytecode bytecode, boolean isConstant) {
+        this.isConstant = isConstant;
         assignedRAMAddress = bytecode.getCurrentRAMAddress();
         this.raw_values = new int[this.values.length];
         for (int i = 0; i < this.values.length; i++) {
@@ -91,7 +94,7 @@ public class Data {
      */
     public int[] asStream(){
         int[] raw = new int[values.length + 2];
-        raw[0] = type;
+        raw[0] = isConstant ? (0x80 | type) : type;
         raw[1] = values.length;
         System.arraycopy(raw_values, 0, raw, 2, values.length);
 

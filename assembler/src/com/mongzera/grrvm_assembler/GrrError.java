@@ -8,6 +8,7 @@ public enum GrrError{
     NO_GLOBAL_SUBROUTINE(0xF1, "PARSER", "Main ::_global subroutine is not defined!"),
     INVALID_DATATYPE(0xF2, "PARSER", "Datatype is invalid!"),
     INVALID_OPCODE(0xD0, "OPCDOE", "Opcode is not defined!"),
+    INVALID_OPCODE_ARGUMENT(0xD0, "OPCDOE", "Opcode argument is invalid!"),
     ARGUMENT_COUNT_NOT_MATCH(0xD1, "OPCDOE", "Argument count does not match!"),
     SUBROUTINE_NOT_DEFINED(0xD1, "RESOLVER", "Subroutine is not defined!");
 

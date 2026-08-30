@@ -1,9 +1,9 @@
 Dumpfile for [asm_test2.grr]
-Created at: 2026-08-27T20:46:20.305537800
+Created at: 2026-08-30T08:06:37.387831900
 =======================================================================
 :=_const_user_data [Variable Count: 3]
 |CONST|age|
-		 TYPE: 5
+		 TYPE: 133
 		 LENGTH: 5
 			 [0]: 10 | HEX: 0xA
 			 [1]: 12 | HEX: 0xC
@@ -11,7 +11,7 @@ Created at: 2026-08-27T20:46:20.305537800
 			 [3]: 23 | HEX: 0x17
 			 [4]: 10 | HEX: 0xA
 |CONST|year|
-		 TYPE: 2
+		 TYPE: 130
 		 LENGTH: 5
 			 [0]: 2004 | HEX: 0x7D4
 			 [1]: 2004 | HEX: 0x7D4
@@ -19,7 +19,7 @@ Created at: 2026-08-27T20:46:20.305537800
 			 [3]: 2008 | HEX: 0x7D8
 			 [4]: 2016 | HEX: 0x7E0
 |CONST|height|
-		 TYPE: 9
+		 TYPE: 137
 		 LENGTH: 2
 			 [0]: 1102698250 | HEX: 0x41B9D70A
 			 [1]: -1044748698 | HEX: 0xC1BA6666
@@ -42,3 +42,43 @@ Created at: 2026-08-27T20:46:20.305537800
 12 | STORE
 13 | HALT
 
+
+===========================[BINARY]=============================
+0x18
+0xe
+0x0
+0x85
+0x5
+0xa
+0xc
+0x10
+0x17
+0xa
+0x82
+0x5
+0x7d4
+0x7d4
+0x7d2
+0x7d8
+0x7e0
+0x89
+0x2
+0x41b9d70a
+0xc1ba6666
+0x1
+0x1
+0x0
+0x6
+0x0
+0x61
+0x6
+0x0
+0x61
+0x1
+0x0
+0x10
+0x10
+0x6
+0x0
+0x60
+0x0

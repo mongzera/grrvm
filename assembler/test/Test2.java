@@ -20,16 +20,17 @@ public class Test2 {
         // Option 1: Append .dump.txt to the full filename (asm_test1.grr.dump.txt)
         Path newPath = path.resolveSibling(path.getFileName().toString() + ".dump.txt");
 
-        // Option 2: Replace existing extension (asm_test1.dump.txt)
-        String fileName = path.getFileName().toString();
-        int lastDot = fileName.lastIndexOf('.');
-        String baseName = (lastDot == -1) ? fileName : fileName.substring(0, lastDot);
-        Path newPathReplace = path.resolveSibling(baseName + ".dump.txt");
+        Path binaryPath = path.resolveSibling(path.getFileName().toString() + ".o");
+
+
 
         Bytecode bytecode = BytecodeLoader.fromPath(path);
+        assert bytecode != null;
+        Bytecode.Stream stream = bytecode.getCompiledStream();
 
         assert bytecode != null;
         Files.writeString(newPath, bytecode.createBytecodeDumpFile());
+        stream.writeBinaryFile(binaryPath.toString());
 
         System.out.println("Original path: " + path.toAbsolutePath());
         System.out.println("Writing to: " + newPath.toAbsolutePath());

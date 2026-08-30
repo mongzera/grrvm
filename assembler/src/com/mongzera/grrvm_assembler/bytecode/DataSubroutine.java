@@ -11,7 +11,7 @@ import java.util.List;
 
 public class DataSubroutine extends Segment {
     private boolean isConstant = false;
-    private final List<Data> entries = new ArrayList<>();
+    private final ArrayList<Data> entries = new ArrayList<>();
 
     public DataSubroutine(Bytecode bytecode, String name, boolean isConstant) {
         super(bytecode, name);
@@ -36,7 +36,7 @@ public class DataSubroutine extends Segment {
     public void resolve() {
         DebugMsg.asm_info("RESOLVER", "Resolving Data Subroutine: " + name);
         entries.forEach(entry -> {
-            entry.resolve(bytecode);
+            entry.resolve(bytecode, isConstant);
         });
     }
 
@@ -76,7 +76,7 @@ public class DataSubroutine extends Segment {
         dump.append("\n");
     }
 
-    public List<Data> getEntries() {
+    public ArrayList<Data> getEntries() {
         return entries;
     }
 

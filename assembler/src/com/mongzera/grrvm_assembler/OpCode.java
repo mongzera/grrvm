@@ -1,6 +1,7 @@
 package src.com.mongzera.grrvm_assembler;
 
 import src.com.mongzera.grrvm_assembler.bytecode.Bytecode;
+import src.com.mongzera.grrvm_assembler.util.InstructionArgParser;
 
 public class OpCode {
     private byte opcodeCategory = -1;
@@ -31,8 +32,8 @@ public class OpCode {
         return opcodeStrForm.equals(val.toUpperCase());
     }
 
-    public boolean matchId(byte id){
-        return opcodeIdForm == id;
+    public int getOpcodeIdForm(){
+        return opcodeIdForm;
     }
 
     public byte getArgCount(){
@@ -58,11 +59,13 @@ public class OpCode {
 
     public class Instruction{
         private String[] inTextArg;
+        private int[] resolvedArgs;
         private int instructionLineNumber;
         private OpCode opCode;
 
         public Instruction(OpCode opCode, Bytecode bytecode){
             this.inTextArg = new String[opCode.getArgCount()];
+            this.resolvedArgs = new int[opCode.getArgCount()];
             this.instructionLineNumber = bytecode.getCurrentInstructionLine();
             this.opCode = opCode;
             bytecode.addInstructionLine(opCode.getArgCount()+1);
@@ -91,6 +94,12 @@ public class OpCode {
             if(opCode.resolverCallback != null) opCode.resolverCallback.resolve(bytecode, this);
         }
 
+        public void compile(){
+            for(int i = 0; i < inTextArg.length; i++){
+                resolvedArgs[i] = InstructionArgParser.parse(inTextArg[i]);
+            }
+        }
+
         public int getInstructionLineNumber(){return instructionLineNumber;}
 
         @Override
@@ -101,6 +110,16 @@ public class OpCode {
             }
 
             return line.toString();
+        }
+
+        public int[] asStream(){
+            int[] stream = new int[1 + inTextArg.length];
+            stream[0] = opCode.getOpcodeIdForm();
+            for(int i = 0; i < resolvedArgs.length; i++){
+                stream[i+1] = resolvedArgs[i];
+            }
+
+            return stream;
         }
     }
 

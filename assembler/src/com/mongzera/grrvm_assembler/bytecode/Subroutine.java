@@ -22,12 +22,16 @@ public class Subroutine extends Segment{
 	@Override
 	public void compile() {
 	    DebugMsg.asm_info("COMPILER", "Compiling Subroutine: " + name);
+
+		for(int i = 0; i < instructions.size(); i++){
+			instructions.get(i).compile();
+		}
 	}
 
 	@Override
 	public void resolve() {
 	    DebugMsg.asm_info("RESOLVER", "Resolving Subroutine: " + name);
-		// TODO:: Resolve subroutines especially with CALL and RET address that needs absolute instruction lines
+
 		for(int i = 0; i < instructions.size(); i++){
 			instructions.get(i).resolve(bytecode);
 		}
@@ -61,6 +65,10 @@ public class Subroutine extends Segment{
 
 		assert match != null;
 		instructions.add(match.parseInstruction(bytecode, tokens));
+	}
+
+	public ArrayList<OpCode.Instruction> getInstructions(){
+		return instructions;
 	}
 
 	public int getSubroutineOffset(){
