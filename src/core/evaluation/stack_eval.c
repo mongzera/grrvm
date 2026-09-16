@@ -13,10 +13,12 @@ void eval_stack_operand(VM_Thread *thread, word opcode) {
             break;
         }
 
+        // TODO:: ADD PUSHF to treat Float types
         case PUSH: {
             word raw_data = get_instruction(thread);
             prim_val val = make_prim_val(raw_data, STATE_OPEN, TYPE_I32);
-            vm_info("PUSH", "VALUE: %d", raw_data);
+            if(get_prim_type(val) != TYPE_FLOAT) vm_info("PUSH", "VALUE: %d", raw_data);
+            else vm_info("PUSH", "VALUE: %f", raw_data);
             if (!push_stack(thread, val)) {
                 vm_error("STACK OVERFLOW", "Thread operand stack limit reached during PUSH!");
                 has_error = 1;
@@ -31,7 +33,8 @@ void eval_stack_operand(VM_Thread *thread, word opcode) {
                 has_error = 1;
             }
 
-            vm_info("VM POP", "VALUE: %d", val.data);
+            if(get_prim_type(val) != TYPE_FLOAT) vm_info("PUSH", "VALUE: %d", val);
+            else vm_info("PUSH", "VALUE: %f", val);
             break;
         }
 
