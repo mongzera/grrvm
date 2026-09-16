@@ -6,6 +6,7 @@
 #include "grrvm/type_arithmetic.h"
 
 void eval_arithmetic_operand(VM_Thread *thread, word opcode) {
+
     switch (opcode) {
         case ADD: {
             prim_val b, a, res;

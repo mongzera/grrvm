@@ -10,16 +10,30 @@ void vm_start(VM* vm_instance){
     // initialize system
     // initialize hal
     // initialize vm_instance
+    // initialize all threads as inactive except for thread[0]
+    for(int i = 1; i < VM_MAX_THREADS; i++){
+        set_thread_inactive(&vm_instance->vm_threads[i]);
+    }
+    vm_new_thread(vm_instance, vm_instance->_program_start, 0);
     vm_loop(vm_instance);
 
 }
 
 void vm_loop(VM* vm){
+    int consecutive_skip = 0;
     while(1){
+        // stop when non of the threads are active
+        if(consecutive_skip > VM_MAX_THREADS) break;
+
         for (int i = 0; i < VM_MAX_THREADS; i++) {
             VM_Thread* thread = &vm->vm_threads[i];
 
-            if(!is_thread_active(thread)) continue;
+            if(!is_thread_active(thread)){
+                consecutive_skip++;
+                continue;
+            }
+
+            consecutive_skip = 0;
 
             word opcode = get_instruction(thread);
 
@@ -38,6 +52,8 @@ void vm_loop(VM* vm){
                     break;
                 }
             }
+
+
         }
     }
 }

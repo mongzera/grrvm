@@ -7,6 +7,7 @@
 #include <string.h>
 
 
+
 static inline int push_stack(VM_Thread *thread, prim_val val) {
     if (thread->sp >= VM_OP_STACK_MAX - 1) {
         return 0; // Stack overflow

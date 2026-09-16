@@ -4,6 +4,11 @@
 
 :=fib_data
     uint8 i 0
+::_fib
+    PUSH 1
+    PUSH 2
+    ADD
+    RET
 
 ::_global
     PUSH fib_data.i

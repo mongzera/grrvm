@@ -96,6 +96,7 @@ public class OpCode {
 
         public void compile(){
             for(int i = 0; i < inTextArg.length; i++){
+                System.out.println(inTextArg[i]);
                 resolvedArgs[i] = InstructionArgParser.parse(inTextArg[i]);
             }
         }
@@ -113,9 +114,10 @@ public class OpCode {
         }
 
         public int[] asStream(){
-            int[] stream = new int[1 + inTextArg.length];
+            int[] stream = new int[1 + resolvedArgs.length];
             stream[0] = opCode.getOpcodeIdForm();
             for(int i = 0; i < resolvedArgs.length; i++){
+
                 stream[i+1] = resolvedArgs[i];
             }
 

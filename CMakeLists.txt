@@ -21,6 +21,7 @@ file(GLOB VM_SOURCES CONFIGURE_DEPENDS
     "src/*.c"
     "src/core/*.c"
     "src/core/evaluation/*.c"
+    "src/ports/posix/*.c"
 )
 
 # ------------------------------------------------------------------------------
@@ -33,6 +34,7 @@ target_link_libraries(grrvm m) # math library
 target_include_directories(grrvm PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/include/hal
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ports/posix
 )
 
 # ------------------------------------------------------------------------------

@@ -23,7 +23,6 @@ public class Test2 {
         Path binaryPath = path.resolveSibling(path.getFileName().toString() + ".o");
 
 
-
         Bytecode bytecode = BytecodeLoader.fromPath(path);
         assert bytecode != null;
         Bytecode.Stream stream = bytecode.getCompiledStream();

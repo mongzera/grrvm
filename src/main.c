@@ -3,6 +3,7 @@
 #include "../include/grrvm/vm_log.h"
 #include "grrvm/vm.h"
 #include "grrvm/vm_program_loader.h"
+#include "ports/posix/load_vm.h"
 
 void print_command_unrecognized(void){
     printf("Error: Command is unrecognized!\n");
@@ -29,8 +30,8 @@ void compile(char* src){
 
 void execute(char* src){
     vm_info("[EXECUTE]", "%s\n", src);
-    VM* vm = 0;
-    vm_program_loader(src, vm);
+
+    VM* vm = load_vm(src);
     vm_start(vm);
 }
 

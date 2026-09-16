@@ -21,6 +21,7 @@ typedef enum prim_type {
     TYPE_U32,
     TYPE_I32,
     TYPE_FLOAT,
+    TYPE_LENGTH,
     TYPE_REFERENCE
 } prim_type;
 
@@ -35,9 +36,14 @@ typedef struct VM_CallStack{
     word previous_sfp;
 } VM_CallStack;
 
+typedef enum {
+    THREAD_INACTIVE = 0x0,
+    THREAD_ACTIVE,
+    THREAD_WAIT
+} thread_status;
 
 typedef struct VM_Thread{
-    byte status;
+    thread_status status;
     word pc;
     word pc_checkpoint;
     g_int sp;
@@ -94,15 +100,15 @@ static inline prim_state get_prim_state(prim_val val){
 }
 
 static inline void set_thread_active(VM_Thread* thread) {
-    thread->status |= (byte)0x01;
+    thread->status = THREAD_ACTIVE;
 }
 
 static inline void set_thread_inactive(VM_Thread* thread) {
-    thread->status &= (byte)(~0x01);
+    thread->status = THREAD_INACTIVE;
 }
 
 static inline byte is_thread_active(const VM_Thread* thread) {
-    return (thread->status & 0x01) != 0;
+    return (thread->status == THREAD_ACTIVE);
 }
 
 #endif

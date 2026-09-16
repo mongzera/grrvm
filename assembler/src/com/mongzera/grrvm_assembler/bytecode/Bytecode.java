@@ -1,16 +1,11 @@
 package src.com.mongzera.grrvm_assembler.bytecode;
 
-import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 import src.com.mongzera.grrvm_assembler.DebugMsg;
 import src.com.mongzera.grrvm_assembler.GrrError;
@@ -73,6 +68,9 @@ public class Bytecode{
         // check first if ::_global exists, main method
         if(!hasGlobalSubroutine) DebugMsg.asm_error(GrrError.NO_GLOBAL_SUBROUTINE);
 
+        for(int i = 0; i < segments.size(); i++){
+            segments.get(i).compile();
+        }
         stream = new Stream(segments);
 
         return stream;
@@ -180,7 +178,7 @@ public class Bytecode{
 
     public static class Stream{
         private int programSize = 0;
-        private int programStart = 0;
+        private int programOffset = 0;
         private int globalStart = 0;
 
         private ArrayList<Integer> noMetadataProgram = new ArrayList<>();
@@ -202,7 +200,7 @@ public class Bytecode{
             }
 
             binaryStreamProgram = new int[noMetadataProgram.size() + 3];
-            binaryStreamProgram[0] = programStart + 3; // + 3 for the metadata / header offset
+            binaryStreamProgram[0] = programOffset + 3; // + 3 for the metadata / header offset
             binaryStreamProgram[1] = programSize;
             binaryStreamProgram[2] = globalStart;
 
@@ -225,7 +223,7 @@ public class Bytecode{
                 for(int j = 0; j < stream.length; j++){
                     noMetadataProgram.add(stream[j]);
                 }
-                programStart += stream.length;
+                programOffset += stream.length;
             }
         }
 

@@ -1,19 +1,6 @@
-:=_const_user_data
-    int8 age 10, 12, 16, 23, 10
-    uint16 year 2004, 2004, 2002, 2008, 2016
-    float height 23.23,-23.3
-
-:=fib_data
-    uint8 i 0
-
 ::_global
-    PUSH_ADDR fib_data.i
-    LOAD
-    PUSH_ADDR _const_user_data.height
-    LOAD
-    PUSH 1
+    PUSH 6
+    PUSH 10
     ADD
-    ADD
-    PUSH_ADDR fib_data.i
-    STORE
+    POP
     HALT

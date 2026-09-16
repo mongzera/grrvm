@@ -16,7 +16,7 @@ void eval_stack_operand(VM_Thread *thread, word opcode) {
         case PUSH: {
             word raw_data = get_instruction(thread);
             prim_val val = make_prim_val(raw_data, STATE_OPEN, TYPE_I32);
-
+            vm_info("PUSH", "VALUE: %d", raw_data);
             if (!push_stack(thread, val)) {
                 vm_error("STACK OVERFLOW", "Thread operand stack limit reached during PUSH!");
                 has_error = 1;
@@ -25,10 +25,13 @@ void eval_stack_operand(VM_Thread *thread, word opcode) {
         }
 
         case POP: {
-            if (!pop_stack(thread, NULL)) {
+            prim_val val;
+            if (!pop_stack(thread, &val)) {
                 vm_error("STACK UNDERFLOW", "Attempted to POP from an empty stack!");
                 has_error = 1;
             }
+
+            vm_info("VM POP", "VALUE: %d", val.data);
             break;
         }
 
@@ -87,6 +90,7 @@ void eval_stack_operand(VM_Thread *thread, word opcode) {
             break;
         }
     }
+
 
 
     if(has_error) set_thread_inactive(thread);
