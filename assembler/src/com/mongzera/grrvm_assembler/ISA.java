@@ -1,6 +1,7 @@
 package src.com.mongzera.grrvm_assembler;
 
 import src.com.mongzera.grrvm_assembler.bytecode.Bytecode;
+import src.com.mongzera.grrvm_assembler.bytecode.Data;
 import src.com.mongzera.grrvm_assembler.bytecode.Subroutine;
 import src.com.mongzera.grrvm_assembler.util.InstructionArgParser;
 
@@ -36,6 +37,20 @@ public class ISA {
             if(var_name.isEmpty()) DebugMsg.asm_error("ARGUMENT INVALID", "Argument is required for PUSH_ADDR");
 
             instruction.setArg(0, Integer.toString(bytecode.getAbsoluteMemAddr(var_name)));
+        }));
+
+        operationCodes.add(new OpCode(OPC_STACK_OPERAND, (byte) 0x07, (byte) 2, "PUSH_T", (bytecode, instruction) -> {
+            DebugMsg.asm_info("ARGUMENTS", String.format("ARG0: %s, ARG1: %s, ARG2", instruction.getArg(0), instruction.getArg(1), instruction.getArg(2)));
+            String datatype = instruction.getArg(0);
+            String value = instruction.getArg(1);
+            if(datatype.isEmpty()) DebugMsg.asm_error("ARGUMENT INVALID", "Argument [datatype] is required for PUSH_T");
+            if(value.isEmpty()) DebugMsg.asm_error("ARGUMENT INVALID", "Argument [value] is required for PUSH_T");
+
+            int datatypeCode = Data.matchTypeStr(datatype.trim().toUpperCase());
+
+
+            instruction.setArg(0, Integer.toString(datatypeCode));
+            instruction.setArg(1, value.trim());
         }));
 
         // ARITHMETIC OPERAND

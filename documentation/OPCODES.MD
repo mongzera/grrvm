@@ -32,6 +32,7 @@ The high-order nibble (or base byte offset) defines the instruction category:
 |  | `0x04` | `ROT` | `0` | Rotates stack elements. |
 |  | `0x05` | `SWAP` | `0` | Swaps top two items on the stack. |
 |  | `0x06` | `PUSH_ADDR` | `1` | Resolves variable name to absolute memory address and pushes it. |
+|  | `0x07` | `PUSH_T` | `2` | Pushes a typed value onto the stack |
 | **`0x10` Arithmetic** | `0x00` | `ADD` | `0` | Adds top two items on the stack. |
 |  | `0x01` | `SUB` | `0` | Subtracts top two items on the stack. |
 |  | `0x02` | `MUL` | `0` | Multiplies top two items on the stack. |

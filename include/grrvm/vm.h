@@ -2,8 +2,10 @@
 #define VM_H
 
 #include "config.h"
+#include "grrvm/vm_log.h"
 #include "types.h"
 #include <stddef.h>
+#include <stdlib.h>
 
 
 typedef enum prim_state {
@@ -14,19 +16,26 @@ typedef enum prim_state {
 } prim_state;
 
 typedef enum prim_type {
-    TYPE_U8 = 0x0,
-    TYPE_I8,
+    TYPE_NULL = 0x0,
+    TYPE_U8,
     TYPE_U16,
-    TYPE_I16,
     TYPE_U32,
+    TYPE_U64, // NOTE: Unsupported
+    TYPE_I8,
+    TYPE_I16,
     TYPE_I32,
+    TYPE_I64, // NOTE: Unsupported
     TYPE_FLOAT,
     TYPE_LENGTH,
-    TYPE_REFERENCE
+    TYPE_REFERENCE,
+    PRIMTYPE_COUNT
 } prim_type;
 
 typedef struct prim_val{
-    word data;
+    union {
+        word data;
+        float float_data;
+    };
     byte metadata; // metadata 0xEF, E - state, F - type
 } prim_val;
 
@@ -73,6 +82,12 @@ static inline byte pack_meta(prim_state state, prim_type type) {
 }
 
 static inline void set_val_meta(prim_val *pv, prim_state state, prim_type type) {
+
+    // do prim_type checks
+    if(type < 0 || type >= PRIMTYPE_COUNT){
+        vm_error("TYPE ERROR", "Invalid datatype! Code: %s", type);
+        exit(-1);
+    }
     pv->metadata = pack_meta(state, type);
 }
 

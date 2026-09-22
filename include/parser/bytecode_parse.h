@@ -61,7 +61,7 @@ static inline int bytecode_parser(const uint32_t *buffer, size_t buf_word_count,
     //load program
     for(word i = 0; i < vm->program_size; i++){
         vm->program[i] = buffer[program_offset+i];
-        //vm_info("PROGRAM LOAD", "INSTRUCTION: %d", vm->program[i]);
+        vm_info("PROGRAM LOAD", "INSTRUCTION: %d", vm->program[i]);
     }
 
     //load memory

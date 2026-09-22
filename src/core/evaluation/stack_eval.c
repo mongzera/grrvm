@@ -13,16 +13,47 @@ void eval_stack_operand(VM_Thread *thread, word opcode) {
             break;
         }
 
-        // TODO:: ADD PUSHF to treat Float types
         case PUSH: {
             word raw_data = get_instruction(thread);
             prim_val val = make_prim_val(raw_data, STATE_OPEN, TYPE_I32);
-            if(get_prim_type(val) != TYPE_FLOAT) vm_info("PUSH", "VALUE: %d", raw_data);
-            else vm_info("PUSH", "VALUE: %f", raw_data);
+            if(get_prim_type(val) != TYPE_FLOAT) vm_info("PUSH", "VALUE: %d", val.data);
+            else vm_info("PUSH", "VALUE: %f", val.float_data);
             if (!push_stack(thread, val)) {
                 vm_error("STACK OVERFLOW", "Thread operand stack limit reached during PUSH!");
                 has_error = 1;
             }
+            break;
+        }
+
+        case PUSH_ADDR: {
+            // word raw_data = get_instruction(thread);
+            // prim_val val = make_prim_val(raw_data, STATE_OPEN, TYPE_I32);
+            // if(get_prim_type(val) != TYPE_FLOAT) vm_info("PUSH", "VALUE: %d", raw_data);
+            // else vm_info("PUSH", "VALUE: %f", raw_data);
+            // if (!push_stack(thread, val)) {
+            //     vm_error("STACK OVERFLOW", "Thread operand stack limit reached during PUSH!");
+            //     has_error = 1;
+            // }
+            // break;
+
+            // NOTE: Unimplemented
+            vm_error("Unimplemented", "PUSH_ADDR");
+            has_error = 1;
+            break;
+        }
+
+        case PUSH_T: {
+            prim_type data_type = get_instruction(thread);
+            word raw_data = get_instruction(thread);
+            prim_val val = make_prim_val(raw_data, STATE_OPEN, data_type);
+            if(get_prim_type(val) != TYPE_FLOAT) vm_info("PUSH_T", "VALUE: %d", val.data);
+            else vm_info("PUSH_T", "FLOAT VALUE: %f", val.float_data);
+
+            if (!push_stack(thread, val)) {
+                vm_error("STACK OVERFLOW", "Thread operand stack limit reached during PUSH_T!");
+                has_error = 1;
+            }
+
             break;
         }
 
@@ -33,8 +64,8 @@ void eval_stack_operand(VM_Thread *thread, word opcode) {
                 has_error = 1;
             }
 
-            if(get_prim_type(val) != TYPE_FLOAT) vm_info("PUSH", "VALUE: %d", val);
-            else vm_info("PUSH", "VALUE: %f", val);
+            if(get_prim_type(val) != TYPE_FLOAT) vm_info("POP", "VALUE: %d", val.data);
+            else vm_info("POP", "VALUE: %f", val.float_data);
             break;
         }
 

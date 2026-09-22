@@ -7,6 +7,7 @@ GRR Bytecode Features a standard primitive datatype for variables.
 * uint8 | int8
 * uint16 | int16
 * uint32 | int32
+* float
 * char
 
 ## Variables

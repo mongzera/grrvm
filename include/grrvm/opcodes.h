@@ -25,6 +25,8 @@ typedef enum OPCODE{
     DUP         = OPC_STACK_OPERAND | 0x03,
     ROT         = OPC_STACK_OPERAND | 0x04,
     SWAP        = OPC_STACK_OPERAND | 0x05,
+    PUSH_ADDR   = OPC_STACK_OPERAND | 0x06,
+    PUSH_T      = OPC_STACK_OPERAND | 0x07,
 
     /** ARITHMETIC OPERAND */
     ADD         = OPC_ARITHMETIC | 0x00,

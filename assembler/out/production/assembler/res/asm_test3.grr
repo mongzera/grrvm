@@ -1,0 +1,6 @@
+::_global
+    PUSH_T uint32 6
+    PUSH_T float -5.03
+    ADD
+    POP
+    HALT
