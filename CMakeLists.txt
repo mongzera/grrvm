@@ -9,7 +9,7 @@ project(grrvm
 # Enforce C11 standard (or C99 if targeting older MCUs)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_C_EXTENSIONS OFF)
+set(CMAKE_C_EXTENSIONS ON)
 
 # Export compile_commands.json (useful for clangd, VS Code, and IDE auto-complete)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

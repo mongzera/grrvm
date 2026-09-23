@@ -48,7 +48,6 @@ public class ISA {
 
             int datatypeCode = Data.matchTypeStr(datatype.trim().toUpperCase());
 
-
             instruction.setArg(0, Integer.toString(datatypeCode));
             instruction.setArg(1, value.trim());
         }));
@@ -59,8 +58,19 @@ public class ISA {
         operationCodes.add(new OpCode(OPC_ARITHMETIC , (byte) 0x02, (byte) 0, "MUL"));
         operationCodes.add(new OpCode(OPC_ARITHMETIC , (byte) 0x03, (byte) 0, "DIV"));
         operationCodes.add(new OpCode(OPC_ARITHMETIC , (byte) 0x04, (byte) 0, "MOD"));
-        operationCodes.add(new OpCode(OPC_ARITHMETIC , (byte) 0x05, (byte) 0, "INC"));
-        operationCodes.add(new OpCode(OPC_ARITHMETIC , (byte) 0x06, (byte) 0, "DEC"));
+        operationCodes.add(new OpCode(OPC_ARITHMETIC , (byte) 0x05, (byte) 1, "INC", (bytecode, instruction) -> {
+            String offset = instruction.getArg(0);
+            if(offset.trim().isEmpty()) DebugMsg.asm_error(GrrError.ARGUMENT_COUNT_NOT_MATCH, "INC requires INCREMENT as argument");
+
+            instruction.setArg(0, Integer.toString(InstructionArgParser.parse(offset)));
+        }));
+
+        operationCodes.add(new OpCode(OPC_ARITHMETIC , (byte) 0x06, (byte) 1, "DEC", (bytecode, instruction) -> {
+            String offset = instruction.getArg(0);
+            if(offset.trim().isEmpty()) DebugMsg.asm_error(GrrError.ARGUMENT_COUNT_NOT_MATCH, "DEC requires DECREMENT as argument");
+
+            instruction.setArg(0, Integer.toString(InstructionArgParser.parse(offset)));
+        }));
 
         // CONDITIONAL OPERAND
         operationCodes.add(new OpCode(OPC_CONDITIONAL, (byte) 0x00, (byte) 0, "CMPEQ"));
@@ -71,9 +81,27 @@ public class ISA {
         operationCodes.add(new OpCode(OPC_CONDITIONAL, (byte) 0x05, (byte) 0, "CMPGTE"));
 
         // BRANCHING OPERAND
-        operationCodes.add(new OpCode(OPC_BRANCHING, (byte) 0x00, (byte) 1, "JUMP"));
-        operationCodes.add(new OpCode(OPC_BRANCHING, (byte) 0x01, (byte) 1, "JZ"));
-        operationCodes.add(new OpCode(OPC_BRANCHING, (byte) 0x02, (byte) 1, "JNZ"));
+        operationCodes.add(new OpCode(OPC_BRANCHING, (byte) 0x00, (byte) 1, "JUMP", (bytecode, instruction) -> {
+            String offset = instruction.getArg(0);
+            if(offset.trim().isEmpty()) DebugMsg.asm_error(GrrError.ARGUMENT_COUNT_NOT_MATCH, "JUMP requires OFFSET as argument");
+
+            instruction.setArg(0, Integer.toString(InstructionArgParser.parse(offset)));
+        }));
+
+        operationCodes.add(new OpCode(OPC_BRANCHING, (byte) 0x01, (byte) 1, "JZ", (bytecode, instruction) -> {
+            String offset = instruction.getArg(0);
+            if(offset.trim().isEmpty()) DebugMsg.asm_error(GrrError.ARGUMENT_COUNT_NOT_MATCH, "JZ requires OFFSET as argument");
+
+            instruction.setArg(0, Integer.toString(InstructionArgParser.parse(offset)));
+        }));
+
+        operationCodes.add(new OpCode(OPC_BRANCHING, (byte) 0x02, (byte) 1, "JNZ", (bytecode, instruction) -> {
+            String offset = instruction.getArg(0);
+            if(offset.trim().isEmpty()) DebugMsg.asm_error(GrrError.ARGUMENT_COUNT_NOT_MATCH, "JNZ requires OFFSET as argument");
+
+            instruction.setArg(0, Integer.toString(InstructionArgParser.parse(offset)));
+        }));
+
         operationCodes.add(new OpCode(OPC_BRANCHING, (byte) 0x03, (byte) 1, "CALL", (bytecode, instruction) -> {
             // get name of the subroutine
             String subroutine = instruction.getArg(0);

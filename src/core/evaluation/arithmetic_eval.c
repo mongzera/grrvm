@@ -99,37 +99,49 @@ void eval_arithmetic_operand(VM_Thread *thread, word opcode) {
         }
 
         case INC: {
+            g_i32 amount = (g_i32)(word)get_instruction(thread);
+
             prim_val *top = get_stack(thread, 0);
             if (top == NULL) {
                 vm_error("STACK UNDERFLOW", "INC requires at least 1 value on the stack!");
                 set_thread_inactive(thread);
                 return;
             }
-            prim_val one = make_prim_val(1, STATE_OPEN, TYPE_U8); // Promotes safely to top's type
+
+            // Create a primitive value holding the instruction argument.
+            // Using TYPE_I32 ensures negative offsets/amounts are preserved correctly.
+            prim_val step = make_prim_val(amount, STATE_OPEN, TYPE_I32);
             prim_val res;
-            if (!type_safe_add(*top, one, &res)) {
+
+            if (!type_safe_add(*top, step, &res)) {
                 vm_error("TYPE ERROR", "Cannot INC non-numeric stack top!");
                 set_thread_inactive(thread);
                 return;
             }
+
             *top = res;
             break;
         }
 
         case DEC: {
+            g_i32 amount = (g_i32)(word)get_instruction(thread);
+
             prim_val *top = get_stack(thread, 0);
             if (top == NULL) {
                 vm_error("STACK UNDERFLOW", "DEC requires at least 1 value on the stack!");
                 set_thread_inactive(thread);
                 return;
             }
-            prim_val one = make_prim_val(1, STATE_OPEN, TYPE_U8);
+
+            prim_val step = make_prim_val(amount, STATE_OPEN, TYPE_I32);
             prim_val res;
-            if (!type_safe_sub(*top, one, &res)) {
+
+            if (!type_safe_sub(*top, step, &res)) {
                 vm_error("TYPE ERROR", "Cannot DEC non-numeric stack top!");
                 set_thread_inactive(thread);
                 return;
             }
+
             *top = res;
             break;
         }

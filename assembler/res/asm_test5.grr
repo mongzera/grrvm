@@ -1,0 +1,8 @@
+::_global
+    PUSH 100000
+    DUP
+    POP
+    DEC 1
+    DUP
+    JNZ -7
+    HALT

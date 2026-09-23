@@ -38,8 +38,8 @@ The high-order nibble (or base byte offset) defines the instruction category:
 |  | `0x02` | `MUL` | `0` | Multiplies top two items on the stack. |
 |  | `0x03` | `DIV` | `0` | Divides top two items on the stack. |
 |  | `0x04` | `MOD` | `0` | Modulo operation on top two items. |
-|  | `0x05` | `INC` | `0` | Increments top item on the stack. |
-|  | `0x06` | `DEC` | `0` | Decrements top item on the stack. |
+|  | `0x05` | `INC` | `1` | Increments top item on the stack. |
+|  | `0x06` | `DEC` | `1` | Decrements top item on the stack. |
 | **`0x20` Conditional** | `0x00` | `CMPEQ` | `0` | Compare: Equal (`==`) |
 |  | `0x01` | `CMPNEQ` | `0` | Compare: Not Equal (`!=`) |
 |  | `0x02` | `CMPLT` | `0` | Compare: Less Than (`<`) |

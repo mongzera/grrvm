@@ -61,8 +61,8 @@ void eval_stack_operand(VM_Thread *thread, word opcode) {
                 has_error = 1;
             }
 
-            if(get_prim_type(val) != TYPE_FLOAT) vm_info("POP", "VALUE: %d", val.data);
-            else vm_info("POP", "VALUE: %f", val.float_data);
+            //if(get_prim_type(val) != TYPE_FLOAT) vm_info("POP", "VALUE: %d", val.data);
+            //else vm_info("POP", "VALUE: %f", val.float_data);
             break;
         }
 
