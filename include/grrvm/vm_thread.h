@@ -36,6 +36,26 @@ static inline prim_val* get_stack(VM_Thread *thread, int offset) {
     return &thread->op_stack[index];
 }
 
+static inline int get_local_stack(VM_Thread *thread, int offset, prim_val *out_val) {
+    int index = thread->sfp + offset;
+    if (index < 0 || index >= VM_OP_STACK_MAX) {
+        return 0; // Out of bounds
+    }
+    if (out_val != NULL) {
+        *out_val = thread->op_stack[index];
+    }
+    return 1;
+}
+
+static inline int set_local_stack(VM_Thread *thread, int offset, prim_val val) {
+    int index = thread->sfp + offset;
+    if (index < 0 || index >= VM_OP_STACK_MAX) {
+        return 0; // Out of bounds
+    }
+    thread->op_stack[index] = val;
+    return 1;
+}
+
 static inline word get_instruction(VM_Thread *thread) {
     return thread->vm->program[thread->pc++];
 }
