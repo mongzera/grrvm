@@ -1,8 +1,14 @@
 ::_global
-    PUSH 100000
+    PUSH 100
+    CALL add
+    HALT
+
+::add
     DUP
     POP
     DEC 1
     DUP
-    JNZ -7
-    HALT
+    JZ 2
+    CALL add
+    POP
+    RET
