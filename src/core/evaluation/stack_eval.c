@@ -2,6 +2,7 @@
 #include "grrvm/vm.h"
 #include "grrvm/vm_log.h"
 #include "grrvm/opcodes.h"
+#include "grrvm/vm_mem.h"
 #include "grrvm/vm_thread.h"
 
 void eval_stack_operand(VM_Thread *thread, word opcode) {
@@ -26,20 +27,16 @@ void eval_stack_operand(VM_Thread *thread, word opcode) {
         }
 
         case PUSH_ADDR: {
-            // word raw_data = get_instruction(thread);
-            // prim_val val = make_prim_val(raw_data, STATE_OPEN, TYPE_I32);
-            // if(get_prim_type(val) != TYPE_FLOAT) vm_info("PUSH", "VALUE: %d", raw_data);
-            // else vm_info("PUSH", "VALUE: %f", raw_data);
-            // if (!push_stack(thread, val)) {
-            //     vm_error("STACK OVERFLOW", "Thread operand stack limit reached during PUSH!");
-            //     has_error = 1;
-            // }
-            // break;
-
-            // NOTE: Unimplemented
-            vm_error("Unimplemented", "PUSH_ADDR");
-            has_error = 1;
+            word address = get_instruction(thread);
+            prim_val val = *get_vm_mem(thread->vm, address);
+            if(get_prim_type(val) != TYPE_FLOAT) vm_info("PUSH", "VALUE: %d", val.data);
+            else vm_info("PUSH", "VALUE: %f", val.float_data);
+            if (!push_stack(thread, val)) {
+                vm_error("STACK OVERFLOW", "Thread operand stack limit reached during PUSH!");
+                has_error = 1;
+            }
             break;
+
         }
 
         case PUSH_T: {
