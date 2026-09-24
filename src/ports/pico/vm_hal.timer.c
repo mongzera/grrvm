@@ -6,3 +6,7 @@ uint64_t hal_clock_ns(void) {
     // Multiply by 1000 to convert microseconds to nanoseconds.
     return time_us_64() * 1000ULL;
 }
+
+uint32_t hal_clock_us(void) {
+    return time_us_32();
+}

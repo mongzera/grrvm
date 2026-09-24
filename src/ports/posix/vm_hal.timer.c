@@ -11,3 +11,9 @@ uint64_t hal_clock_ns(void) {
     // Convert seconds and nanoseconds into a single, unified 64-bit nanosecond value
     return ((uint64_t)ts.tv_sec * 1000000000ULL) + (uint64_t)ts.tv_nsec;
 }
+
+uint32_t hal_clock_us(void) {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint32_t)ts.tv_sec * 1000000ULL + (uint32_t)ts.tv_nsec / 1000ULL;
+}
