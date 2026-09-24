@@ -60,6 +60,7 @@ typedef struct VM_Thread{
     g_int sfp;
     struct VM* vm;
     prim_val op_stack[VM_OP_STACK_MAX];
+    prim_val call_stack_frame[VM_CALL_STACK_FRAME_MAX];
     VM_CallStack call_stack[VM_CALL_STACK_MAX];
 
 } VM_Thread;
