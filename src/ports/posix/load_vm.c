@@ -2,9 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include "load_vm.h"
+#include "../../../include/grrvm/hal/load_vm.h"
 
-VM* load_vm(const char* dir) {
+VM* load_vm(const void* data, size_t size) {
+
+    const char* dir = (const char*)data;
 
     FILE *file = fopen(dir, "rb");
     if (file == NULL) {

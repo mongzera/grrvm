@@ -2,7 +2,7 @@
 #define VM_H
 
 #include "config.h"
-#include "grrvm/vm_log.h"
+#include "vm_log.h"
 #include "types.h"
 #include <stddef.h>
 #include <stdlib.h>

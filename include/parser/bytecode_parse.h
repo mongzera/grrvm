@@ -2,7 +2,7 @@
 #define BYTECODE_PARSE
 
 #include "../grrvm/vm.h"
-#include "grrvm/vm_log.h"
+#include "../grrvm/vm_log.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -23,7 +23,7 @@ static inline prim_type asm_to_vm_primtype(byte asm_type){
 
         case 0x09: return TYPE_FLOAT;
 
-        default:   return (byte)-1;
+        default:   return TYPE_NULL;
     }
 }
 

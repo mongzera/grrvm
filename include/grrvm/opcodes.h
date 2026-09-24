@@ -1,7 +1,7 @@
 #ifndef OPCODES_H
 #define OPCODES_H
 
-#include "grrvm/types.h"
+#include "types.h"
 #include <stdint.h>
 typedef enum OPCODE_CATEGORY{
     OPC_STACK_OPERAND   = 0x00,

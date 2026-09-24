@@ -1,9 +1,9 @@
 #ifndef VM_THREAD_H
 #define VM_THREAD_H
 
-#include "grrvm/config.h"
-#include "grrvm/types.h"
-#include "grrvm/vm.h"
+#include "config.h"
+#include "types.h"
+#include "vm.h"
 #include <string.h>
 
 

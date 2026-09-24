@@ -1,27 +1,37 @@
-#include "grrvm/vm.h"
-#include "grrvm/config.h"
-#include "grrvm/evaluation.h"
-#include "grrvm/hal/vm_hal_timer.h"
-#include "grrvm/opcodes.h"
-#include "grrvm/vm_log.h"
-#include "grrvm/vm_thread.h"
+#include "../../include/grrvm/vm.h"
+#include "../../include/grrvm/config.h"
+#include "../../include/grrvm/evaluation.h"
+#include "../../include/grrvm/hal/vm_hal_timer.h"
+#include "../../include/grrvm/opcodes.h"
+#include "../../include/grrvm/vm_log.h"
+#include "../../include/grrvm/vm_thread.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <inttypes.h>
 
 void vm_start(VM* vm_instance){
     // initialize system
     // initialize hal
     // initialize vm_instance
     // initialize all threads as inactive except for thread[0]
-    for(int i = 1; i < VM_MAX_THREADS; i++){
+
+    if(vm_instance == NULL) {
+        vm_error("vm_start", "vm_instance is NULL");
+        return;
+    }
+    for(int i = 0; i < VM_MAX_THREADS; i++){
         set_thread_inactive(&vm_instance->vm_threads[i]);
     }
     vm_new_thread(vm_instance, vm_instance->_program_start, 0);
     uint64_t initial_time = hal_clock_ns();
     vm_loop(vm_instance);
     uint64_t final_time = hal_clock_ns();
-    vm_info("PROGRAM EXECUTION", "Initial time: %lu, Final time: %lu, Delta: %lfs", initial_time, final_time, (double)(final_time - initial_time) / 1000000000.0);
+    printf("PROGRAM EXECUTION Initial time: %" PRIu64 " ns, Final time: %" PRIu64 " ns, Delta: %.6f s",
+            initial_time,
+            final_time,
+            (double)(final_time - initial_time) / 1e9);
+    vm_terminate(vm_instance);
 }
 
 void vm_loop(VM* vm){
