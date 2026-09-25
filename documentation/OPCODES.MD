@@ -1,8 +1,11 @@
+
+# GRR Opcode and Instruction Set
+
 Here is the breakdown of the **OPC (Opcode Classes/Categories)** and all defined **OPCODES** based on your Instruction Set Architecture (ISA) implementation.
 
 ---
 
-### **OPC (Opcode Classes)**
+## **OPC (Opcode Classes)**
 
 The high-order nibble (or base byte offset) defines the instruction category:
 
@@ -21,7 +24,7 @@ The high-order nibble (or base byte offset) defines the instruction category:
 
 ---
 
-### **OPCODES**
+## **OPCODES**
 
 | OPC Class | Sub-Code | Assembly Mnemonic | Arg Count | Description / Pass Handler |
 | --- | --- | --- | --- | --- |

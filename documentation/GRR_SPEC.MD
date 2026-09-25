@@ -1,6 +1,6 @@
+
 # GRR ByteCode Specifications
 
-# Data
 ## Data Types
 GRR Bytecode Features a standard primitive datatype for variables.
 

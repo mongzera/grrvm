@@ -1,4 +1,5 @@
-# Ideas
+
+# Ideas & Todos
 
 ## PUSH_T [DONE]
 Implement PUSH_T <type> <value> - because using PUSH only is lacking, cannot specify the type of data, meaning, treatment will be wrong
