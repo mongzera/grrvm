@@ -49,9 +49,13 @@ prim_val* get_stack(VM_Thread *thread, int offset) {
 
 int get_local_stack(VM_Thread *thread, int offset, prim_val *out_val) {
     int index = thread->sfp + offset;
-    if (index < 0 || index >= VM_OP_STACK_MAX) {
+
+    // Fixed bound check: use VM_CALL_STACK_FRAME_MAX instead of VM_OP_STACK_MAX
+    // since you are accessing the call_stack_frame array.
+    if (index < 0 || index >= VM_CALL_STACK_FRAME_MAX) {
         return 0; // Out of bounds
     }
+
     if (out_val != NULL) {
         *out_val = thread->call_stack_frame[index];
     }
@@ -60,9 +64,19 @@ int get_local_stack(VM_Thread *thread, int offset, prim_val *out_val) {
 
 int set_local_stack(VM_Thread *thread, int offset, prim_val val) {
     int index = thread->sfp + offset;
-    if (index < 0 || index >= VM_OP_STACK_MAX) {
+
+    // Fixed bound check: use VM_CALL_STACK_FRAME_MAX here as well.
+    if (index < 0 || index >= VM_CALL_STACK_FRAME_MAX) {
         return 0; // Out of bounds
     }
+
     thread->call_stack_frame[index] = val;
+
+    // Dynamically expand the known size of the local scope.
+    // If you write to offset 2, you have locals 0, 1, and 2 (so n_local_vars becomes 3).
+    if (offset >= thread->n_local_vars) {
+        thread->n_local_vars = offset + 1;
+    }
+
     return 1;
 }

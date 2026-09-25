@@ -7,7 +7,6 @@
 
 void vm_new_thread(VM *vm, word program_counter, int id);
 
-
 int push_stack(VM_Thread *thread, prim_val val);
 
 int pop_stack(VM_Thread *thread, prim_val *out_val);

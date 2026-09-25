@@ -1,5 +1,5 @@
 ::_global
-    PUSH 2
+    PUSH 5
     CALL fib
     POP
     HALT

@@ -11,9 +11,9 @@ import java.nio.file.Paths;
 
 public class Test_Fib_Recursive {
         public static void main(String[] args) throws URISyntaxException, IOException {
-            URL dir = Test_Fib_Recursive.class.getResource("/res/asm_ret.grr");
+            URL dir = Test_Fib_Recursive.class.getResource("/res/asm_fib_recurs.grr");
 
-            if (dir == null) throw new FileNotFoundException("Resource not found: /res/asm_ret.grr");
+            if (dir == null) throw new FileNotFoundException("Resource not found: /res/asm_fib_recurs.grr");
 
             Path path = Paths.get(dir.toURI());
 
