@@ -1,6 +1,6 @@
 # Ideas
 
-## PUSH_T
+## PUSH_T [DONE]
 Implement PUSH_T <type> <value> - because using PUSH only is lacking, cannot specify the type of data, meaning, treatment will be wrong
 Example: PUSH_T uint32 123423
 
@@ -9,7 +9,7 @@ Example: PUSH_T uint32 123423
 1|uint32
 2|123423
 
-## PUSH_ADDR
+## PUSH_ADDR [DONE]
 Implement PUSH_ADDR <mem_address> - so that we can access global variables and load it into the stack
 Example: PUSH_ADDR 2
 
