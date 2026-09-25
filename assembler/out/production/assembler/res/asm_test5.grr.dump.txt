@@ -1,39 +1,42 @@
 Dumpfile for [asm_test5.grr]
-Created at: 2026-09-24T05:01:41.095109100
+Created at: 2026-09-25T23:03:14.173881700
 =======================================================================
-::_global [Instruction Count: 5]
-0 | PUSH 100
-2 | CALL 5
-4 | HALT
+::_global [Instruction Count: 3]
+0 | CALL 3
+2 | HALT
 
-::add [Instruction Count: 11]
-5 | DUP
-6 | POP
-7 | DEC 1
-9 | DUP
-10 | JZ 2
-12 | CALL 5
-14 | POP
-15 | RET
+::lo [Instruction Count: 15]
+3 | PUSH 5
+5 | PUSH 6
+7 | CMPEQ
+8 | JNZ 4
+10 | PUSH 0
+12 | POP
+13 | RET
+14 | PUSH 1
+16 | POP
+17 | RET
 
 
 ===========================[BINARY]=============================
 0x3
-0x10
+0x12
+0x0
+0x33
+0x3
 0x0
 0x1
-0x64
-0x33
 0x5
-0x0
-0x3
-0x2
-0x16
 0x1
-0x3
-0x31
+0x6
+0x20
+0x32
+0x4
+0x1
+0x0
 0x2
-0x33
-0x5
+0x34
+0x1
+0x1
 0x2
 0x34

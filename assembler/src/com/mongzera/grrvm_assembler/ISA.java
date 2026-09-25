@@ -1,12 +1,10 @@
 package src.com.mongzera.grrvm_assembler;
 
-import src.com.mongzera.grrvm_assembler.bytecode.Bytecode;
 import src.com.mongzera.grrvm_assembler.bytecode.Data;
 import src.com.mongzera.grrvm_assembler.bytecode.Subroutine;
 import src.com.mongzera.grrvm_assembler.util.InstructionArgParser;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class ISA {
     public static byte OPC_STACK_OPERAND  = (byte) 0x00;
@@ -31,7 +29,7 @@ public class ISA {
         operationCodes.add(new OpCode(OPC_STACK_OPERAND, (byte) 0x03, (byte) 0, "DUP"));
         operationCodes.add(new OpCode(OPC_STACK_OPERAND, (byte) 0x04, (byte) 0, "ROT"));
         operationCodes.add(new OpCode(OPC_STACK_OPERAND, (byte) 0x05, (byte) 0, "SWAP"));
-        operationCodes.add(new OpCode(OPC_STACK_OPERAND, (byte) 0x06, (byte) 1, "PUSH_ADDR", (bytecode, instruction) -> {
+        operationCodes.add(new OpCode(OPC_STACK_OPERAND, (byte) 0x06, (byte) 1, "PUSH_ADDR", (bytecode, segment, instruction) -> {
             //DebugMsg.asm_info("ARGUMENTS", String.format("ARG0: %s, ARG1: %s, ARG2", instruction.getArg(0), instruction.getArg(1), instruction.getArg(2)));
             String var_name = instruction.getArg(0);
             if(var_name.isEmpty()) DebugMsg.asm_error("ARGUMENT INVALID", "Argument is required for PUSH_ADDR");
@@ -39,7 +37,7 @@ public class ISA {
             instruction.setArg(0, Integer.toString(bytecode.getAbsoluteMemAddr(var_name)));
         }));
 
-        operationCodes.add(new OpCode(OPC_STACK_OPERAND, (byte) 0x07, (byte) 2, "PUSH_T", (bytecode, instruction) -> {
+        operationCodes.add(new OpCode(OPC_STACK_OPERAND, (byte) 0x07, (byte) 2, "PUSH_T", (bytecode, segment, instruction) -> {
             DebugMsg.asm_info("ARGUMENTS", String.format("ARG0: %s, ARG1: %s, ARG2", instruction.getArg(0), instruction.getArg(1), instruction.getArg(2)));
             String datatype = instruction.getArg(0);
             String value = instruction.getArg(1);
@@ -58,14 +56,14 @@ public class ISA {
         operationCodes.add(new OpCode(OPC_ARITHMETIC , (byte) 0x02, (byte) 0, "MUL"));
         operationCodes.add(new OpCode(OPC_ARITHMETIC , (byte) 0x03, (byte) 0, "DIV"));
         operationCodes.add(new OpCode(OPC_ARITHMETIC , (byte) 0x04, (byte) 0, "MOD"));
-        operationCodes.add(new OpCode(OPC_ARITHMETIC , (byte) 0x05, (byte) 1, "INC", (bytecode, instruction) -> {
+        operationCodes.add(new OpCode(OPC_ARITHMETIC , (byte) 0x05, (byte) 1, "INC", (bytecode, segment, instruction) -> {
             String offset = instruction.getArg(0);
             if(offset.trim().isEmpty()) DebugMsg.asm_error(GrrError.ARGUMENT_COUNT_NOT_MATCH, "INC requires INCREMENT as argument");
 
             instruction.setArg(0, Integer.toString(InstructionArgParser.parse(offset)));
         }));
 
-        operationCodes.add(new OpCode(OPC_ARITHMETIC , (byte) 0x06, (byte) 1, "DEC", (bytecode, instruction) -> {
+        operationCodes.add(new OpCode(OPC_ARITHMETIC , (byte) 0x06, (byte) 1, "DEC", (bytecode, segment, instruction) -> {
             String offset = instruction.getArg(0);
             if(offset.trim().isEmpty()) DebugMsg.asm_error(GrrError.ARGUMENT_COUNT_NOT_MATCH, "DEC requires DECREMENT as argument");
 
@@ -81,28 +79,40 @@ public class ISA {
         operationCodes.add(new OpCode(OPC_CONDITIONAL, (byte) 0x05, (byte) 0, "CMPGTE"));
 
         // BRANCHING OPERAND
-        operationCodes.add(new OpCode(OPC_BRANCHING, (byte) 0x00, (byte) 1, "JUMP", (bytecode, instruction) -> {
-            String offset = instruction.getArg(0);
-            if(offset.trim().isEmpty()) DebugMsg.asm_error(GrrError.ARGUMENT_COUNT_NOT_MATCH, "JUMP requires OFFSET as argument");
+        operationCodes.add(new OpCode(OPC_BRANCHING, (byte) 0x00, (byte) 1, "JUMP", (bytecode, segment, instruction) -> {
+            String label = instruction.getArg(0);
+            if(label.trim().isEmpty()) DebugMsg.asm_error(GrrError.ARGUMENT_COUNT_NOT_MATCH, "JUMP requires LABEL as argument");
 
-            instruction.setArg(0, Integer.toString(InstructionArgParser.parse(offset)));
+            int targetAddress = ((Subroutine)segment).findLabelAddress(label);
+            int instructionAddress = instruction.getInstructionLineNumber() + 2;
+
+            String relativeAddress = Integer.toString(targetAddress - instructionAddress);
+            instruction.setArg(0, relativeAddress);
         }));
 
-        operationCodes.add(new OpCode(OPC_BRANCHING, (byte) 0x01, (byte) 1, "JZ", (bytecode, instruction) -> {
-            String offset = instruction.getArg(0);
-            if(offset.trim().isEmpty()) DebugMsg.asm_error(GrrError.ARGUMENT_COUNT_NOT_MATCH, "JZ requires OFFSET as argument");
+        operationCodes.add(new OpCode(OPC_BRANCHING, (byte) 0x01, (byte) 1, "JZ", (bytecode, segment, instruction) -> {
+            String label = instruction.getArg(0);
+            if(label.trim().isEmpty()) DebugMsg.asm_error(GrrError.ARGUMENT_COUNT_NOT_MATCH, "JZ requires LABEL as argument");
 
-            instruction.setArg(0, Integer.toString(InstructionArgParser.parse(offset)));
+            int targetAddress = ((Subroutine)segment).findLabelAddress(label);
+            int instructionAddress = instruction.getInstructionLineNumber() + 2;
+
+            String relativeAddress = Integer.toString(targetAddress - instructionAddress);
+            instruction.setArg(0, relativeAddress);
         }));
 
-        operationCodes.add(new OpCode(OPC_BRANCHING, (byte) 0x02, (byte) 1, "JNZ", (bytecode, instruction) -> {
-            String offset = instruction.getArg(0);
-            if(offset.trim().isEmpty()) DebugMsg.asm_error(GrrError.ARGUMENT_COUNT_NOT_MATCH, "JNZ requires OFFSET as argument");
+        operationCodes.add(new OpCode(OPC_BRANCHING, (byte) 0x02, (byte) 1, "JNZ", (bytecode, segment, instruction) -> {
+            String label = instruction.getArg(0);
+            if(label.trim().isEmpty()) DebugMsg.asm_error(GrrError.ARGUMENT_COUNT_NOT_MATCH, "JNZ requires LABEL as argument");
 
-            instruction.setArg(0, Integer.toString(InstructionArgParser.parse(offset)));
+            int targetAddress = ((Subroutine)segment).findLabelAddress(label);
+            int instructionAddress = instruction.getInstructionLineNumber() + 2;
+
+            String relativeAddress = Integer.toString(targetAddress - instructionAddress);
+            instruction.setArg(0, relativeAddress);
         }));
 
-        operationCodes.add(new OpCode(OPC_BRANCHING, (byte) 0x03, (byte) 1, "CALL", (bytecode, instruction) -> {
+        operationCodes.add(new OpCode(OPC_BRANCHING, (byte) 0x03, (byte) 1, "CALL", (bytecode, segment, instruction) -> {
             // get name of the subroutine
             String subroutine = instruction.getArg(0);
             Subroutine targetSubroutine = bytecode.findSubroutine(subroutine);

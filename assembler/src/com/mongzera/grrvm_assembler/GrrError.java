@@ -10,7 +10,9 @@ public enum GrrError{
     INVALID_OPCODE(0xD0, "OPCDOE", "Opcode is not defined!"),
     INVALID_OPCODE_ARGUMENT(0xD0, "OPCDOE", "Opcode argument is invalid!"),
     ARGUMENT_COUNT_NOT_MATCH(0xD1, "OPCDOE", "Argument count does not match!"),
-    SUBROUTINE_NOT_DEFINED(0xD1, "RESOLVER", "Subroutine is not defined!");
+    SUBROUTINE_NOT_DEFINED(0xD1, "RESOLVER", "Subroutine is not defined!"),
+    SUBROUTINE_IS_EMPTY(0xD2, "RESOLVER", "Subroutine is empty!"),
+    SUBROUTINE_NOT_CLOSED(0xD3, "RESOLVER", "Subroutine requires RET or HALT (if ::_global)");
 
     private final int code;
     private final String title;

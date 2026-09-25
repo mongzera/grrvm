@@ -1,14 +1,17 @@
 ::_global
-    PUSH 100
-    CALL add
+    CALL lo
     HALT
 
-::add
-    DUP
+
+::lo
+    PUSH 5
+    PUSH 6
+    CMPEQ
+    JNZ .equal
+    PUSH 0
     POP
-    DEC 1
-    DUP
-    JZ 2
-    CALL add
-    POP
+    RET
+    .equal:
+        PUSH 1
+        POP
     RET

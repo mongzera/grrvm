@@ -1,6 +1,7 @@
 package src.com.mongzera.grrvm_assembler;
 
 import src.com.mongzera.grrvm_assembler.bytecode.Bytecode;
+import src.com.mongzera.grrvm_assembler.bytecode.Segment;
 import src.com.mongzera.grrvm_assembler.util.InstructionArgParser;
 
 public class OpCode {
@@ -90,8 +91,8 @@ public class OpCode {
             }
         }
 
-        public void resolve(Bytecode bytecode){
-            if(opCode.resolverCallback != null) opCode.resolverCallback.resolve(bytecode, this);
+        public void resolve(Bytecode bytecode, Segment segment){
+            if(opCode.resolverCallback != null) opCode.resolverCallback.resolve(bytecode, segment, this);
         }
 
         public void compile(){
@@ -123,9 +124,13 @@ public class OpCode {
 
             return stream;
         }
+
+        public OpCode getOpCode(){
+            return opCode;
+        }
     }
 
     public interface ResolverCallback{
-        void resolve(Bytecode bytecode, Instruction instruction);
+        void resolve(Bytecode bytecode, Segment segment, Instruction instruction);
     }
 }
