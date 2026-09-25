@@ -1,0 +1,67 @@
+Dumpfile for [asm_ret.grr]
+Created at: 2026-09-26T02:12:24.177615300
+=======================================================================
+::_global [Instruction Count: 6]
+0 | PUSH 2
+2 | CALL 6
+4 | POP
+5 | HALT
+
+::fib [Instruction Count: 28]
+6 | STORE_L 0
+8 | LOAD_L 0
+10 | PUSH 2
+12 | CMPLT
+13 | JNZ 16
+15 | LOAD_L 0
+17 | PUSH 1
+19 | SUB
+20 | CALL 6
+22 | LOAD_L 0
+24 | PUSH 2
+26 | SUB
+27 | CALL 6
+29 | ADD
+30 | RET
+31 | LOAD_L 0
+33 | RET
+
+
+===========================[BINARY]=============================
+0x3
+0x22
+0x0
+0x1
+0x2
+0x33
+0x6
+0x2
+0x0
+0x50
+0x0
+0x51
+0x0
+0x1
+0x2
+0x22
+0x32
+0x10
+0x51
+0x0
+0x1
+0x1
+0x11
+0x33
+0x6
+0x51
+0x0
+0x1
+0x2
+0x11
+0x33
+0x6
+0x10
+0x34
+0x51
+0x0
+0x34

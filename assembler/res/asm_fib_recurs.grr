@@ -1,0 +1,10 @@
+::_global
+    PUSH 5
+    CALL fib
+    POP
+    HALT
+
+::fib
+    .loop:
+    DUP
+    ADD

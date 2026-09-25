@@ -1,0 +1,29 @@
+::_global
+    PUSH 2
+    CALL fib
+    POP
+    HALT
+
+::fib
+    STORE_L 0
+
+    LOAD_L 0
+    PUSH 2
+    CMPLT
+    JNZ .ret
+
+    LOAD_L 0
+    PUSH 1
+    SUB
+    CALL fib
+
+    LOAD_L 0
+    PUSH 2
+    SUB
+    CALL fib
+    ADD
+    RET
+
+    .ret:
+        LOAD_L 0
+        RET

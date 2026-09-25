@@ -2,7 +2,6 @@
 #define GRRVM_TYPE_PROMOTION_H
 
 #include <stdint.h>
-#include <string.h>
 #include "grrvm/type_checks.h"
 #include "grrvm/type_conversion.h"
 #include "grrvm/types.h"
