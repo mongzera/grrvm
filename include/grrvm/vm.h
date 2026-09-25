@@ -2,7 +2,10 @@
 #define VM_H
 
 #include "config.h"
+#include "vm_log.h"
 #include "types.h"
+#include <stddef.h>
+#include <stdlib.h>
 
 
 typedef enum prim_state {
@@ -13,16 +16,26 @@ typedef enum prim_state {
 } prim_state;
 
 typedef enum prim_type {
-    TYPE_UINT = 0x0,
-    TYPE_INT,
+    TYPE_NULL = 0x0,
+    TYPE_U8,
+    TYPE_U16,
+    TYPE_U32,
+    TYPE_U64, // NOTE: Unsupported
+    TYPE_I8,
+    TYPE_I16,
+    TYPE_I32,
+    TYPE_I64, // NOTE: Unsupported
     TYPE_FLOAT,
-    TYPE_CHAR,
-    TYPE_BYTE,
-    TYPE_REFERENCE
+    TYPE_LENGTH,
+    TYPE_REFERENCE,
+    PRIMTYPE_COUNT
 } prim_type;
 
 typedef struct prim_val{
-    word data;
+    union {
+        word data;
+        float float_data;
+    };
     byte metadata; // metadata 0xEF, E - state, F - type
 } prim_val;
 
@@ -32,9 +45,14 @@ typedef struct VM_CallStack{
     word previous_sfp;
 } VM_CallStack;
 
+typedef enum {
+    THREAD_INACTIVE = 0x0,
+    THREAD_ACTIVE,
+    THREAD_WAIT
+} thread_status;
 
 typedef struct VM_Thread{
-    byte status;
+    thread_status status;
     word pc;
     word pc_checkpoint;
     g_int sp;
@@ -42,6 +60,7 @@ typedef struct VM_Thread{
     g_int sfp;
     struct VM* vm;
     prim_val op_stack[VM_OP_STACK_MAX];
+    prim_val call_stack_frame[VM_CALL_STACK_FRAME_MAX];
     VM_CallStack call_stack[VM_CALL_STACK_MAX];
 
 } VM_Thread;
@@ -54,6 +73,7 @@ typedef struct VM {
     VM_Thread vm_threads[VM_MAX_THREADS];
 } VM;
 
+void vm_start(VM* vm_instance);
 void vm_loop(VM* vm);
 void vm_terminate(VM* vm);
 void vm_new_thread(VM* vm, word program_counter, int id);
@@ -63,6 +83,12 @@ static inline byte pack_meta(prim_state state, prim_type type) {
 }
 
 static inline void set_val_meta(prim_val *pv, prim_state state, prim_type type) {
+
+    // do prim_type checks
+    if(type < 0 || type >= PRIMTYPE_COUNT){
+        vm_error("TYPE ERROR", "Invalid datatype! Code: %s", type);
+        exit(-1);
+    }
     pv->metadata = pack_meta(state, type);
 }
 
@@ -90,15 +116,15 @@ static inline prim_state get_prim_state(prim_val val){
 }
 
 static inline void set_thread_active(VM_Thread* thread) {
-    thread->status |= (byte)0x01;
+    thread->status = THREAD_ACTIVE;
 }
 
 static inline void set_thread_inactive(VM_Thread* thread) {
-    thread->status &= (byte)(~0x01);
+    thread->status = THREAD_INACTIVE;
 }
 
 static inline byte is_thread_active(const VM_Thread* thread) {
-    return (thread->status & 0x01) != 0;
+    return (thread->status == THREAD_ACTIVE);
 }
 
 #endif

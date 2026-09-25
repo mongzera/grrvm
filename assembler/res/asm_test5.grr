@@ -1,0 +1,17 @@
+::_global
+    CALL label_sample
+    HALT
+
+
+::label_sample
+    PUSH 5
+    PUSH 6
+    CMPEQ
+    JNZ .equal
+    PUSH 0
+    POP
+    RET
+    .equal:
+        PUSH 1
+        POP
+    RET

@@ -1,6 +1,8 @@
 #include "grrvm/evaluation.h"
+#include "grrvm/vm.h"
 #include "grrvm/vm_log.h"
 #include "grrvm/opcodes.h"
+#include "grrvm/vm_mem.h"
 #include "grrvm/vm_thread.h"
 
 void eval_stack_operand(VM_Thread *thread, word opcode) {
@@ -14,8 +16,9 @@ void eval_stack_operand(VM_Thread *thread, word opcode) {
 
         case PUSH: {
             word raw_data = get_instruction(thread);
-            prim_val val = make_prim_val(raw_data, STATE_OPEN, TYPE_INT);
-
+            prim_val val = make_prim_val(raw_data, STATE_OPEN, TYPE_I32);
+            if(get_prim_type(val) != TYPE_FLOAT) vm_info("PUSH", "VALUE: %d", val.data);
+            else vm_info("PUSH", "VALUE: %f", val.float_data);
             if (!push_stack(thread, val)) {
                 vm_error("STACK OVERFLOW", "Thread operand stack limit reached during PUSH!");
                 has_error = 1;
@@ -23,11 +26,43 @@ void eval_stack_operand(VM_Thread *thread, word opcode) {
             break;
         }
 
+        case PUSH_ADDR: {
+            word address = get_instruction(thread);
+            prim_val val = *get_vm_mem(thread->vm, address);
+            if(get_prim_type(val) != TYPE_FLOAT) vm_info("PUSH", "VALUE: %d", val.data);
+            else vm_info("PUSH", "VALUE: %f", val.float_data);
+            if (!push_stack(thread, val)) {
+                vm_error("STACK OVERFLOW", "Thread operand stack limit reached during PUSH!");
+                has_error = 1;
+            }
+            break;
+
+        }
+
+        case PUSH_T: {
+            prim_type data_type = get_instruction(thread);
+            word raw_data = get_instruction(thread);
+            prim_val val = make_prim_val(raw_data, STATE_OPEN, data_type);
+            if(get_prim_type(val) != TYPE_FLOAT) vm_info("PUSH_T", "VALUE: %d", val.data);
+            else vm_info("PUSH_T", "FLOAT VALUE: %f", val.float_data);
+
+            if (!push_stack(thread, val)) {
+                vm_error("STACK OVERFLOW", "Thread operand stack limit reached during PUSH_T!");
+                has_error = 1;
+            }
+
+            break;
+        }
+
         case POP: {
-            if (!pop_stack(thread, NULL)) {
+            prim_val val;
+            if (!pop_stack(thread, &val)) {
                 vm_error("STACK UNDERFLOW", "Attempted to POP from an empty stack!");
                 has_error = 1;
             }
+
+            if(get_prim_type(val) != TYPE_FLOAT) vm_info("POP", "VALUE: %d", val.data);
+            else vm_info("POP", "VALUE: %f", val.float_data);
             break;
         }
 
@@ -86,6 +121,7 @@ void eval_stack_operand(VM_Thread *thread, word opcode) {
             break;
         }
     }
+
 
 
     if(has_error) set_thread_inactive(thread);

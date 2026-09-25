@@ -1,7 +1,8 @@
 #ifndef EVALUATION_H
 #define EVALUATION_H
 
-#include "grrvm/vm.h"
+#include "vm.h"
+
 void eval_stack_operand         (VM_Thread* thread, word opcode);
 void eval_arithmetic_operand    (VM_Thread* thread, word opcode);
 void eval_conditional_operand   (VM_Thread* thread, word opcode);

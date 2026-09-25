@@ -12,7 +12,7 @@ void vm_new_thread(VM *vm, word program_counter, int id){
 
     VM_Thread* thread = &vm->vm_threads[id];
     thread->status = 0;
-    thread->sfp = -1;
+    thread->sfp = 0;
     thread->sp = -1;
     thread->csp = -1;
     thread->vm = vm;

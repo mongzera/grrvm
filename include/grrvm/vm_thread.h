@@ -1,10 +1,11 @@
 #ifndef VM_THREAD_H
 #define VM_THREAD_H
 
-#include "grrvm/config.h"
-#include "grrvm/types.h"
-#include "grrvm/vm.h"
+#include "config.h"
+#include "types.h"
+#include "vm.h"
 #include <string.h>
+
 
 
 static inline int push_stack(VM_Thread *thread, prim_val val) {
@@ -33,6 +34,26 @@ static inline prim_val* get_stack(VM_Thread *thread, int offset) {
         return NULL; // Out of bounds
     }
     return &thread->op_stack[index];
+}
+
+static inline int get_local_stack(VM_Thread *thread, int offset, prim_val *out_val) {
+    int index = thread->sfp + offset;
+    if (index < 0 || index >= VM_OP_STACK_MAX) {
+        return 0; // Out of bounds
+    }
+    if (out_val != NULL) {
+        *out_val = thread->call_stack_frame[index];
+    }
+    return 1;
+}
+
+static inline int set_local_stack(VM_Thread *thread, int offset, prim_val val) {
+    int index = thread->sfp + offset;
+    if (index < 0 || index >= VM_OP_STACK_MAX) {
+        return 0; // Out of bounds
+    }
+    thread->call_stack_frame[index] = val;
+    return 1;
 }
 
 static inline word get_instruction(VM_Thread *thread) {

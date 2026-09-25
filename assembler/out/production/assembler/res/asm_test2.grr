@@ -1,0 +1,6 @@
+::_global
+    PUSH 6
+    PUSH 10.0
+    ADD
+    POP
+    HALT

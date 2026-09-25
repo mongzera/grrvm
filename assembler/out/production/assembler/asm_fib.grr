@@ -1,0 +1,53 @@
+::_global
+    PUSH 7
+    CALL fib
+    POP
+    HALT
+
+::fib
+
+    DUP
+    PUSH 0
+    CMPEQ
+    JZ 3
+    POP
+    PUSH 0
+    RET
+
+    DUP
+    PUSH 1
+    CMPEQ
+    JZ 3
+    POP
+    PUSH 1
+    RET
+
+    PUSH 0
+    SWAP
+    PUSH 1
+    SWAP
+
+
+    DUP
+    PUSH 1
+    CMPGT
+    JZ 10
+
+
+    ROT
+    ROT
+    DUP
+    ROT
+    SWAP
+    ADD
+
+
+    ROT
+    DEC 1
+    JUMP -17
+
+
+    POP
+    SWAP
+    POP
+    RET

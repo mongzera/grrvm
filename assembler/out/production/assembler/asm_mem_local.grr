@@ -1,0 +1,30 @@
+::_global
+    PUSH 5
+    STORE_L 0
+    PUSH 10
+    STORE_L 1
+    LOAD_L 0
+    LOAD_L 1
+    CALL div
+    ADD
+    POP
+    HALT
+
+::div
+    PUSH_T float 0.6
+    STORE_L 0
+    PUSH_T float 0.2
+    STORE_L 1
+    CALL add
+    LOAD_L 0
+    LOAD_L 1
+    DIV
+    POP
+    RET
+
+::add
+    PUSH 5
+    PUSH 6
+    ADD
+    POP
+    RET

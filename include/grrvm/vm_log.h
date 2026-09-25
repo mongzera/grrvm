@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include <stdarg.h>
-#include "config.h"
 
 #if defined(VM_LOG_COLORS_ENABLE)
   #define LOG_COLOR_RESET  "\033[0m"
