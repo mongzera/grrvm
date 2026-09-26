@@ -40,9 +40,11 @@ typedef struct prim_val{
 } prim_val;
 
 
-typedef struct VM_CallStack{
-    word previous_pc;
-    word previous_sfp;
+typedef struct VM_CallStack {
+    g_int previous_pc;
+    g_int previous_sfp;
+    g_int previous_sp;           // Added: to track the caller's micro-op stack base
+    g_int previous_n_local_vars; // Added: to remember how many locals the caller had
 } VM_CallStack;
 
 typedef enum {
@@ -53,11 +55,12 @@ typedef enum {
 
 typedef struct VM_Thread{
     thread_status status;
-    word pc;
-    word pc_checkpoint;
+    g_int pc;
+    g_int pc_checkpoint;
     g_int sp;
     g_int csp;
     g_int sfp;
+    g_int n_local_vars;
     struct VM* vm;
     prim_val op_stack[VM_OP_STACK_MAX];
     prim_val call_stack_frame[VM_CALL_STACK_FRAME_MAX];

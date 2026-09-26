@@ -61,6 +61,14 @@ public class Bytecode{
     }
 
     public void feed(String line){
+        if(line.contains(";")){
+            int idx = line.indexOf(";");
+            line = line.substring(0, idx).trim();
+
+        }
+        if(line.isEmpty()) return;
+        //System.out.println(line);
+
         currentSegment.feed(line);
     }
 

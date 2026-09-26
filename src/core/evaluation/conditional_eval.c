@@ -12,12 +12,12 @@ void eval_conditional_operand(VM_Thread *thread, word opcode){
             prim_val a, b, res;
 
             if (!pop_stack(thread, &b)) {
-                vm_error_pop_underflow(thread, "POP");
+                vm_error_pop_underflow(thread, "CMPEQ");
                 return;
             }
 
             if (!pop_stack(thread, &a)) {
-                vm_error_pop_underflow(thread, "POP");
+                vm_error_pop_underflow(thread, "CMPEQ");
                 return;
             }
 
@@ -35,12 +35,12 @@ void eval_conditional_operand(VM_Thread *thread, word opcode){
             prim_val a, b, res;
 
             if (!pop_stack(thread, &b)) {
-                vm_error_pop_underflow(thread, "POP");
+                vm_error_pop_underflow(thread, "CMPNEQ");
                 return;
             }
 
             if (!pop_stack(thread, &a)) {
-                vm_error_pop_underflow(thread, "POP");
+                vm_error_pop_underflow(thread, "CMPNEQ");
                 return;
             }
 
@@ -58,12 +58,12 @@ void eval_conditional_operand(VM_Thread *thread, word opcode){
             prim_val a, b, res;
 
             if (!pop_stack(thread, &b)) {
-                vm_error_pop_underflow(thread, "POP");
+                vm_error_pop_underflow(thread, "CMPLT");
                 return;
             }
 
             if (!pop_stack(thread, &a)) {
-                vm_error_pop_underflow(thread, "POP");
+                vm_error_pop_underflow(thread, "CMPLT");
                 return;
             }
 
@@ -81,12 +81,12 @@ void eval_conditional_operand(VM_Thread *thread, word opcode){
             prim_val a, b, res;
 
             if (!pop_stack(thread, &b)) {
-                vm_error_pop_underflow(thread, "POP");
+                vm_error_pop_underflow(thread, "CMPLTE");
                 return;
             }
 
             if (!pop_stack(thread, &a)) {
-                vm_error_pop_underflow(thread, "POP");
+                vm_error_pop_underflow(thread, "CMPLTE");
                 return;
             }
 
@@ -104,12 +104,12 @@ void eval_conditional_operand(VM_Thread *thread, word opcode){
             prim_val a, b, res;
 
             if (!pop_stack(thread, &b)) {
-                vm_error_pop_underflow(thread, "POP");
+                vm_error_pop_underflow(thread, "CMPGT");
                 return;
             }
 
             if (!pop_stack(thread, &a)) {
-                vm_error_pop_underflow(thread, "POP");
+                vm_error_pop_underflow(thread, "CMPGT");
                 return;
             }
 
@@ -127,12 +127,12 @@ void eval_conditional_operand(VM_Thread *thread, word opcode){
             prim_val a, b, res;
 
             if (!pop_stack(thread, &b)) {
-                vm_error_pop_underflow(thread, "POP");
+                vm_error_pop_underflow(thread, "CMPGTE");
                 return;
             }
 
             if (!pop_stack(thread, &a)) {
-                vm_error_pop_underflow(thread, "POP");
+                vm_error_pop_underflow(thread, "CMPGTE");
                 return;
             }
 

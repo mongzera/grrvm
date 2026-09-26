@@ -1,9 +1,9 @@
 ::_global
-    CALL lo
+    CALL label_sample
     HALT
 
 
-::lo
+::label_sample
     PUSH 5
     PUSH 6
     CMPEQ

@@ -11,9 +11,9 @@ import java.nio.file.Paths;
 
 public class Test1 {
     public static void main(String[] args) throws URISyntaxException, IOException {
-        URL dir = Test1.class.getResource("/res/asm_test1.grr");
+        URL dir = Test1.class.getResource("/res/asm_bitwise.grr");
 
-        if (dir == null) throw new FileNotFoundException("Resource not found: /res/asm_test1.grr");
+        if (dir == null) throw new FileNotFoundException("Resource not found: /res/asm_bitwise.grr");
 
         Path path = Paths.get(dir.toURI());
 

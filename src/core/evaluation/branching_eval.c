@@ -89,61 +89,18 @@ void eval_branching_operand(VM_Thread *thread, word opcode){
         }
 
         case CALL: {
-            // 1. Fetch the target address/offset from the instruction stream
-            // If CALL targets an absolute PC address, keep it as 'target'.
-            // If it targets a relative offset, do: thread->pc + offset
+
             word target_address = get_instruction(thread);
+            thread_push_call_stack(thread, target_address);
 
-            // 2. Guard against Call Stack Overflow
-            if (thread->csp >= VM_CALL_STACK_MAX) {
-                vm_error("CALL STACK OVERFLOW", "Max execution depth reached!");
-                set_thread_inactive(thread);
-                return;
-            }
-
-            // 3. Save current execution state to the call stack frame
-            thread->call_stack[thread->csp].previous_pc = thread->pc;
-            thread->call_stack[thread->csp].previous_sfp = thread->sfp;
-            thread->csp++;
-
-            // 4. Align the Stack Frame Pointer (sfp) to the current Operand Stack Pointer (sp)
-            // This isolates local scopes: local index 0 becomes whatever sits at thread->op_stack[sfp]
-            thread->sfp = (word)thread->sp;
-
-            // 5. Check absolute program bounds before jumping
-            if (target_address >= thread->vm->program_size) {
-                vm_error("BRANCHING OPERAND", "CALL target out of program bounds!");
-                set_thread_inactive(thread);
-                return;
-            }
-
-            // 6. Transfer control to the target function
-            thread->pc = target_address;
             break;
         }
 
         case RET: {
-            // 1. Guard against Call Stack Underflow
-            if (thread->csp < 0) {
-                vm_error("CALL STACK UNDERFLOW", "RET executed outside of a function context!");
-                set_thread_inactive(thread);
-                return;
-            }
-
-            // 2. Step back down to the caller's call stack frame frame
-            thread->csp--;
-            word prev_pc  = thread->call_stack[thread->csp].previous_pc;
-            word prev_sfp = thread->call_stack[thread->csp].previous_sfp;
-
-            // 3. Collapse the Operand Stack Frame
-            // This immediately frees all evaluation data and local variables allocated by the function
-            thread->sp = (g_int)thread->sfp;
-
-            // 4. Restore the caller's frame pointers
-            thread->sfp = prev_sfp;
-            thread->pc  = prev_pc;
+            thread_pop_call_stack(thread);
             break;
         }
+
 
         default: {
             vm_error("BRANCHING OPERAND", "Unrecognized branching opcode [0x%X]", opcode);
