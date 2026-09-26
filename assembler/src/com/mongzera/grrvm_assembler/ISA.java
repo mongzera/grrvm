@@ -118,7 +118,7 @@ public class ISA {
             Subroutine targetSubroutine = bytecode.findSubroutine(subroutine);
 
             if(targetSubroutine == null){
-                DebugMsg.asm_error(GrrError.SUBROUTINE_NOT_DEFINED, subroutine);
+                DebugMsg.asm_error(GrrError.SUBROUTINE_NOT_DEFINED, String.format("Subroutine: [%s] Instruction Line: %s", subroutine, instruction.getInstructionLineNumber()));
             }
 
             assert targetSubroutine != null;

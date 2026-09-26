@@ -1,0 +1,45 @@
+Dumpfile for [program.grr]
+Created at: 2026-09-26T21:34:04.257488217
+=======================================================================
+::_global [Instruction Count: 22]
+0 | PUSH 0
+2 | STORE_L 0
+4 | LOAD_L 0
+6 | PUSH 1000000
+8 | CMPLT
+9 | JZ 10
+11 | LOAD_L 0
+13 | DUP
+14 | INC 1
+16 | STORE_L 0
+18 | POP
+19 | JUMP -17
+21 | HALT
+
+
+===========================[BINARY]=============================
+0x3
+0x16
+0x0
+0x1
+0x0
+0x50
+0x0
+0x51
+0x0
+0x1
+0xf4240
+0x22
+0x31
+0xa
+0x51
+0x0
+0x3
+0x15
+0x1
+0x50
+0x0
+0x2
+0x30
+0xffffffef
+0x0

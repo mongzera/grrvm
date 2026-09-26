@@ -52,6 +52,8 @@ public class GrrAsm {
             // Write raw 32-bit aligned byte stream to System.out
             System.out.write(buffer.array());
             System.out.flush();
+            Path newPath = path.resolveSibling(path.getFileName().toString() + ".dump.txt");
+            Files.writeString(newPath, bytecode.createBytecodeDumpFile());
 
         } catch (Exception e) {
             System.err.println("Error during assembly: " + e.getMessage());

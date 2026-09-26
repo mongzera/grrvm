@@ -13,10 +13,15 @@ public class BytecodeLoader {
         // Read File
         try (Stream<String> lines = Files.lines(path)) {
             lines.forEach((line)->{
+                if(line.contains(";")){
+                    int idx = line.indexOf(";");
+                    line = line.substring(0, idx);
+
+                }
                 line = line.trim();
 
-                // skip empty lines
                 if(line.isEmpty()) return;
+                //System.out.println(line);
 
                 if(line.startsWith(":=")) {
                     bytecode.setMode(Bytecode.PARSE_DATA);
