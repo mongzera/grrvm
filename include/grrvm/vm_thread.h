@@ -17,6 +17,10 @@ int get_local_stack(VM_Thread *thread, int offset, prim_val *out_val);
 
 int set_local_stack(VM_Thread *thread, int offset, prim_val val);
 
+void thread_push_call_stack(VM_Thread *thread, word target_address);
+
+void thread_pop_call_stack(VM_Thread *thread);
+
 static inline word get_instruction(VM_Thread *thread) {
     return thread->vm->program[thread->pc++];
 }
