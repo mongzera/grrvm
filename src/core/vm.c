@@ -1,5 +1,4 @@
 #include "../../include/grrvm/vm.h"
-#include "../../include/grrvm/config.h"
 #include "../../include/grrvm/evaluation.h"
 #include "../../include/grrvm/hal/vm_hal_timer.h"
 #include "../../include/grrvm/opcodes.h"

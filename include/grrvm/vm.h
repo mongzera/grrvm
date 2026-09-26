@@ -1,7 +1,7 @@
 #ifndef VM_H
 #define VM_H
 
-#include "config.h"
+#include "default_config.h"
 #include "vm_log.h"
 #include "types.h"
 #include <stddef.h>
