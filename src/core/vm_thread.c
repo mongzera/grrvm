@@ -1,5 +1,6 @@
 #include "grrvm/vm_thread.h"
 #include "grrvm/vm.h"
+#include "grrvm/vm_log.h"
 
 void vm_new_thread(VM *vm, word program_counter, int id){
 
@@ -43,6 +44,8 @@ int pop_stack(VM_Thread *thread, prim_val *out_val) {
 prim_val* get_stack(VM_Thread *thread, int offset) {
     int index = thread->sp - offset;
     if (index < 0 || index >= VM_OP_STACK_MAX) {
+        vm_error("STACK ERROR", "STACK OUT OF BOUNDS!");
+        set_thread_inactive(thread);
         return NULL; // Out of bounds
     }
     return &thread->op_stack[index];

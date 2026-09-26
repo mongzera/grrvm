@@ -97,7 +97,6 @@ public class OpCode {
 
         public void compile(){
             for(int i = 0; i < inTextArg.length; i++){
-                System.out.println(inTextArg[i]);
                 resolvedArgs[i] = InstructionArgParser.parse(inTextArg[i]);
             }
         }

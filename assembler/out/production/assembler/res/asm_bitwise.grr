@@ -1,0 +1,81 @@
+::_global
+    ; =========================================================
+    ; 1. NOT Edge Cases: Zero & Negatives
+    ; =========================================================
+    PUSH 0
+    NOT
+    POP             ; Expected: -1  (~0 = 0xFFFFFFFF)
+
+    PUSH -1
+    NOT
+    POP             ; Expected: 0   (~(-1) = ~0xFFFFFFFF = 0x0)
+
+
+    ; =========================================================
+    ; 2. Shift Operations: Large Shifts (> 31 bits) & Zero
+    ; =========================================================
+    PUSH 1
+    PUSH 32
+    LSHIFT
+    POP             ; Expected: 1 OR 0 (Tests shift mask behavior)
+                    ; Note: On x86/C uint32_t, (1 << (32 & 31)) = 1
+
+    PUSH 1
+    PUSH 0
+    LSHIFT
+    POP             ; Expected: 1   (Shift by 0 yields original value)
+
+    PUSH 1
+    PUSH 0
+    RSHIFT
+    POP             ; Expected: 1   (Shift by 0 yields original value)
+
+
+    ; =========================================================
+    ; 3. Signed vs Unsigned Right Shift (Arithmetic vs Logical)
+    ; =========================================================
+    PUSH -16
+    PUSH 2
+    RSHIFT
+    POP             ; Expected: -4 if Arithmetic Right Shift (sign-extended)
+                    ; Expected: 1073741820 if Logical Right Shift (zero-filled)
+
+
+    ; =========================================================
+    ; 4. Bitwise Identity Laws (XOR Self, AND Zero, OR All 1s)
+    ; =========================================================
+    PUSH 12345
+    PUSH 12345
+    XOR
+    POP             ; Expected: 0   (x ^ x = 0)
+
+    PUSH 12345
+    PUSH 0
+    AND
+    POP             ; Expected: 0   (x & 0 = 0)
+
+    PUSH 12345
+    PUSH -1
+    AND
+    POP             ; Expected: 12345 (x & 0xFFFFFFFF = x)
+
+
+    ; =========================================================
+    ; 5. De Morgan's Law Verification
+    ; ~(A | B) == (~A) & (~B)
+    ; =========================================================
+    PUSH 5
+    PUSH 6
+    OR
+    NOT             ; Stack: ~(5 | 6) -> ~7 -> -8
+
+    PUSH 5
+    NOT             ; Stack: -8, ~5 (-6)
+    PUSH 6
+    NOT             ; Stack: -8, ~5 (-6), ~6 (-7)
+    AND             ; Stack: -8, (~5 & ~6) -> -8
+
+    CMPEQ           ; Compares ~(5|6) == (~5 & ~6)
+    POP             ; Expected: 1 (True)
+
+    HALT
