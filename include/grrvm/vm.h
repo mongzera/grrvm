@@ -72,7 +72,7 @@ typedef struct VM {
     word _program_start;
     word program_size;
     word program[VM_PROGRAM_MAX_SIZE];
-    prim_val ram[VM_MAX_RAM];
+    prim_val ram[VM_HEAP_SLOTS];
     VM_Thread vm_threads[VM_MAX_THREADS];
 } VM;
 

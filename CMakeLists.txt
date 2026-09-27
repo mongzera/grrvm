@@ -54,7 +54,7 @@ if(PORT STREQUAL "posix")
 elseif(PORT STREQUAL "pico")
     file(GLOB VM_PORT_SOURCES CONFIGURE_DEPENDS "src/ports/pico/*.c")
     list(APPEND VM_PORT_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/src/ports/pico")
-
+    string(APPEND CMAKE_EXE_LINKER_FLAGS "-Wl,--print-memory-usage")
 else()
     message(FATAL_ERROR "Unsupported target PORT: '${PORT}'. Choose 'posix' or 'pico'.")
 endif()

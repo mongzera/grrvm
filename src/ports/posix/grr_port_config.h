@@ -8,10 +8,7 @@
 #define VM_PROGRAM_MAX_SIZE (256 * 1024)
 
 // memory
-#define VM_MAX_RAM (5000 * 1024)
-#define VM_RAM_GLOBAL_REGION_SIZE (512 * 1024)
-#define VM_RAM_SLAB_REGION_SIZE (3400 * 1024)
-#define VM_RAM_BUDDY_REGION_SIZE (1088 * 1024)
+#define VM_HEAP_SLOTS (1024 * 1024 / 8) // 1MB * 1024 bytes / 8 bytes (sizeof prim_val) = 128000 SLOTS
 
 // stack frames
 #define VM_OP_STACK_MAX (127 * 1024)
