@@ -1,7 +1,6 @@
 #ifndef VM_H
 #define VM_H
 
-#include "config.h"
 #include "vm_log.h"
 #include "types.h"
 #include <stddef.h>
@@ -12,7 +11,6 @@ typedef enum prim_state {
     STATE_OPEN = 0x0,
     STATE_LOCKED,
     STATE_CONSTANT,
-    STATE_GARBAGE
 } prim_state;
 
 typedef enum prim_type {
@@ -36,9 +34,55 @@ typedef struct prim_val{
         word data;
         float float_data;
     };
+
     byte metadata; // metadata 0xEF, E - state, F - type
+    byte gc_mark;
 } prim_val;
 
+static inline byte pack_meta(prim_state state, prim_type type) {
+    return (byte)((((byte)state & 0x0F) << 4) | ((byte)type & 0x0F));
+}
+
+static inline void set_val_meta(prim_val *pv, prim_state state, prim_type type) {
+
+    // do prim_type checks
+    if(type < 0 || type >= PRIMTYPE_COUNT){
+        vm_error("TYPE ERROR", "Invalid datatype! Code: %s", type);
+        exit(-1);
+    }
+    pv->metadata = pack_meta(state, type);
+}
+
+static inline void set_val_state(prim_val *pv, prim_state state) {
+    pv->metadata = (pv->metadata & 0x0F) | (byte)(((byte)state & 0x0F) << 4);
+}
+
+static inline void set_val_type(prim_val *pv, prim_type type) {
+    pv->metadata = (pv->metadata & 0xF0) | (byte)((byte)type & 0x0F);
+}
+
+static inline prim_val make_prim_val(word data, prim_state state, prim_type type) {
+    prim_val pv;
+    pv.data = data;
+    pv.gc_mark = 0; // THIS IS IMPORTANT, SET TO 0 When making a new value
+    pv.metadata = pack_meta(state, type);
+    return pv;
+}
+
+static inline prim_type get_prim_type(prim_val val){
+    return ((prim_type)((val).metadata & 0x0F));
+}
+
+static inline prim_state get_prim_state(prim_val val){
+    return ((prim_state)(((val).metadata >> 4) & 0x0F));
+}
+
+/* --- Allocator integration ---
+ * Must come after prim_val (and the helpers above) are visible, and
+ * before VM_Thread / VM are defined. vm_alloc.h forward-declares VM /
+ * VM_Thread itself and does not include this file, so this one-directional
+ * include is safe. See vm_alloc.h's top comment for why. */
+#include "vm_alloc.h"
 
 typedef struct VM_CallStack {
     g_int previous_pc;
@@ -72,7 +116,8 @@ typedef struct VM {
     word _program_start;
     word program_size;
     word program[VM_PROGRAM_MAX_SIZE];
-    prim_val ram[VM_MAX_RAM];
+    prim_val ram[VM_HEAP_SLOTS];
+    VM_Allocator allocator;
     VM_Thread vm_threads[VM_MAX_THREADS];
 } VM;
 
@@ -80,43 +125,6 @@ void vm_start(VM* vm_instance);
 void vm_loop(VM* vm);
 void vm_terminate(VM* vm);
 void vm_new_thread(VM* vm, word program_counter, int id);
-
-static inline byte pack_meta(prim_state state, prim_type type) {
-    return (byte)((((byte)state & 0x0F) << 4) | ((byte)type & 0x0F));
-}
-
-static inline void set_val_meta(prim_val *pv, prim_state state, prim_type type) {
-
-    // do prim_type checks
-    if(type < 0 || type >= PRIMTYPE_COUNT){
-        vm_error("TYPE ERROR", "Invalid datatype! Code: %s", type);
-        exit(-1);
-    }
-    pv->metadata = pack_meta(state, type);
-}
-
-static inline void set_val_state(prim_val *pv, prim_state state) {
-    pv->metadata = (pv->metadata & 0x0F) | (byte)(((byte)state & 0x0F) << 4);
-}
-
-static inline void set_val_type(prim_val *pv, prim_type type) {
-    pv->metadata = (pv->metadata & 0xF0) | (byte)((byte)type & 0x0F);
-}
-
-static inline prim_val make_prim_val(word data, prim_state state, prim_type type) {
-    prim_val pv;
-    pv.data = data;
-    pv.metadata = pack_meta(state, type);
-    return pv;
-}
-
-static inline prim_type get_prim_type(prim_val val){
-    return ((prim_type)((val).metadata & 0x0F));
-}
-
-static inline prim_state get_prim_state(prim_val val){
-    return ((prim_state)(((val).metadata >> 4) & 0x0F));
-}
 
 static inline void set_thread_active(VM_Thread* thread) {
     thread->status = THREAD_ACTIVE;

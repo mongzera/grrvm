@@ -1,4 +1,6 @@
 #include "../../../include/grrvm/hal/init.h"
+#include "grrvm/vm.h"
+#include <stdlib.h>
 
 
 void print_command_unrecognized(void){
@@ -28,10 +30,20 @@ void execute(char* src){
     vm_info("[EXECUTE]", "%s\n", src);
     VM* vm = load_vm(src, strlen(src));
     vm_start(vm);
+    vm_terminate(vm);
 }
 
-void playground(void){
-    vm_info("[PLAYGROUND ENVIRONMENT]%s", "\n");
+void testing(void){
+    vm_info("[TESTING ENVIRONMENT]%s", "\n");
+
+    VM* vm = malloc(sizeof(VM));
+    if(vm == NULL) {
+        vm_error("TESTING", "vm_instance is NULL");
+        return;
+    }
+
+    vm_start(vm);
+
 }
 
 int init(int argc, char* argv[]){
@@ -41,7 +53,7 @@ int init(int argc, char* argv[]){
     else if(argc == 3){
         if(strcmp(argv[1], "-c") == 0 || strcmp(argv[1], "--compile") == 0)     compile(argv[2]);
         else if(strcmp(argv[1], "-r") == 0 || strcmp(argv[1], "--run") == 0)    execute(argv[2]);
-        else if(strcmp(argv[1], "-p") == 0 || strcmp(argv[1], "--playground") == 0)    playground();
+        else if(strcmp(argv[1], "-t") == 0 || strcmp(argv[1], "--test") == 0)    testing();
         else print_help();
     }
     else{

@@ -27,6 +27,10 @@ static inline int type_check_int(prim_val p) {
     }
 }
 
+static inline int type_check_non_negative(prim_val p) {
+    return (extract_signed(p) >= 0);
+}
+
 static inline int type_check_float(prim_val p) {
     return (get_prim_type(p) == TYPE_FLOAT);
 }

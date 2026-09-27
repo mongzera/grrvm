@@ -1,0 +1,16 @@
+::_global
+    PUSH 0 ;
+    STORE_L 0
+
+    .while_0:
+        PUSH 345 ; Allocate 31 slots
+        H_ALLOC
+        POP
+        LOAD_L 0
+        INC 1
+        STORE_L 0
+        LOAD_L 0
+        PUSH 10000
+        CMPGT
+        JZ .while_0
+    HALT
