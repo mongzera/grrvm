@@ -107,11 +107,13 @@ void vm_alloc_init(VM *vm);
  * ram[]. On exhaustion, logs via vm_error and returns a GARBAGE prim_val;
  * caller must check get_prim_state()/get_prim_type() before use. */
 prim_val g_malloc(VM_Thread *thread, word n_slots);
+prim_val g_malloc_direct(VM *vm, word n_slots, byte print_error);
 
 /* Frees a block previously returned by g_malloc. reference must be the
  * exact TYPE_REFERENCE value g_malloc returned (its .data is the slot
  * index right after the header). Reads the header for the block size,
  * so no bookkeeping beyond the reference itself is required. */
-void g_free(VM_Thread *thread, prim_val reference);
+void g_free(VM_Thread *, prim_val reference);
+void g_free_direct(VM *, word slot_index);
 
 #endif

@@ -1,6 +1,10 @@
+#include "grrvm/types.h"
+#include "grrvm/vm.h"
+#include "grrvm/vm_gc.h"
 #include "grrvm/vm_mem.h"
 #include "grrvm/vm_alloc.h"
 #include "grrvm/vm_thread.h"
+#include <string.h>
 
 const word VM_SLAB_CLASS_SIZES[VM_SLAB_CLASS_COUNT] = { 8u, 16u, 32u };
 
@@ -191,6 +195,9 @@ static void slab_free(VM *vm, word addr) {
  * ======================================================================= */
 
 void vm_alloc_init(VM *vm) {
+    //set HEAP all to 0;
+    memset(vm->ram, 0, sizeof(vm->ram));
+
     VM_Allocator *a = &vm->allocator;
 
     for (word i = 0; i < VM_NUM_BASE_BLOCKS; i++) a->base_block_owner[i] = VM_ALLOC_NONE;
@@ -236,10 +243,9 @@ static prim_val finish_alloc(VM *vm, word addr, word block_size, word n_slots) {
     return make_prim_val(addr + 1, STATE_OPEN, TYPE_REFERENCE);
 }
 
-prim_val g_malloc(VM_Thread *thread, word n_slots) {
-    VM *vm = thread->vm;
-    word total_needed = n_slots + 1; /* + header */
+prim_val g_malloc_direct(VM *vm, word n_slots, byte print_error) {
 
+    word total_needed = n_slots + 1; /* + header */
     if (total_needed <= 32) {
         byte class_index = 0xFF;
         for (byte c = 0; c < VM_SLAB_CLASS_COUNT; c++) {
@@ -247,8 +253,8 @@ prim_val g_malloc(VM_Thread *thread, word n_slots) {
         }
         word addr = slab_alloc(vm, class_index);
         if (addr == VM_ALLOC_NONE) {
-            vm_error("HEAP", "Out of memory (slab class %u slots)", VM_SLAB_CLASS_SIZES[class_index]);
-            return make_prim_val(0, STATE_GARBAGE, TYPE_NULL);
+            if (print_error) vm_error("HEAP", "Out of memory (slab class %u slots)", VM_SLAB_CLASS_SIZES[class_index]);
+            return make_prim_val(0, STATE_OPEN, TYPE_NULL);
         }
         return finish_alloc(vm, addr, VM_SLAB_CLASS_SIZES[class_index], n_slots);
     } else {
@@ -256,12 +262,25 @@ prim_val g_malloc(VM_Thread *thread, word n_slots) {
         while (((word)VM_BUDDY_BASE_BLOCK_SLOTS << want_order) < total_needed) want_order++;
         word addr = buddy_alloc(&vm->allocator.buddy, want_order);
         if (addr == VM_ALLOC_NONE) {
-            vm_error("HEAP", "Out of memory (buddy order %u)", want_order);
-            return make_prim_val(0, STATE_GARBAGE, TYPE_NULL);
+            if (print_error) vm_error("HEAP", "Out of memory (buddy order %u)", want_order);
+            return make_prim_val(0, STATE_OPEN, TYPE_NULL);
         }
         word block_size = (word)VM_BUDDY_BASE_BLOCK_SLOTS << want_order;
         return finish_alloc(vm, addr, block_size, n_slots);
     }
+}
+
+/*
+ * Automatically runs garbage collection if the allocation fails.
+ */
+prim_val g_malloc(VM_Thread *thread, word n_slots) {
+    VM* vm = thread->vm;
+    prim_val reference = g_malloc_direct(vm, n_slots, 0);
+    if (get_prim_type(reference) != TYPE_REFERENCE) {
+        run_gc(vm);
+        reference = g_malloc_direct(thread->vm, n_slots, 1);
+    }
+    return reference;
 }
 
 void g_free(VM_Thread *thread, prim_val reference) {
@@ -277,6 +296,11 @@ void g_free(VM_Thread *thread, prim_val reference) {
         return;
     }
 
+    g_free_direct(thread->vm, data_addr);
+
+}
+
+void g_free_direct(VM *vm, word data_addr){
     word header_addr = data_addr - 1;
     prim_val header = vm->ram[header_addr];
     if (get_prim_type(header) != TYPE_LENGTH) {
@@ -288,7 +312,7 @@ void g_free(VM_Thread *thread, prim_val reference) {
     /* Invalidate the header immediately so a repeat g_free on the same
      * reference is caught above as corruption, rather than silently
      * freeing memory that now belongs to someone else. */
-    vm->ram[header_addr] = make_prim_val(0, STATE_GARBAGE, TYPE_NULL);
+    vm->ram[header_addr] = make_prim_val(0, STATE_OPEN, TYPE_NULL);
 
     if (block_size <= 32) {
         slab_free(vm, header_addr);

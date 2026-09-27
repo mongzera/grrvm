@@ -1,36 +1,45 @@
 Dumpfile for [sample_mem_alloc.grr]
-Created at: 2026-09-28T02:59:09.038271610
+Created at: 2026-09-28T05:53:26.675530127
 =======================================================================
-::_global [Instruction Count: 16]
-0 | PUSH 1
+::_global [Instruction Count: 22]
+0 | PUSH 0
 2 | STORE_L 0
-4 | PUSH 7
+4 | PUSH 345
 6 | H_ALLOC
 7 | POP
 8 | LOAD_L 0
-10 | PUSH 512
-12 | CMPGT
-13 | JZ -11
-15 | HALT
+10 | INC 1
+12 | STORE_L 0
+14 | LOAD_L 0
+16 | PUSH 10000
+18 | CMPGT
+19 | JZ -17
+21 | HALT
 
 
 ===========================[BINARY]=============================
 0x3
-0x10
+0x16
 0x0
 0x1
-0x1
+0x0
 0x50
 0x0
 0x1
-0x7
+0x159
 0x70
 0x2
 0x51
 0x0
+0x15
 0x1
-0x200
+0x50
+0x0
+0x51
+0x0
+0x1
+0x2710
 0x24
 0x31
-0xfffffff5
+0xffffffef
 0x0

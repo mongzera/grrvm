@@ -11,7 +11,6 @@ typedef enum prim_state {
     STATE_OPEN = 0x0,
     STATE_LOCKED,
     STATE_CONSTANT,
-    STATE_GARBAGE
 } prim_state;
 
 typedef enum prim_type {
@@ -35,7 +34,9 @@ typedef struct prim_val{
         word data;
         float float_data;
     };
+
     byte metadata; // metadata 0xEF, E - state, F - type
+    byte gc_mark;
 } prim_val;
 
 static inline byte pack_meta(prim_state state, prim_type type) {
@@ -63,6 +64,7 @@ static inline void set_val_type(prim_val *pv, prim_type type) {
 static inline prim_val make_prim_val(word data, prim_state state, prim_type type) {
     prim_val pv;
     pv.data = data;
+    pv.gc_mark = 0; // THIS IS IMPORTANT, SET TO 0 When making a new value
     pv.metadata = pack_meta(state, type);
     return pv;
 }

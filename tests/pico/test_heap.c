@@ -75,7 +75,7 @@ static void test_slab_roundtrip(void) {
     CHECK(readback && readback->data == 1234, "LOAD reads back the same value");
 
     g_free(&thread, ref);
-    CHECK(get_prim_state(vm.ram[header_addr]) == STATE_GARBAGE, "header invalidated after free");
+    CHECK(get_prim_state(vm.ram[header_addr]) == STATE_OPEN, "header invalidated after free");
 }
 
 /* ------------------------------------------------------------------

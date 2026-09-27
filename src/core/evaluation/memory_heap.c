@@ -27,7 +27,7 @@ void eval_memory_heap_operand(VM_Thread *thread, word opcode){
 
             prim_val reference = g_malloc(thread, n_slots.data);
 
-            if(get_prim_state(reference) == STATE_GARBAGE){
+            if(get_prim_type(reference) == TYPE_NULL){
                 vm_error("MEMORY HEAP OPERAND", "Failed to allocate memory for H_ALLOC");
                 set_thread_inactive(thread);
                 break;
