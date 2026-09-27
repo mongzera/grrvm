@@ -1,7 +1,6 @@
 #ifndef VM_H
 #define VM_H
 
-#include "default_config.h"
 #include "vm_log.h"
 #include "types.h"
 #include <stddef.h>
@@ -39,48 +38,6 @@ typedef struct prim_val{
     byte metadata; // metadata 0xEF, E - state, F - type
 } prim_val;
 
-
-typedef struct VM_CallStack {
-    g_int previous_pc;
-    g_int previous_sfp;
-    g_int previous_sp;           // Added: to track the caller's micro-op stack base
-    g_int previous_n_local_vars; // Added: to remember how many locals the caller had
-} VM_CallStack;
-
-typedef enum {
-    THREAD_INACTIVE = 0x0,
-    THREAD_ACTIVE,
-    THREAD_WAIT
-} thread_status;
-
-typedef struct VM_Thread{
-    thread_status status;
-    g_int pc;
-    g_int pc_checkpoint;
-    g_int sp;
-    g_int csp;
-    g_int sfp;
-    g_int n_local_vars;
-    struct VM* vm;
-    prim_val op_stack[VM_OP_STACK_MAX];
-    prim_val call_stack_frame[VM_CALL_STACK_FRAME_MAX];
-    VM_CallStack call_stack[VM_CALL_STACK_MAX];
-
-} VM_Thread;
-
-typedef struct VM {
-    word _program_start;
-    word program_size;
-    word program[VM_PROGRAM_MAX_SIZE];
-    prim_val ram[VM_HEAP_SLOTS];
-    VM_Thread vm_threads[VM_MAX_THREADS];
-} VM;
-
-void vm_start(VM* vm_instance);
-void vm_loop(VM* vm);
-void vm_terminate(VM* vm);
-void vm_new_thread(VM* vm, word program_counter, int id);
-
 static inline byte pack_meta(prim_state state, prim_type type) {
     return (byte)((((byte)state & 0x0F) << 4) | ((byte)type & 0x0F));
 }
@@ -117,6 +74,55 @@ static inline prim_type get_prim_type(prim_val val){
 static inline prim_state get_prim_state(prim_val val){
     return ((prim_state)(((val).metadata >> 4) & 0x0F));
 }
+
+/* --- Allocator integration ---
+ * Must come after prim_val (and the helpers above) are visible, and
+ * before VM_Thread / VM are defined. vm_alloc.h forward-declares VM /
+ * VM_Thread itself and does not include this file, so this one-directional
+ * include is safe. See vm_alloc.h's top comment for why. */
+#include "vm_alloc.h"
+
+typedef struct VM_CallStack {
+    g_int previous_pc;
+    g_int previous_sfp;
+    g_int previous_sp;           // Added: to track the caller's micro-op stack base
+    g_int previous_n_local_vars; // Added: to remember how many locals the caller had
+} VM_CallStack;
+
+typedef enum {
+    THREAD_INACTIVE = 0x0,
+    THREAD_ACTIVE,
+    THREAD_WAIT
+} thread_status;
+
+typedef struct VM_Thread{
+    thread_status status;
+    g_int pc;
+    g_int pc_checkpoint;
+    g_int sp;
+    g_int csp;
+    g_int sfp;
+    g_int n_local_vars;
+    struct VM* vm;
+    prim_val op_stack[VM_OP_STACK_MAX];
+    prim_val call_stack_frame[VM_CALL_STACK_FRAME_MAX];
+    VM_CallStack call_stack[VM_CALL_STACK_MAX];
+
+} VM_Thread;
+
+typedef struct VM {
+    word _program_start;
+    word program_size;
+    word program[VM_PROGRAM_MAX_SIZE];
+    prim_val ram[VM_HEAP_SLOTS];
+    VM_Allocator allocator;
+    VM_Thread vm_threads[VM_MAX_THREADS];
+} VM;
+
+void vm_start(VM* vm_instance);
+void vm_loop(VM* vm);
+void vm_terminate(VM* vm);
+void vm_new_thread(VM* vm, word program_counter, int id);
 
 static inline void set_thread_active(VM_Thread* thread) {
     thread->status = THREAD_ACTIVE;

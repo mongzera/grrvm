@@ -62,9 +62,7 @@ The high-order nibble (or base byte offset) defines the instruction category:
 |  | `0x05` | `RSHIFT` | `0` | Logical Shift Right |
 | **`0x50` Local Mem** | `0x00` | `STORE_L` | `1` | Stores top stack value to local frame index. |
 |  | `0x01` | `LOAD_L` | `1` | Loads local frame index onto the stack. |
-| **`0x60` Global Mem** | `0x00` | `STORE` | `0` | Stores value into global address space. |
-|  | `0x01` | `LOAD` | `0` | Loads value from global address space. |
-|  | `0x02` | `LOCK` | `0` | Memory synchronization lock. |
-|  | `0x03` | `UNLOCK` | `0` | Memory synchronization unlock. |
-| **`0x70` Heap Mem** | `0x00` | `H_ALLOC` | `0` | Allocates dynamic memory block on heap. |
-|  | `0x01` | `H_FREE` | `0` | Deallocates dynamic memory block on heap. |
+| **`0x60` Global Mem** | `0x02` | `LOCK` | `1` | Memory synchronization lock. |
+|  | `0x03` | `UNLOCK` | `1` | Memory synchronization unlock. |
+| **`0x70` Heap Mem** | `0x00` | `H_ALLOC` | `1` | Allocates dynamic memory block on heap. |
+|  | `0x01` | `H_FREE` | `1` | Deallocates dynamic memory block on heap. |

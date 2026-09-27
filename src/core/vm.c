@@ -4,6 +4,7 @@
 #include "../../include/grrvm/opcodes.h"
 #include "../../include/grrvm/vm_log.h"
 #include "../../include/grrvm/vm_thread.h"
+#include "grrvm/vm_alloc.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -22,6 +23,7 @@ void vm_start(VM* vm_instance){
     for(int i = 0; i < VM_MAX_THREADS; i++){
         set_thread_inactive(&vm_instance->vm_threads[i]);
     }
+    vm_alloc_init(vm_instance);
     vm_new_thread(vm_instance, vm_instance->_program_start, 0);
     uint64_t initial_time = hal_clock_ns();
     vm_loop(vm_instance);
@@ -30,7 +32,6 @@ void vm_start(VM* vm_instance){
             initial_time,
             final_time,
             (double)(final_time - initial_time) / 1e9);
-    vm_terminate(vm_instance);
 }
 
 void vm_loop(VM* vm){

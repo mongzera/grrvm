@@ -36,9 +36,5 @@ static inline prim_state set_vm_mem(VM* vm, word address, prim_val data){
     return 0;
 }
 
-// heap allocation
-void alloc_heap(VM* vm, prim_val size, prim_val address);
-void free_heap(VM* vm, prim_val address);
-
 
 #endif
