@@ -4,7 +4,6 @@
 #include "grrvm/vm_log.h"
 #include "grrvm/vm_native.h"
 #include "grrvm/vm_thread.h"
-#include <stdio.h>
 
 void wrap_set_gc_runtime_telemetry_flag(VM_Thread* thread){
     prim_val flag;
@@ -18,6 +17,8 @@ void wrap_set_gc_runtime_telemetry_flag(VM_Thread* thread){
     }else{
         telemetry_flag_clear(TELEMETRY_GC_RUNTIME);
     }
+
+    vm_info("RUNTIME TELEMETRY", "Attempting to set GC runtime telemetry flag: %d", flag.data);
 }
 
 void wrap_dump_gc_runtime_telemetry(VM_Thread* thread){
@@ -31,13 +32,13 @@ void wrap_set_ext_frag_telemetry_flag(VM_Thread* thread){
         return;
     }
 
-    printf("EXT FRAG: %u", flag.data);
-
     if(flag.data) {
         telemetry_flag_set(TELEMETRY_EXT_FRAG);
     }else{
         telemetry_flag_clear(TELEMETRY_EXT_FRAG);
     }
+
+    vm_info("EXTERNAL FRAG TELEMETRY", "Attempting to set external fragmentation telemetry flag: %d", flag.data);
 }
 
 void wrap_dump_ext_frag_telemetry(VM_Thread* thread){

@@ -1,4 +1,5 @@
 #include "grrvm/hal/init.h"
+#include "grrvm/vm_native.h"
 #include "main_grr.h"
 #include "grrvm/hal/vm_hal_math.h"
 
@@ -14,7 +15,11 @@ void execute(char* src){
 int init(int argc, char* argv[]){
     stdio_init_all();
     hal_rng_init(0);
+
     sleep_ms(5000);
+    native_registry_init();
+
+
 
     printf("--- GrrVM Starting ---\n");
     printf("Loaded %u bytes from flash\n", main_grr_len);

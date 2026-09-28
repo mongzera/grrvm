@@ -1,9 +1,9 @@
 Dumpfile for [gc_jitter_test.grr]
-Created at: 2026-09-29T00:59:17.107042279
+Created at: 2026-09-29T04:07:43.846342833
 =======================================================================
-::_global [Instruction Count: 118]
+::_global [Instruction Count: 120]
 0 | PUSH 1
-2 | INVOKE_NATIVE 1648493979
+2 | INVOKE_NATIVE -694293680
 4 | PUSH 0
 6 | STORE_L 0
 8 | PUSH 0
@@ -12,7 +12,7 @@ Created at: 2026-09-29T00:59:17.107042279
 14 | STORE_L 2
 16 | PUSH 0
 18 | STORE_L 3
-20 | PUSH 1
+20 | PUSH 24
 22 | PUSH 1024
 24 | INVOKE_NATIVE -555540061
 26 | H_ALLOC
@@ -28,7 +28,7 @@ Created at: 2026-09-29T00:59:17.107042279
 44 | LOAD_L 0
 46 | INC 1
 48 | STORE_L 0
-50 | PUSH 1
+50 | PUSH 128
 52 | PUSH 512
 54 | INVOKE_NATIVE -555540061
 56 | H_ALLOC
@@ -38,7 +38,7 @@ Created at: 2026-09-29T00:59:17.107042279
 63 | STORE_L 0
 65 | PUSH 0
 67 | STORE_L 4
-69 | PUSH 1
+69 | PUSH 1203
 71 | PUSH 4014
 73 | INVOKE_NATIVE -555540061
 75 | H_ALLOC
@@ -63,18 +63,19 @@ Created at: 2026-09-29T00:59:17.107042279
 109 | STORE_L 2
 111 | PUSH 0
 113 | STORE_L 3
-115 | INVOKE_NATIVE -288706336
-117 | HALT
+115 | INVOKE_NATIVE -1354013583
+117 | INVOKE_NATIVE -288706336
+119 | HALT
 
 
 ===========================[BINARY]=============================
 0x3
-0x76
+0x78
 0x0
 0x1
 0x1
 0xa0
-0x6242059b
+0xd69deb50
 0x1
 0x0
 0x50
@@ -92,7 +93,7 @@ Created at: 2026-09-29T00:59:17.107042279
 0x50
 0x3
 0x1
-0x1
+0x18
 0x1
 0x400
 0xa0
@@ -122,7 +123,7 @@ Created at: 2026-09-29T00:59:17.107042279
 0x50
 0x0
 0x1
-0x1
+0x80
 0x1
 0x200
 0xa0
@@ -141,7 +142,7 @@ Created at: 2026-09-29T00:59:17.107042279
 0x50
 0x4
 0x1
-0x1
+0x4b3
 0x1
 0xfae
 0xa0
@@ -186,6 +187,8 @@ Created at: 2026-09-29T00:59:17.107042279
 0x0
 0x50
 0x3
+0xa0
+0xaf4b6471
 0xa0
 0xeecab0e0
 0x0

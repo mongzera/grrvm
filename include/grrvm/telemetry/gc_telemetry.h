@@ -7,7 +7,7 @@
 
 
 typedef enum {
-    TELEMETRY_GC_RUNTIME,
+    TELEMETRY_GC_RUNTIME = 1,
     TELEMETRY_EXT_FRAG,
 } TelemetryFlags;
 
@@ -22,11 +22,5 @@ float measure_ext_frag(VM_HeapStats heap_stats);
 
 void pre_gc_telemetry(VM* vm);
 void post_gc_telemetry(VM* vm);
-
-typedef struct {
-    word node_idx;
-    byte node_order;
-} StackNode;
-
 
 #endif // GC_TELEMETRY_H

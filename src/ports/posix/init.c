@@ -1,6 +1,7 @@
 #include "../../../include/grrvm/hal/init.h"
 #include "grrvm/hal/vm_hal_math.h"
 #include "grrvm/vm.h"
+#include "grrvm/vm_native.h"
 #include <stdlib.h>
 
 
@@ -51,6 +52,10 @@ int init(int argc, char* argv[]){
 
     // initialize HAL functions here
     hal_rng_init(0);
+
+    native_registry_init();
+
+
 
     if(argc == 1){
         print_help();

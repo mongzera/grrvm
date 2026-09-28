@@ -7,5 +7,8 @@
 void wrap_set_gc_runtime_telemetry_flag(VM_Thread* thread);
 void wrap_dump_gc_runtime_telemetry(VM_Thread* thread);
 
+void wrap_set_ext_frag_telemetry_flag(VM_Thread* thread);
+void wrap_dump_ext_frag_telemetry(VM_Thread* thread);
+
 void register_internal_telemetry_wrappers(void);
 #endif

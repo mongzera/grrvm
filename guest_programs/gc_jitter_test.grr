@@ -1,7 +1,7 @@
 ::_global
     ; Enable fragmentation telemetry
     PUSH 1
-    INVOKE_NATIVE set_ext_frag_telemetry_flag
+    INVOKE_NATIVE set_gc_runtime_telemetry_flag
 
     ; Local 0: Total allocations counter (0 to 2000)
     PUSH 0
@@ -21,7 +21,7 @@
     ; =========================================================================
 
     ; Anchor 1: Random size (1..1024 slots)
-    PUSH 1
+    PUSH 24
     PUSH 1024
     INVOKE_NATIVE math_rng_range
     H_ALLOC
@@ -41,7 +41,7 @@
     STORE_L 0
 
     ; Anchor 3: Random size (1..512 slots)
-    PUSH 1
+    PUSH 128
     PUSH 512
     INVOKE_NATIVE math_rng_range
     H_ALLOC
@@ -59,7 +59,7 @@
     STORE_L 4
 
 .discard_loop:
-    PUSH 1
+    PUSH 1203
     PUSH 4014
     INVOKE_NATIVE math_rng_range
     H_ALLOC
@@ -98,5 +98,6 @@
     PUSH 0
     STORE_L 3
 
+    INVOKE_NATIVE dump_gc_runtime_telemetry
     INVOKE_NATIVE dump_ext_frag_telemetry
     HALT

@@ -22,6 +22,7 @@ telemetry_ext_frag *gc_ext_frag_telemetry = NULL;
 void init_runtime_telemetry(void) {
     if (gc_runtime_telemetry == NULL) {
         gc_runtime_telemetry = malloc(sizeof(telemetry_t) * MAX_TELEMETRY_ENTRIES);
+
     }
     if (gc_runtime_telemetry != NULL) {
         memset(gc_runtime_telemetry, 0, sizeof(telemetry_t) * MAX_TELEMETRY_ENTRIES);
@@ -111,7 +112,6 @@ void dump_ext_frag_telemetry(void) {
 }
 
 void pre_gc_telemetry(VM* vm) {
-    vm_info("TELEMETRY", "HELLO: %X", telemetry_flags);
 
     if (telemetry_flag_is_set(TELEMETRY_GC_RUNTIME) &&
         gc_runtime_telemetry != NULL &&

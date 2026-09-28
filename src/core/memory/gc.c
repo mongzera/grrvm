@@ -13,11 +13,10 @@ void run_gc(VM* vm) {
     vm_info("GC", "Invoked due to lack of Memory");
 
     pre_gc_telemetry(vm);
-
     mark_object(vm);
     sweep_objects(vm);
-
     post_gc_telemetry(vm);
+
 }
 
 
@@ -31,8 +30,10 @@ void mark_object(VM* vm) {
             continue;
         }
 
+
         // Check the call stack from the topmost frame towards the bottom.
         for (g_int j = thread->sfp + thread->n_local_vars; j >= 0; j--) {
+
             prim_val reference = thread->call_stack_frame[j];
 
             if (get_prim_type(reference) == TYPE_REFERENCE) {
@@ -46,8 +47,10 @@ void mark_object(VM* vm) {
             }
         }
 
+
         // Check the operand stack from the top towards the bottom.
         for (g_int j = thread->sp; j >= 0; j--) {
+
             prim_val reference = thread->op_stack[j];
 
             if (get_prim_type(reference) == TYPE_REFERENCE) {
@@ -60,6 +63,8 @@ void mark_object(VM* vm) {
                 );
             }
         }
+
+
     }
 }
 
