@@ -1,0 +1,23 @@
+Dumpfile for [sample_native_call.grr]
+Created at: 2026-09-28T08:44:06.123385327
+=======================================================================
+::_global [Instruction Count: 8]
+0 | PUSH 10
+2 | PUSH 20
+4 | INVOKE_NATIVE -555540061
+6 | POP
+7 | HALT
+
+
+===========================[BINARY]=============================
+0x3
+0x8
+0x0
+0x1
+0xa
+0x1
+0x14
+0xa0
+0xdee321a3
+0x2
+0x0

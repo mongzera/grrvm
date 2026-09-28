@@ -3,7 +3,9 @@
     STORE_L 0
 
     .while_0:
-        PUSH 345 ; Allocate 31 slots
+        PUSH 1 ; Minimum number of slots
+        PUSH 2023 ; Maximum number of slots
+        INVOKE_NATIVE math_rng_range
         H_ALLOC
         POP
         LOAD_L 0

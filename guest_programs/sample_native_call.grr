@@ -1,0 +1,6 @@
+::_global
+    PUSH 10
+    PUSH 20
+    INVOKE_NATIVE math_rng_range
+    POP
+    HALT

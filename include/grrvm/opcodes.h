@@ -13,7 +13,8 @@ typedef enum OPCODE_CATEGORY{
     OPC_MEMORY_GLOBAL   = 0x60,
     OPC_MEMORY_HEAP     = 0x70,
     OPC_SYS             = 0x80,
-    OPC_UART            = 0x90
+    OPC_UART            = 0x90,
+    OPC_NATIVE          = 0xA0,
 
 } OPCODE_CATEGORY;
 
@@ -73,6 +74,9 @@ typedef enum OPCODE{
     /** MEMORY(HEAP) OPERAND */
     H_ALLOC     = OPC_MEMORY_HEAP | 0x00,
     H_FREE      = OPC_MEMORY_HEAP | 0x01,
+
+    /** NATIVE OPERAND */
+    INVOKE_NATIVE      = OPC_NATIVE | 0x00,
 
 } OPCODE;
 

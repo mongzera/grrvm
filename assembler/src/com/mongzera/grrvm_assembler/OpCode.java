@@ -115,7 +115,9 @@ public class OpCode {
 
         public int[] asStream(){
             int[] stream = new int[1 + resolvedArgs.length];
-            stream[0] = opCode.getOpcodeIdForm();
+
+            // OPCODES must be streamed as unsigned integers
+            stream[0] = opCode.getOpcodeIdForm() & 0x000000FF;
             for(int i = 0; i < resolvedArgs.length; i++){
 
                 stream[i+1] = resolvedArgs[i];

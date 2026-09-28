@@ -20,3 +20,21 @@ Example: PUSH_ADDR 2
 
 [Stack]
 [push data from address = 2, copied into the stack]
+
+## POP_ADDR 
+Implement POP_ADDR <mem_address> - so that we can store the popped value back into a memory address
+Example: POP_ADDR 2
+
+[Program]
+0|POP_ADDR
+1|2
+
+Also, Since RAM is now considered the HEAP, maybe we can separate the GLOBAL and HEAP memory
+
+## H_SET_TYPE [DONE]
+Implement H_SET_TYPE <type> - so that we can set the type of a memory address
+Example: H_SET_TYPE uint32
+
+Functionality:
+Pops a value from the stack (TYPE_REFERENCE)
+Then, it will target the TYPE_LENGTH it points to where it will set the type for that array.

@@ -1,5 +1,6 @@
-#include "../../../include/grrvm/hal/init.h"
-#include "../../../include/main_grr.h"
+#include "grrvm/hal/init.h"
+#include "main_grr.h"
+#include "grrvm/hal/vm_hal_math.h"
 
 #include "pico/stdlib.h"
 void execute(char* src){
@@ -12,6 +13,7 @@ void execute(char* src){
 
 int init(int argc, char* argv[]){
     stdio_init_all();
+    hal_rng_init(0);
     sleep_ms(5000);
 
     printf("--- GrrVM Starting ---\n");

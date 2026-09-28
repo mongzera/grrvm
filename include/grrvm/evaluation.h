@@ -11,5 +11,6 @@ void eval_bitwise_operand       (VM_Thread* thread, word opcode);
 void eval_memory_local_operand  (VM_Thread* thread, word opcode);
 void eval_memory_global_operand (VM_Thread* thread, word opcode);
 void eval_memory_heap_operand   (VM_Thread* thread, word opcode);
+void eval_native_operand        (VM_Thread* thread, word opcode);
 
 #endif

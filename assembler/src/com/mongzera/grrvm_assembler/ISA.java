@@ -3,6 +3,7 @@ package src.com.mongzera.grrvm_assembler;
 import src.com.mongzera.grrvm_assembler.bytecode.Data;
 import src.com.mongzera.grrvm_assembler.bytecode.Subroutine;
 import src.com.mongzera.grrvm_assembler.util.InstructionArgParser;
+import src.com.mongzera.grrvm_assembler.util.SymbolHasher;
 
 import java.util.ArrayList;
 
@@ -17,6 +18,7 @@ public class ISA {
     public static byte OPC_MEMORY_HEAP    = (byte) 0x70;
     public static byte OPC_SYS            = (byte) 0x80;
     public static byte OPC_UART           = (byte) 0x90;
+    public static byte OPC_NATIVE         = (byte) 0xA0;
 
     public ArrayList<OpCode> operationCodes = new ArrayList<>();
 
@@ -149,6 +151,17 @@ public class ISA {
         operationCodes.add(new OpCode(OPC_MEMORY_HEAP , (byte) 0x00, (byte) 0, "H_ALLOC"));
         operationCodes.add(new OpCode(OPC_MEMORY_HEAP , (byte) 0x01, (byte) 0, "H_FREE"));
 
+        // NATIVE OPERAND
+        operationCodes.add(new OpCode(OPC_NATIVE , (byte) 0x00, (byte) 1, "INVOKE_NATIVE", ((bytecode, segment, instruction) -> {
+            // get name of the native function
+            String native_function = instruction.getArg(0);
+
+            if(native_function.isEmpty()){
+                DebugMsg.asm_error(GrrError.ARGUMENT_COUNT_NOT_MATCH, "INVOKE_NATIVE needs a string argument <native function name>");
+            }
+
+            instruction.setArg(0, Integer.toString(SymbolHasher.fnv1a32(native_function.trim())));
+        })));
     }
 
     public OpCode findMatch(String opcodeStrForm){
