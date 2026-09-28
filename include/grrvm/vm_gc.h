@@ -6,7 +6,6 @@
  *  This features a Mark-Sweep garbage collector.
  *  Very Simplistic Implementation
  */
-
 void run_gc(VM* vm);
 void mark_object(VM* vm);
 void sweep_objects(VM* vm);

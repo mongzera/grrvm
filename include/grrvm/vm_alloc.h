@@ -47,10 +47,12 @@ extern const word VM_SLAB_CLASS_SIZES[VM_SLAB_CLASS_COUNT]; /* {8, 16, 32} */
 
 /* ---------------- Buddy Forest ----------------
  * Classic single-array "buddy2" layout: longest[i] holds (order+1) of the
- * largest free block reachable under node i, 0 = fully allocated. Freeing
- * a node just sets its own slot and re-maxes every ancestor on the way
- * up - that single rule handles both "no merge" and "merge with buddy"
- * cases identically, so there's no separate coalesce-detection step.
+ * largest free block reachable under node i, 0 = fully allocated.
+ * Allocation descends toward a child that can satisfy the request, then
+ * re-maxes every ancestor. Freeing sets the node, then walks up: a parent
+ * is promoted to its own full capacity only when BOTH children are at
+ * full capacity (both buddies entirely free); otherwise it takes the max
+ * of its children. Plain max() alone is not enough to detect a merge.
  * Needs no per-block free-list pointers and no separate free bitmap.
  */
 typedef struct BuddyTree {
@@ -62,6 +64,7 @@ typedef struct BuddyTree {
 typedef struct BuddyForest {
     BuddyTree trees[VM_MAX_BUDDY_TREES];
     byte num_trees;
+    word free_slots;  /* running total of free slots across all trees */
     byte pool[VM_BUDDY_POOL_SIZE];
 } BuddyForest;
 
@@ -95,6 +98,20 @@ typedef struct VM_Allocator {
     word base_block_owner[VM_NUM_BASE_BLOCKS];
 } VM_Allocator;
 
+/* ---------------- Heap statistics ---------------- */
+
+/* Both fields are in slots and count the whole heap (buddy + slab).
+ *  total_free_slots  - every free slot: free buddy blocks plus free
+ *                      sub-blocks sitting in partially used slab caches.
+ *  longest_free_block - size (header included) of the largest single
+ *                      block g_malloc could hand out right now. The
+ *                      largest usable payload is this minus 1.
+ * External fragmentation, e.g.: 1.0f - (float)longest / (float)total. */
+typedef struct VM_HeapStats {
+    word buddy_free_slots;
+    word longest_buddy_block;
+} VM_HeapStats;
+
 /* ---------------- Public API ---------------- */
 
 /* Must be called once at VM startup, before any g_malloc/g_free. */
@@ -115,5 +132,8 @@ prim_val g_malloc_direct(VM *vm, word n_slots, byte print_error);
  * so no bookkeeping beyond the reference itself is required. */
 void g_free(VM_Thread *, prim_val reference);
 void g_free_direct(VM *, word slot_index);
+
+/* O(#trees + #slab caches), no tree walking. Safe to call at any time. */
+void vm_heap_stats(const VM *vm, VM_HeapStats *out);
 
 #endif

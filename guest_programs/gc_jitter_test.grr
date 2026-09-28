@@ -1,0 +1,102 @@
+::_global
+    ; Enable fragmentation telemetry
+    PUSH 1
+    INVOKE_NATIVE set_ext_frag_telemetry_flag
+
+    ; Local 0: Total allocations counter (0 to 2000)
+    PUSH 0
+    STORE_L 0
+
+    ; Local 1, 2, 3: Live anchor slots (Islands of retained memory)
+    PUSH 0
+    STORE_L 1
+    PUSH 0
+    STORE_L 2
+    PUSH 0
+    STORE_L 3
+
+.outer_loop:
+    ; =========================================================================
+    ; PHASE 1: Allocate & Retain 3 objects (Overwrites previous anchors)
+    ; =========================================================================
+
+    ; Anchor 1: Random size (1..1024 slots)
+    PUSH 1
+    PUSH 1024
+    INVOKE_NATIVE math_rng_range
+    H_ALLOC
+    STORE_L 1               ; Replaces old Local 1 (previous object becomes dead)
+    LOAD_L 0
+    INC 1
+    STORE_L 0
+
+    ; Anchor 2: Random size (1..2048 slots)
+    PUSH 1
+    PUSH 2048
+    INVOKE_NATIVE math_rng_range
+    H_ALLOC
+    STORE_L 2               ; Replaces old Local 2
+    LOAD_L 0
+    INC 1
+    STORE_L 0
+
+    ; Anchor 3: Random size (1..512 slots)
+    PUSH 1
+    PUSH 512
+    INVOKE_NATIVE math_rng_range
+    H_ALLOC
+    STORE_L 3               ; Replaces old Local 3
+    LOAD_L 0
+    INC 1
+    STORE_L 0
+
+    ; =========================================================================
+    ; PHASE 2: Allocate & Immediately Discard 7 objects (Transient Churn)
+    ; =========================================================================
+
+    ; Local 4: Discard batch counter
+    PUSH 0
+    STORE_L 4
+
+.discard_loop:
+    PUSH 1
+    PUSH 4014
+    INVOKE_NATIVE math_rng_range
+    H_ALLOC
+    POP                     ; Discard immediately
+
+    ; Increment total & batch counters
+    LOAD_L 0
+    INC 1
+    STORE_L 0
+
+    LOAD_L 4
+    INC 1
+    STORE_L 4
+
+    LOAD_L 4
+    PUSH 7
+    CMPGT
+    JZ .discard_loop
+
+    ; =========================================================================
+    ; PHASE 3: Check Termination
+    ; =========================================================================
+    LOAD_L 0
+    PUSH 2000
+    CMPGT
+    JZ .outer_loop
+
+    ; =========================================================================
+    ; PHASE 4: Release Anchors & Final Verification
+    ; =========================================================================
+    ; Clear retained handles to verify if heap returns to baseline 0.360000014
+    PUSH 0
+    STORE_L 1
+    PUSH 0
+    STORE_L 2
+    PUSH 0
+    STORE_L 3
+
+    INVOKE_NATIVE dump_ext_frag_telemetry
+    HALT
