@@ -21,6 +21,7 @@ The high-order nibble (or base byte offset) defines the instruction category:
 | `OPC_MEMORY_HEAP` | `0x70` | Dynamic heap memory management |
 | `OPC_SYS` | `0x80` | System-level operations *(Reserved)* |
 | `OPC_UART` | `0x90` | Serial I/O communication operations *(Reserved)* |
+| `OPC_NATIVE` | `0xA0` | Native function calls *(Reserved)* |
 
 ---
 
@@ -66,3 +67,6 @@ The high-order nibble (or base byte offset) defines the instruction category:
 |  | `0x03` | `UNLOCK` | `1` | Memory synchronization unlock. |
 | **`0x70` Heap Mem** | `0x00` | `H_ALLOC` | `1` | Allocates dynamic memory block on heap. |
 |  | `0x01` | `H_FREE` | `1` | Deallocates dynamic memory block on heap. |
+| **`0x80` System Calls** | `0x00` | | | Not implemented yet! |
+| **`0x90` UART Interface** | `0x00` | | | Not implemented yet! |
+| **`0xA0` Native Functions** | `0x00` | `INVOKE_NATIVE` | `1` | Invokes a native function. |
