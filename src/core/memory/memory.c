@@ -48,10 +48,7 @@ static void buddy_tree_free(BuddyTree *tree, word node_offset, byte order) {
     tree->longest[index] = (byte)(order + 1);
 
     /* Walking up: a parent only gets promoted to its own full capacity
-     * when BOTH children are themselves at full capacity (i.e. nothing
-     * anywhere under either child is allocated) - that's what "the
-     * buddy is free" actually means. Otherwise the parent is just
-     * whichever child currently offers the bigger free block. */
+     * when BOTH children are themselves at full capacity. */
     byte child_order = order;
     while (index != 0) {
         word parent = (index - 1) / 2;
@@ -72,7 +69,10 @@ static word buddy_alloc(BuddyForest *forest, byte want_order) {
     for (byte i = 0; i < forest->num_trees; i++) {
         if (forest->trees[i].order >= want_order) {
             word addr = buddy_tree_alloc(&forest->trees[i], want_order);
-            if (addr != VM_ALLOC_NONE) return addr;
+            if (addr != VM_ALLOC_NONE) {
+                forest->free_slots -= (word)VM_BUDDY_BASE_BLOCK_SLOTS << want_order;
+                return addr;
+            }
         }
     }
     return VM_ALLOC_NONE; /* forest exhausted at this order */
@@ -85,6 +85,7 @@ static void buddy_free(BuddyForest *forest, word addr, byte order) {
         if (addr >= t->base_slot && addr < t->base_slot + tree_span) {
             word node_offset = (addr - t->base_slot) / VM_BUDDY_BASE_BLOCK_SLOTS;
             buddy_tree_free(t, node_offset, order);
+            forest->free_slots += (word)VM_BUDDY_BASE_BLOCK_SLOTS << order;
             return;
         }
     }
@@ -145,7 +146,6 @@ static word slab_alloc(VM *vm, byte class_index) {
     sc->used_count++;
 
     if (sc->free_list_head == VM_ALLOC_NONE) {
-        /* cache is now full - drop it from the "has room" list */
         s->available_head[class_index] = sc->next_available;
     }
     return addr;
@@ -175,8 +175,6 @@ static void slab_free(VM *vm, word addr) {
     }
 
     if (sc->used_count == 0) {
-        /* cache is empty - unlink it from the available list and hand the
-         * base block back to the BuddyForest */
         word *cursor = &a->slab.available_head[class_index];
         while (*cursor != VM_ALLOC_NONE) {
             if (*cursor == desc) { *cursor = sc->next_available; break; }
@@ -189,13 +187,10 @@ static void slab_free(VM *vm, word addr) {
 }
 
 /* =======================================================================
- * vm_alloc_init - greedy binary decomposition of VM_NUM_BASE_BLOCKS
- * into power-of-two BuddyTrees (handles heaps that aren't themselves
- * a power of two, e.g. Pico's 25600-slot heap -> trees of order 8/7/4).
+ * Initialization
  * ======================================================================= */
 
 void vm_alloc_init(VM *vm) {
-    //set HEAP all to 0;
     memset(vm->ram, 0, sizeof(vm->ram));
 
     VM_Allocator *a = &vm->allocator;
@@ -205,6 +200,7 @@ void vm_alloc_init(VM *vm) {
     for (word c = 0; c < VM_SLAB_CLASS_COUNT; c++) a->slab.available_head[c] = VM_ALLOC_NONE;
 
     a->buddy.num_trees = 0;
+    a->buddy.free_slots = VM_NUM_BASE_BLOCKS * VM_BUDDY_BASE_BLOCK_SLOTS;
     word remaining = VM_NUM_BASE_BLOCKS;
     word base_block_cursor = 0;
     word pool_offset = 0;
@@ -232,7 +228,7 @@ void vm_alloc_init(VM *vm) {
 }
 
 /* =======================================================================
- * Public API
+ * Allocation & Free API
  * ======================================================================= */
 
 static prim_val finish_alloc(VM *vm, word addr, word block_size, word n_slots) {
@@ -244,7 +240,6 @@ static prim_val finish_alloc(VM *vm, word addr, word block_size, word n_slots) {
 }
 
 prim_val g_malloc_direct(VM *vm, word n_slots, byte print_error) {
-
     word total_needed = n_slots + 1; /* + header */
     if (total_needed <= 32) {
         byte class_index = 0xFF;
@@ -270,22 +265,37 @@ prim_val g_malloc_direct(VM *vm, word n_slots, byte print_error) {
     }
 }
 
-/*
- * Automatically runs garbage collection if the allocation fails.
- */
 prim_val g_malloc(VM_Thread *thread, word n_slots) {
-    VM* vm = thread->vm;
+    VM *vm = thread->vm;
     prim_val reference = g_malloc_direct(vm, n_slots, 0);
     if (get_prim_type(reference) != TYPE_REFERENCE) {
         run_gc(vm);
-        reference = g_malloc_direct(thread->vm, n_slots, 1);
+        reference = g_malloc_direct(vm, n_slots, 1);
     }
     return reference;
 }
 
-void g_free(VM_Thread *thread, prim_val reference) {
-    VM *vm = thread->vm;
+void g_free_direct(VM *vm, word data_addr) {
+    word header_addr = data_addr - 1;
+    prim_val header = vm->ram[header_addr];
+    if (get_prim_type(header) != TYPE_LENGTH) {
+        vm_error("HEAP", "Double free or corrupted reference at 0x%X!", data_addr);
+        return;
+    }
+    word block_size = header.data;
 
+    vm->ram[header_addr] = make_prim_val(0, STATE_OPEN, TYPE_NULL);
+
+    if (block_size <= 32) {
+        slab_free(vm, header_addr);
+    } else {
+        byte order = 0;
+        while (((word)VM_BUDDY_BASE_BLOCK_SLOTS << order) < block_size) order++;
+        buddy_free(&vm->allocator.buddy, header_addr, order);
+    }
+}
+
+void g_free(VM_Thread *thread, prim_val reference) {
     if (get_prim_type(reference) != TYPE_REFERENCE) {
         vm_error("HEAP", "g_free called on a non-reference value!");
         return;
@@ -297,28 +307,28 @@ void g_free(VM_Thread *thread, prim_val reference) {
     }
 
     g_free_direct(thread->vm, data_addr);
-
 }
 
-void g_free_direct(VM *vm, word data_addr){
-    word header_addr = data_addr - 1;
-    prim_val header = vm->ram[header_addr];
-    if (get_prim_type(header) != TYPE_LENGTH) {
-        vm_error("HEAP", "Double free or corrupted reference at 0x%X!", data_addr);
-        return;
-    }
-    word block_size = header.data;
+/* =======================================================================
+ * Heap Statistics & Telemetry
+ * ======================================================================= */
 
-    /* Invalidate the header immediately so a repeat g_free on the same
-     * reference is caught above as corruption, rather than silently
-     * freeing memory that now belongs to someone else. */
-    vm->ram[header_addr] = make_prim_val(0, STATE_OPEN, TYPE_NULL);
+void vm_heap_stats(const VM *vm, VM_HeapStats *out) {
+    const VM_Allocator *a = &vm->allocator;
 
-    if (block_size <= 32) {
-        slab_free(vm, header_addr);
-    } else {
-        byte order = 0;
-        while (((word)VM_BUDDY_BASE_BLOCK_SLOTS << order) < block_size) order++;
-        buddy_free(&vm->allocator.buddy, header_addr, order);
+    word buddy_free_slots = a->buddy.free_slots;
+
+
+    word longest_buddy = 0;
+    for (byte i = 0; i < a->buddy.num_trees; i++) {
+        byte v = a->buddy.trees[i].longest[0];
+        if (v > 0) {
+            word block = (word)VM_BUDDY_BASE_BLOCK_SLOTS << (v - 1);
+            if (block > longest_buddy) longest_buddy = block;
+        }
     }
+
+    /* Dedicated Buddy-only telemetry fields for fragmentation metrics */
+    out->buddy_free_slots = buddy_free_slots;
+    out->longest_buddy_block = longest_buddy;
 }

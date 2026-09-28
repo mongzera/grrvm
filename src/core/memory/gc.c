@@ -1,93 +1,206 @@
 #include "grr_port_config.h"
+#include "grrvm/hal/vm_hal_timer.h"
+#include "grrvm/telemetry/gc_telemetry.h"
+#include "grrvm/telemetry/vm_telemetry.h"
 #include "grrvm/types.h"
 #include "grrvm/vm.h"
 #include "grrvm/vm_alloc.h"
 #include "grrvm/vm_gc.h"
 #include "grrvm/vm_log.h"
 
+
 void run_gc(VM* vm) {
-    vm_info("GC", "GC Invoked due to lack of Memory");
+    vm_info("GC", "Invoked due to lack of Memory");
+
+    pre_gc_telemetry(vm);
     mark_object(vm);
     sweep_objects(vm);
+    post_gc_telemetry(vm);
+
 }
+
 
 void mark_object(VM* vm) {
-    // loop all Threads
-    for(g_u32 i = 0; i < VM_MAX_THREADS; i++) {
-        VM_Thread thread = vm->vm_threads[i];
+    // Loop all threads.
+    for (g_u32 i = 0; i < VM_MAX_THREADS; i++) {
+        VM_Thread *thread = &vm->vm_threads[i];
 
-        // skip inactive threads
-        if(!is_thread_active(&thread)){
+        // Skip inactive threads.
+        if (!is_thread_active(thread)) {
             continue;
         }
 
-        // check topmost thread call stack frame towards the bottom
-        for(g_int i = thread.sfp; i >= 0; i--) {
-            prim_val reference = thread.call_stack_frame[i];
-            if(get_prim_type(reference) == TYPE_REFERENCE) {
+
+        // Check the call stack from the topmost frame towards the bottom.
+        for (g_int j = thread->sfp + thread->n_local_vars; j >= 0; j--) {
+
+            prim_val reference = thread->call_stack_frame[j];
+
+            if (get_prim_type(reference) == TYPE_REFERENCE) {
                 set_tagged(vm, reference);
-                vm_info("GC", "Tagged reference: %d", reference.data);
+
+                vm_info(
+                    "GC",
+                    "Tagged reference: %d",
+                    reference.data
+                );
             }
         }
 
-        // check topmost thread operand stack towards the bottom
-        for(g_int i = thread.sp; i >= 0; i--) {
-            prim_val reference = thread.op_stack[i];
-            if(get_prim_type(reference) == TYPE_REFERENCE) {
+
+        // Check the operand stack from the top towards the bottom.
+        for (g_int j = thread->sp; j >= 0; j--) {
+
+            prim_val reference = thread->op_stack[j];
+
+            if (get_prim_type(reference) == TYPE_REFERENCE) {
                 set_tagged(vm, reference);
-                vm_info("GC", "Tagged reference: %d", reference.data);
+
+                vm_info(
+                    "GC",
+                    "Tagged reference: %d",
+                    reference.data
+                );
             }
         }
+
+
     }
 }
+
 
 void sweep_objects(VM* vm) {
-    for(uint32_t i = 0; i < VM_HEAP_SLOTS; i++) {
-        prim_val array_length = vm->ram[i];
-        //vm_info("GC", "IDX: %u TAG: %u", i, array_length.gc_mark);
-        if(get_prim_type(array_length) != TYPE_LENGTH) {
+    for (word i = 0; i < VM_HEAP_SLOTS; i++) {
+        prim_val header = vm->ram[i];
+
+        /*
+         * Every heap allocation begins with a TYPE_LENGTH header.
+         *
+         * header.data contains the physical allocation block size,
+         * including the header itself.
+         *
+         * Example:
+         *
+         *   n_slots = 4
+         *
+         *   [ H ][ E ][ E ][ E ][ E ][ unused ... ]
+         *     <--------- block_size --------->
+         *
+         * The allocator may own more slots than the logical array uses.
+         */
+        if (get_prim_type(header) != TYPE_LENGTH) {
             continue;
         }
 
-        if(array_length.gc_mark == 0) {
-            g_free_direct(vm, i+1);
-            i += array_length.data + 1; // skip over the array elements
-            vm_info("GC", "Freed array at address %u", i-1);
-            continue;
+        word block_size = header.data;
+
+        /*
+         * A corrupted header must not be allowed to make the
+         * sweep cursor leave the heap.
+         */
+        if (block_size == 0 ||
+            block_size > VM_HEAP_SLOTS - i) {
+            vm_error(
+                "GC",
+                "Invalid allocation block size %u at address %u!",
+                block_size,
+                i
+            );
+
+            return;
         }
 
-        set_gc_tag(vm, i, 0);
+        if (header.gc_mark == 0) {
+            /*
+             * Reference points to the first element, while the
+             * allocator expects the data address.
+             */
+            g_free_direct(vm, i + 1);
 
+            vm_info(
+                "GC",
+                "Freed array at address %u (block size %u)",
+                i,
+                block_size
+            );
+        } else {
+            /*
+             * Object survived this collection.
+             *
+             * Clear the mark so that the next GC starts with
+             * an unmarked heap.
+             */
+            set_gc_tag(vm, i, 0);
+        }
+
+        /*
+         * Skip the entire physical allocation block.
+         *
+         * The for-loop's i++ advances us to the next allocation.
+         *
+         * Example:
+         *
+         *   i = 100
+         *   block_size = 8
+         *
+         *   allocation occupies [100..107]
+         *
+         *   i += 7
+         *   for-loop i++
+         *   i == 108
+         */
+        i += block_size - 1;
     }
 }
 
+
 /*
- * Sets the GC tag of the array header
+ * Sets the GC tag of the allocation header.
  */
 void set_gc_tag(VM* vm, word array_header_addr, byte tag) {
-    prim_val *array = &vm->ram[array_header_addr];
-    if(get_prim_type(*array) != TYPE_LENGTH){
-        vm_error("GC", "Attempted to tag non-array reference: Address %u", array_header_addr);
+    prim_val *header = &vm->ram[array_header_addr];
+
+    if (get_prim_type(*header) != TYPE_LENGTH) {
+        vm_error(
+            "GC",
+            "Attempted to tag non-array reference: Address %u",
+            array_header_addr
+        );
+
         return;
     }
 
-    array->gc_mark = tag;
+    header->gc_mark = tag;
 }
 
+
 /*
- * Sets the GC tag of the array header to 1 (tagged)
- * Subtracts 1 from the data field to target for the array header, rather than the first element
+ * Sets the GC tag of the allocation header to 1 (tagged).
+ *
+ * A reference points to the first element of the array,
+ * so subtract 1 to obtain the allocation header.
  */
 void set_tagged(VM* vm, prim_val reference) {
-    reference.data -= 1;
-    set_gc_tag(vm, reference.data, 1);
+    if (reference.data == 0) {
+        vm_error("GC", "Attempted to tag invalid null reference!");
+        return;
+    }
+
+    set_gc_tag(vm, reference.data - 1, 1);
 }
 
+
 /*
- * Sets the GC tag of the array header to 0 (untagged)
- * Subtracts 1 from the data field to target for the array header, rather than the first element
+ * Sets the GC tag of the allocation header to 0 (untagged).
+ *
+ * A reference points to the first element of the array,
+ * so subtract 1 to obtain the allocation header.
  */
 void set_untagged(VM* vm, prim_val reference) {
-    reference.data -= 1;
-    set_gc_tag(vm, reference.data, 0);
+    if (reference.data == 0) {
+        vm_error("GC", "Attempted to untag invalid null reference!");
+        return;
+    }
+
+    set_gc_tag(vm, reference.data - 1, 0);
 }

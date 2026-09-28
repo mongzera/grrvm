@@ -1,9 +1,9 @@
-Dumpfile for [sample_mem_alloc.grr]
-Created at: 2026-09-28T19:17:22.793958355
+Dumpfile for [gc_ext_frag_pre_post_gc.grr]
+Created at: 2026-09-29T02:54:58.910852594
 =======================================================================
 ::_global [Instruction Count: 32]
 0 | PUSH 1
-2 | INVOKE_NATIVE -694293680
+2 | INVOKE_NATIVE 1648493979
 4 | PUSH 0
 6 | STORE_L 0
 8 | PUSH 1
@@ -18,7 +18,7 @@ Created at: 2026-09-28T19:17:22.793958355
 24 | PUSH 2000
 26 | CMPGT
 27 | JZ -21
-29 | INVOKE_NATIVE -1354013583
+29 | INVOKE_NATIVE -288706336
 31 | HALT
 
 
@@ -29,7 +29,7 @@ Created at: 2026-09-28T19:17:22.793958355
 0x1
 0x1
 0xa0
-0xd69deb50
+0x6242059b
 0x1
 0x0
 0x50
@@ -56,5 +56,5 @@ Created at: 2026-09-28T19:17:22.793958355
 0x31
 0xffffffeb
 0xa0
-0xaf4b6471
+0xeecab0e0
 0x0
