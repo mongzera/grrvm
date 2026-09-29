@@ -10,15 +10,16 @@
 /* --- TYPE RANKING & PROMOTION --- */
 static inline int get_type_rank(prim_type type) {
     switch (type) {
-        case TYPE_I8:           return 1;
-        case TYPE_U8:           return 2;
-        case TYPE_I16:          return 3;
-        case TYPE_U16:          return 4;
-        case TYPE_I32:          return 5;
-        case TYPE_U32:          return 6;
-        case TYPE_FLOAT:        return 7;
-        case TYPE_REFERENCE:    // Non-numeric / Object reference
-        default:                return -1;
+        case TYPE_NULL:      return 0;
+        case TYPE_I8:        return 1;
+        case TYPE_U8:        return 2;
+        case TYPE_I16:       return 3;
+        case TYPE_U16:       return 4;
+        case TYPE_I32:       return 5;
+        case TYPE_U32:       return 6;
+        case TYPE_REFERENCE: return 7;
+        case TYPE_FLOAT:     return 8;
+        default:             return -1;
     }
 }
 
@@ -26,7 +27,13 @@ static inline int promote_types(prim_type a, prim_type b, prim_type *out_promote
     int rank_a = get_type_rank(a);
     int rank_b = get_type_rank(b);
 
-    if (rank_a < 0 || rank_b < 0) return 0; // Invalid / Incompatible types
+    if (rank_a < 0 || rank_b < 0) return 0; // Unknown or invalid type
+
+    // Cannot do cross-promotion between floats and references explicitly
+    if ((a == TYPE_REFERENCE && b == TYPE_FLOAT) ||
+        (a == TYPE_FLOAT && b == TYPE_REFERENCE)) {
+        return 0;
+    }
 
     if (out_promoted != NULL) {
         *out_promoted = (rank_a >= rank_b) ? a : b;

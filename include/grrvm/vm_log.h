@@ -29,6 +29,29 @@ static inline void vm_log_vfmt(const char* prefix, const char* color, const char
 
 /* 1. Formatted Logging Functions (Supports printf syntax in msg) */
 
+
+
+static inline void vm_info_tabbed(int tab_count, const char* title, const char* fmt, ...) {
+    char tabbed_fmt[512];
+    int offset = 0;
+
+    // Clamp tab count to buffer safety limit
+    if (tab_count > 16) tab_count = 16;
+
+    // Prepend '\t' characters
+    for (int i = 0; i < tab_count; i++) {
+        tabbed_fmt[offset++] = '\t';
+    }
+
+    // Append original format string
+    snprintf(tabbed_fmt + offset, sizeof(tabbed_fmt) - offset, "%s", fmt);
+
+    va_list args;
+    va_start(args, fmt);
+    vm_log_vfmt("INFO", LOG_COLOR_INFO, title, tabbed_fmt, args);
+    va_end(args);
+}
+
 static inline void vm_info(const char* title, const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);

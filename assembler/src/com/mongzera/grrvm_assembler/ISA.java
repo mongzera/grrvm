@@ -150,6 +150,10 @@ public class ISA {
         // MEMORY (HEAP) OPERAND
         operationCodes.add(new OpCode(OPC_MEMORY_HEAP , (byte) 0x00, (byte) 0, "H_ALLOC"));
         operationCodes.add(new OpCode(OPC_MEMORY_HEAP , (byte) 0x01, (byte) 0, "H_FREE"));
+        operationCodes.add(new OpCode(OPC_MEMORY_HEAP , (byte) 0x02, (byte) 0, "H_STORE"));
+        operationCodes.add(new OpCode(OPC_MEMORY_HEAP , (byte) 0x03, (byte) 0, "H_LOAD"));
+        operationCodes.add(new OpCode(OPC_MEMORY_HEAP , (byte) 0x04, (byte) 0, "H_STORE_OFF"));
+        operationCodes.add(new OpCode(OPC_MEMORY_HEAP , (byte) 0x05, (byte) 0, "H_LOAD_OFF"));
 
         // NATIVE OPERAND
         operationCodes.add(new OpCode(OPC_NATIVE , (byte) 0x00, (byte) 1, "INVOKE_NATIVE", ((bytecode, segment, instruction) -> {

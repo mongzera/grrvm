@@ -27,11 +27,22 @@ void eval_stack_operand(VM_Thread *thread, word opcode) {
         }
 
         case PUSH_ADDR: {
+            vm_error("PUSH_ADDR", "Not implemented yet!");
+            set_thread_inactive(thread);
+            break;
+
             word address = get_instruction(thread);
-            prim_val val = *get_vm_mem(thread->vm, address);
-            if(get_prim_type(val) != TYPE_FLOAT) vm_info("PUSH", "VALUE: %d", val.data);
-            else vm_info("PUSH", "VALUE: %f", val.float_data);
-            if (!push_stack(thread, val)) {
+            prim_val out;
+
+            // replace this: get_vm_mem -> get_global_mem
+            if(!get_vm_mem(thread->vm, address, &out)){
+                vm_error("PUSH_ADDR", "Failed to get memory at address %u", address);
+                has_error = 1;
+                break;
+            }
+            if(get_prim_type(out) != TYPE_FLOAT) vm_info("PUSH", "VALUE: %d", out.data);
+            else vm_info("PUSH", "VALUE: %f", out.float_data);
+            if (!push_stack(thread, out)) {
                 vm_error("STACK OVERFLOW", "Thread operand stack limit reached during PUSH!");
                 has_error = 1;
             }

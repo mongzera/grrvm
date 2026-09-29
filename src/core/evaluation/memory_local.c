@@ -2,6 +2,7 @@
 #include "grrvm/types.h"
 #include "grrvm/vm.h"
 #include "grrvm/evaluation.h"
+#include "grrvm/vm_log.h"
 #include "grrvm/vm_thread.h"
 
 void eval_memory_local_operand(VM_Thread *thread, word opcode) {
@@ -30,10 +31,14 @@ void eval_memory_local_operand(VM_Thread *thread, word opcode) {
                 set_thread_inactive(thread);
             }
 
+
+
             if(!push_stack(thread, val)){
                 vm_error("MEMORY LOCAL OPERAND", "Failed to push stack for LOAD_L");
                 set_thread_inactive(thread);
             }
+
+            vm_info("LOAD_L", "Value Pushed: %u", val);
 
             break;
         }

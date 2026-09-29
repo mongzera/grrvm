@@ -1,4 +1,5 @@
 #include "grrvm/evaluation.h""
+#include "grrvm/vm_mem.h"
 #include "grrvm/type_conditional.h"
 #include "grrvm/vm.h"
 #include "grrvm/type_checks.h"
@@ -59,6 +60,73 @@ void eval_memory_heap_operand(VM_Thread *thread, word opcode){
             }
 
             g_free(thread, reference);
+            break;
+        }
+
+        case H_STORE:{
+            prim_val value;
+            prim_val reference;
+
+
+            if(!pop_stack(thread, &reference)){
+                vm_error("MEMORY HEAP OPERAND", "Failed to pop stack for H_FREE");
+                set_thread_inactive(thread);
+                break;
+            }
+
+            if(!pop_stack(thread, &value)){
+                vm_error("MEMORY HEAP OPERAND", "Failed to pop stack for H_FREE");
+                set_thread_inactive(thread);
+                break;
+            }
+
+            if(!type_check_non_negative(reference) && reference.data != 0){
+                vm_error("MEMORY HEAP OPERAND", "Expected positive integer for H_FREE");
+                set_thread_inactive(thread);
+                break;
+            }
+
+            vm_info("H_STORE", "Storing to address: %u", reference.data);
+
+            if(set_vm_mem(thread->vm, reference.data, value) == STATE_ERROR){
+                vm_error("MEMORY HEAP OPERAND", "Failed to set memory at address %u", reference.data);
+                set_thread_inactive(thread);
+                break;
+            }
+            break;
+        }
+
+        case H_LOAD:{
+            prim_val reference;
+
+            if(!pop_stack(thread, &reference)){
+                vm_error("MEMORY HEAP OPERAND", "Failed to pop stack for H_FREE");
+                set_thread_inactive(thread);
+                break;
+            }
+
+            if(!type_check_non_negative(reference) && reference.data != 0){
+                vm_error("MEMORY HEAP OPERAND", "Expected positive integer for H_FREE");
+                set_thread_inactive(thread);
+                break;
+            }
+
+            prim_val out;
+
+            vm_info("H_LOAD", "Loading from address: %u", reference.data);
+
+            if(!get_vm_mem(thread->vm, reference.data, &out)){
+                vm_error("MEMORY HEAP OPERAND", "Failed to set memory at address %u", reference.data);
+                set_thread_inactive(thread);
+                break;
+            }
+
+            if(!push_stack(thread, out)){
+                vm_error("MEMORY HEAP OPERAND", "Failed to push stack for H_LOAD");
+                set_thread_inactive(thread);
+                break;
+            }
+
             break;
         }
 
