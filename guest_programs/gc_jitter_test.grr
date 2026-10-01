@@ -83,7 +83,7 @@
     ; PHASE 3: Check Termination
     ; =========================================================================
     LOAD_L 0
-    PUSH 2000
+    PUSH 10000
     CMPGT
     JZ .outer_loop
 

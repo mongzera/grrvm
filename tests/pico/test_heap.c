@@ -71,7 +71,8 @@ static void test_slab_roundtrip(void) {
 
     prim_val v = make_prim_val(1234, STATE_OPEN, TYPE_U32);
     CHECK(set_vm_mem(&vm, data_addr, v) == 0, "STORE into the allocated slot succeeds");
-    prim_val *readback = get_vm_mem(&vm, data_addr);
+    prim_val *readback;
+    get_vm_mem(&vm, data_addr, readback);
     CHECK(readback && readback->data == 1234, "LOAD reads back the same value");
 
     g_free(&thread, ref);

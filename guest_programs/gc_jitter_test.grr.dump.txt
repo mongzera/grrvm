@@ -1,5 +1,5 @@
 Dumpfile for [gc_jitter_test.grr]
-Created at: 2026-09-29T04:07:43.846342833
+Created at: 2026-09-30T05:25:00.376514237
 =======================================================================
 ::_global [Instruction Count: 120]
 0 | PUSH 1
@@ -54,7 +54,7 @@ Created at: 2026-09-29T04:07:43.846342833
 93 | CMPGT
 94 | JZ -27
 96 | LOAD_L 0
-98 | PUSH 2000
+98 | PUSH 10000
 100 | CMPGT
 101 | JZ -83
 103 | PUSH 0
@@ -171,7 +171,7 @@ Created at: 2026-09-29T04:07:43.846342833
 0x51
 0x0
 0x1
-0x7d0
+0x2710
 0x24
 0x31
 0xffffffad

@@ -139,6 +139,9 @@ void post_gc_telemetry(VM* vm) {
         vm_heap_stats(vm, &heap_stats);
         gc_ext_frag_telemetry[telementry_ext_frag_counter].post_gc_ext_frag = measure_ext_frag(heap_stats);
         telementry_ext_frag_counter++;
+        if(telementry_ext_frag_counter >= MAX_TELEMETRY_ENTRIES) {
+            telementry_ext_frag_counter = 0;
+        }
     }
 
     if (telemetry_flag_is_set(TELEMETRY_GC_RUNTIME) &&
@@ -147,6 +150,9 @@ void post_gc_telemetry(VM* vm) {
 
         gc_runtime_telemetry[telementry_gc_runtime_counter].timestamp_b = hal_clock_us();
         telementry_gc_runtime_counter++;
+        if(telementry_gc_runtime_counter >= MAX_TELEMETRY_ENTRIES) {
+            telementry_gc_runtime_counter = 0;
+        }
     }
 }
 
