@@ -9,16 +9,14 @@
     H_STORE
 
     PUSH 3
-    LOAD_L 0
     PUSH 1
-    ADD
-    H_STORE
+    LOAD_L 0
+    H_STORE_OFF
 
     PUSH 4
-    LOAD_L 0
     PUSH 2
-    ADD
-    H_STORE
+    LOAD_L 0
+    H_STORE_OFF
 
     LOAD_L 0
     CALL print
@@ -31,14 +29,14 @@
     H_LOAD
     POP
 
+    PUSH 1
     LOAD_L 0
-    INC 1
-    H_LOAD
+    H_LOAD_OFF
     POP
 
+    PUSH 2
     LOAD_L 0
-    INC 2
-    H_LOAD
+    H_LOAD_OFF
     POP
 
     RET

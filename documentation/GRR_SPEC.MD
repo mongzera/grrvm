@@ -17,7 +17,7 @@ Variables can be assigned in the ::_const_data and ::_data subroutine, which is 
 For immutable variables / constants, this is how we declare and initialize:
 ```
 # Sample for Immutable Variables
-::_const_data
+:=_const_data
   uint8 lvl 42
   char first_name "ethan", 0
   char last_name 'g','a','m','a','t'
@@ -27,7 +27,7 @@ For immutable variables / constants, this is how we declare and initialize:
 For mutable variables, this is how we declare and initialize:
 ```
 # Sample for Mutable Variables
-::_data
+:=_data
   uint8 lvl 42
   char first_name "ethan", 0
   char last_name 'g','a','m','a','t'

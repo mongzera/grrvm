@@ -1,7 +1,7 @@
 Dumpfile for [gc_heap_test.grr]
-Created at: 2026-09-29T19:23:59.629757586
+Created at: 2026-10-03T05:10:13.589975214
 =======================================================================
-::_global [Instruction Count: 31]
+::_global [Instruction Count: 29]
 0 | PUSH 5
 2 | H_ALLOC
 3 | STORE_L 0
@@ -11,36 +11,34 @@ Created at: 2026-09-29T19:23:59.629757586
 10 | PUSH 3
 12 | LOAD_L 0
 14 | PUSH 1
-16 | ADD
-17 | H_STORE
-18 | PUSH 4
-20 | LOAD_L 0
-22 | PUSH 2
-24 | ADD
-25 | H_STORE
-26 | LOAD_L 0
-28 | CALL 31
-30 | HALT
+16 | H_STORE_OFF
+17 | PUSH 4
+19 | LOAD_L 0
+21 | PUSH 2
+23 | H_STORE_OFF
+24 | LOAD_L 0
+26 | CALL 29
+28 | HALT
 
 ::print [Instruction Count: 19]
-31 | STORE_L 0
-33 | LOAD_L 0
-35 | H_LOAD
-36 | POP
-37 | LOAD_L 0
-39 | INC 1
-41 | H_LOAD
-42 | POP
-43 | LOAD_L 0
-45 | INC 2
-47 | H_LOAD
-48 | POP
-49 | RET
+29 | STORE_L 0
+31 | LOAD_L 0
+33 | H_LOAD
+34 | POP
+35 | LOAD_L 0
+37 | PUSH 1
+39 | H_LOAD_OFF
+40 | POP
+41 | LOAD_L 0
+43 | PUSH 2
+45 | H_LOAD_OFF
+46 | POP
+47 | RET
 
 
 ===========================[BINARY]=============================
 0x3
-0x32
+0x30
 0x0
 0x1
 0x5
@@ -58,20 +56,18 @@ Created at: 2026-09-29T19:23:59.629757586
 0x0
 0x1
 0x1
-0x10
-0x72
+0x74
 0x1
 0x4
 0x51
 0x0
 0x1
 0x2
-0x10
-0x72
+0x74
 0x51
 0x0
 0x33
-0x1f
+0x1d
 0x0
 0x50
 0x0
@@ -81,14 +77,14 @@ Created at: 2026-09-29T19:23:59.629757586
 0x2
 0x51
 0x0
-0x15
 0x1
-0x73
+0x1
+0x75
 0x2
 0x51
 0x0
-0x15
+0x1
 0x2
-0x73
+0x75
 0x2
 0x34
