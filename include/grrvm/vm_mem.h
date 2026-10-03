@@ -62,5 +62,19 @@ static inline prim_state set_vm_mem(VM* vm, word address, prim_val data) {
     return STATE_OPEN;
 }
 
+static inline prim_state set_heap_block_type(VM* vm, word address, prim_type type) {
+    if (address >= VM_HEAP_SLOTS) {
+        vm_error("MEMORY", "OUT OF BOUNDS ACCESS!");
+        return STATE_ERROR;
+    }
+
+    prim_val *memslot = &vm->ram[address-1]; // target array block start
+    for(int i = 1; i < memslot->data; i++) {
+        prim_val *slot = &memslot[i];
+        *slot = convert_prim(*slot, type);
+    }
+    return STATE_OPEN;
+}
+
 
 #endif
