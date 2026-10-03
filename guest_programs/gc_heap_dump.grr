@@ -1,0 +1,21 @@
+::_global
+    PUSH 8
+    H_ALLOC
+    LOAD_L 0
+
+    PUSH 6
+    PUSH 2
+    LOAD_L 0
+    H_STORE_OFF
+
+    PUSH 5
+    PUSH 1
+    LOAD_L 0
+    H_STORE_OFF
+
+    PUSH 7
+    PUSH 3
+    LOAD_L 0
+    H_STORE_OFF
+    INVOKE_NATIVE dump_heap_file
+    HALT
