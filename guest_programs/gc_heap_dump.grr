@@ -1,21 +1,54 @@
 ::_global
-    PUSH 8
+    PUSH 5
     H_ALLOC
-    LOAD_L 0
-
-    PUSH 6
+    STORE_L 0
     PUSH 2
     LOAD_L 0
-    H_STORE_OFF
-
-    PUSH 5
-    PUSH 1
-    LOAD_L 0
-    H_STORE_OFF
-
-    PUSH 7
+    H_STORE
     PUSH 3
     LOAD_L 0
-    H_STORE_OFF
+    PUSH 1
+    ADD
+    H_STORE
+    PUSH 4
+    LOAD_L 0
+    PUSH 2
+    ADD
+    H_STORE
+    PUSH 5
+    LOAD_L 0
+    PUSH 3
+    ADD
+    H_STORE
+    PUSH 6
+    LOAD_L 0
+    PUSH 4
+    ADD
+    H_STORE
+    PUSH 5
+    H_ALLOC
+    STORE_L 1
+    PUSH 0
+    STORE_L 2
+    .for_cond_0:
+    LOAD_L 2
+    PUSH 5
+    CMPLT
+    JZ .for_end_2
+    LOAD_L 2
+    PUSH 5
+    ADD
+    LOAD_L 1
+    LOAD_L 2
+    ADD
+    H_STORE
+    .for_step_1:
+    LOAD_L 2
+    DUP
+    INC 1
+    STORE_L 2
+    POP
+    JUMP .for_cond_0
+    .for_end_2:
     INVOKE_NATIVE dump_heap_file
     HALT

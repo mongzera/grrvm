@@ -29,7 +29,7 @@ static inline prim_state set_vm_mem(VM* vm, word address, prim_val data) {
         return STATE_ERROR;
     }
 
-    prim_val *memslot = &vm->ram[address];
+    prim_val *memslot = &vm->ram[address]; // must offset address by 1 to account for metadata. since metadata = ram[address].
     prim_state memstate = get_prim_state(*memslot);
 
     if (memstate != STATE_OPEN) return memstate;
@@ -68,7 +68,7 @@ static inline prim_state set_heap_block_type(VM* vm, word address, prim_type typ
         return STATE_ERROR;
     }
 
-    prim_val *memslot = &vm->ram[address-1]; // target array block start
+    prim_val *memslot = &vm->ram[address]; // target array block start
     for(int i = 1; i < memslot->data; i++) {
         prim_val *slot = &memslot[i];
         *slot = convert_prim(*slot, type);
