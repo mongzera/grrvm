@@ -1,54 +1,56 @@
 ::_global
-    PUSH 5
+    PUSH_T uint8 1
+    INVOKE_NATIVE set_gc_runtime_telemetry_flag
+    PUSH 7
     H_ALLOC
     STORE_L 0
-    PUSH 2
-    LOAD_L 0
-    H_STORE
-    PUSH 3
-    LOAD_L 0
-    PUSH 1
-    ADD
-    H_STORE
-    PUSH 4
-    LOAD_L 0
-    PUSH 2
-    ADD
-    H_STORE
-    PUSH 5
-    LOAD_L 0
-    PUSH 3
-    ADD
-    H_STORE
-    PUSH 6
-    LOAD_L 0
-    PUSH 4
-    ADD
-    H_STORE
-    PUSH 5
-    H_ALLOC
-    STORE_L 1
     PUSH 0
-    STORE_L 2
+    STORE_L 1
     .for_cond_0:
-    LOAD_L 2
-    PUSH 5
+    LOAD_L 1
+    PUSH 7
     CMPLT
     JZ .for_end_2
-    LOAD_L 2
-    PUSH 5
-    ADD
     LOAD_L 1
-    LOAD_L 2
+    LOAD_L 0
+    LOAD_L 1
     ADD
     H_STORE
     .for_step_1:
-    LOAD_L 2
+    LOAD_L 1
     DUP
     INC 1
-    STORE_L 2
+    STORE_L 1
     POP
     JUMP .for_cond_0
     .for_end_2:
+    PUSH 15
+    H_ALLOC
+    STORE_L 2
+    PUSH 6
+    LOAD_L 2
+    PUSH 1
+    ADD
+    H_STORE
+    PUSH 5
+    LOAD_L 2
+    H_STORE
+    PUSH 7
+    LOAD_L 2
+    PUSH 2
+    ADD
+    H_STORE
     INVOKE_NATIVE dump_heap_file
+    PUSH_T float 10.5
+    PUSH_T float 20.25
+    CALL host_native_add
+    STORE_L 3
     HALT
+
+::host_native_add
+    STORE_L 1
+    STORE_L 0
+    LOAD_L 0
+    LOAD_L 1
+    ADD
+    RET

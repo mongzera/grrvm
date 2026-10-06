@@ -7,6 +7,7 @@
 #include "grrvm/types.h"
 #include "grrvm/vm.h"
 #include "grrvm/vm_log.h"
+#include <stdio.h>
 
 // TODO: Add thread-ownership checking, this is important for thread safety and only the owner can modify if memory is STATE_LOCKED
 //
@@ -23,13 +24,31 @@ static inline int get_vm_mem(VM* vm, word address, prim_val* out){
     return 1;
 }
 
-static inline prim_state set_vm_mem(VM* vm, word address, prim_val data) {
-    if (address >= VM_HEAP_SLOTS) {
-        vm_error("MEMORY", "OUT OF BOUNDS ACCESS!");
+static inline prim_state set_vm_mem(VM* vm, word address_base, word offset, prim_val data) {
+    if (address_base + offset >= VM_HEAP_SLOTS) {
+        vm_error("MEMORY", "OUT OF HEAP BOUNDS ACCESS!");
         return STATE_ERROR;
     }
 
-    prim_val *memslot = &vm->ram[address]; // must offset address by 1 to account for metadata. since metadata = ram[address].
+    word block_root = address_base-1;
+    prim_val *block_size = &vm->ram[block_root];
+
+    // there will be instances where the block_size is not TYPE_LENGTH. So we iterate in reverse to find it.
+
+    while(get_prim_type(*block_size) != TYPE_LENGTH) {
+        block_root--;
+        block_size = &vm->ram[block_root];
+    }
+
+    printf("ADDRESS BASE: %u OFFSET: %u, BLOCKSIZE: %u", address_base, offset, block_size->data);
+    if(address_base + offset >= block_root + block_size->data){
+        vm_error("MEMORY", "OUT OF ARRAY BOUNDS ACCESS!");
+        return STATE_ERROR;
+    }
+
+    word address = address_base + offset;
+
+    prim_val *memslot = &vm->ram[address];
     prim_state memstate = get_prim_state(*memslot);
 
     if (memstate != STATE_OPEN) return memstate;

@@ -71,7 +71,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # ==============================================================================
 
 file(GLOB_RECURSE GRRVM_CORE_SOURCES CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/*.c",
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/core/*.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/common/*.c"
 )
 

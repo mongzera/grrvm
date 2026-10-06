@@ -81,14 +81,14 @@ void eval_memory_heap_operand(VM_Thread *thread, word opcode){
             }
 
             if(!type_check_non_negative(reference) && reference.data != 0){
-                vm_error("MEMORY HEAP OPERAND", "Expected positive integer for H_FREE");
+                vm_error("MEMORY HEAP OPERAND", "Expected positive integer for H_STORE");
                 set_thread_inactive(thread);
                 break;
             }
 
             vm_info("H_STORE", "Storing to address: %u", reference.data);
 
-            if(set_vm_mem(thread->vm, reference.data, value) == STATE_ERROR){
+            if(set_vm_mem(thread->vm, reference.data, 0, value) == STATE_ERROR){
                 vm_error("MEMORY HEAP OPERAND", "Failed to set memory at address %u", reference.data);
                 set_thread_inactive(thread);
                 break;
@@ -106,7 +106,7 @@ void eval_memory_heap_operand(VM_Thread *thread, word opcode){
             }
 
             if(!type_check_non_negative(reference) && reference.data != 0){
-                vm_error("MEMORY HEAP OPERAND", "Expected positive integer for H_FREE");
+                vm_error("MEMORY HEAP OPERAND", "Expected positive integer for H_LOAD");
                 set_thread_inactive(thread);
                 break;
             }
@@ -155,7 +155,7 @@ void eval_memory_heap_operand(VM_Thread *thread, word opcode){
             }
 
             if(!type_check_non_negative(reference) && reference.data != 0){
-                vm_error("MEMORY HEAP OPERAND", "Expected positive integer for H_FREE");
+                vm_error("MEMORY HEAP OPERAND", "Expected positive integer for H_STORE_OFF");
                 set_thread_inactive(thread);
                 break;
             }
@@ -168,7 +168,7 @@ void eval_memory_heap_operand(VM_Thread *thread, word opcode){
 
             vm_info("H_STORE_OFF", "Storing to address: %u + %u", reference.data, offset.data);
 
-            if(set_vm_mem(thread->vm, reference.data + offset.data, value) == STATE_ERROR){
+            if(set_vm_mem(thread->vm, reference.data, offset.data, value) == STATE_ERROR){
                 vm_error("MEMORY HEAP OPERAND", "Failed to set memory at address %u", reference.data + offset.data);
                 set_thread_inactive(thread);
                 break;

@@ -1,0 +1,156 @@
+::_global
+    PUSH 10
+    H_ALLOC
+    STORE_L 0
+    PUSH 3
+    LOAD_L 0
+    H_STORE
+    PUSH 2
+    LOAD_L 0
+    PUSH 1
+    ADD
+    H_STORE
+    PUSH 1
+    LOAD_L 0
+    PUSH 2
+    ADD
+    H_STORE
+    PUSH 4
+    LOAD_L 0
+    PUSH 3
+    ADD
+    H_STORE
+    PUSH 13
+    LOAD_L 0
+    PUSH 4
+    ADD
+    H_STORE
+    PUSH 1
+    LOAD_L 0
+    PUSH 5
+    ADD
+    H_STORE
+    PUSH -56
+    LOAD_L 0
+    PUSH 6
+    ADD
+    H_STORE
+    PUSH 2
+    LOAD_L 0
+    PUSH 7
+    ADD
+    H_STORE
+    PUSH 41
+    LOAD_L 0
+    PUSH 8
+    ADD
+    H_STORE
+    PUSH 0
+    LOAD_L 0
+    PUSH 9
+    ADD
+    H_STORE
+    LOAD_L 0
+    PUSH 10
+    CALL bubble_sort
+    STORE_L 1
+    PUSH 69
+    LOAD_L 1
+    PUSH 3
+    ADD
+    H_STORE
+    INVOKE_NATIVE dump_heap_file
+    HALT
+
+::bubble_sort
+    STORE_L 1
+    STORE_L 0
+    PUSH 0
+    STORE_L 2
+    INVOKE_NATIVE timer_us
+    STORE_L 3
+    PUSH 0
+    STORE_L 4
+    .for_cond_0:
+    LOAD_L 4
+    LOAD_L 1
+    PUSH 1
+    SUB
+    CMPLT
+    JZ .for_end_2
+    PUSH 0
+    STORE_L 2
+    PUSH 0
+    STORE_L 5
+    .for_cond_3:
+    LOAD_L 5
+    LOAD_L 1
+    LOAD_L 4
+    SUB
+    PUSH 1
+    SUB
+    CMPLT
+    JZ .for_end_5
+    LOAD_L 0
+    LOAD_L 5
+    ADD
+    H_LOAD
+    LOAD_L 0
+    LOAD_L 5
+    PUSH 1
+    ADD
+    ADD
+    H_LOAD
+    CMPGT
+    JZ .endif_6
+    LOAD_L 0
+    LOAD_L 5
+    ADD
+    H_LOAD
+    STORE_L 6
+    LOAD_L 0
+    LOAD_L 5
+    PUSH 1
+    ADD
+    ADD
+    H_LOAD
+    LOAD_L 0
+    LOAD_L 5
+    ADD
+    H_STORE
+    LOAD_L 6
+    LOAD_L 0
+    LOAD_L 5
+    PUSH 1
+    ADD
+    ADD
+    H_STORE
+    PUSH 1
+    STORE_L 2
+    .endif_6:
+    .for_step_4:
+    LOAD_L 5
+    DUP
+    INC 1
+    STORE_L 5
+    POP
+    JUMP .for_cond_3
+    .for_end_5:
+    LOAD_L 2
+    PUSH 0
+    CMPEQ
+    JZ .endif_7
+    JUMP .for_end_2
+    .endif_7:
+    .for_step_1:
+    LOAD_L 4
+    DUP
+    INC 1
+    STORE_L 4
+    POP
+    JUMP .for_cond_0
+    .for_end_2:
+    INVOKE_NATIVE timer_us
+    STORE_L 7
+    LOAD_L 0
+    RET
