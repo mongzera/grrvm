@@ -37,9 +37,8 @@ int pop_stack(VM_Thread *thread, prim_val *out_val) {
     if (thread->sp < 0) {
         return 0; // Stack underflow
     }
-    if (out_val != NULL) {
-        *out_val = thread->op_stack[thread->sp];
-    }
+
+    *out_val = thread->op_stack[thread->sp];
     thread->sp--;
     return 1;
 }

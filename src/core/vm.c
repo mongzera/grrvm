@@ -6,6 +6,7 @@
 #include "../../include/grrvm/vm_thread.h"
 #include "grrvm/vm_alloc.h"
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <inttypes.h>
@@ -52,6 +53,8 @@ void vm_loop(VM* vm){
             //uint32_t pc = thread->pc;
             word opcode = get_instruction(thread);
             //vm_info("PROGRAM", "PC: %d, OPCODE: 0x%X", pc, opcode);
+
+
 
 
             switch (get_opcode_cat(opcode)) {

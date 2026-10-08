@@ -1,4 +1,5 @@
 #include "native_wrappers/internal_telemetry_wrapper.h"
+#include "grrvm/hal/vm_hal_timer.h"
 #include "grrvm/telemetry/gc_telemetry.h"
 #include "grrvm/vm.h"
 #include "grrvm/vm_log.h"
@@ -41,6 +42,16 @@ void wrap_set_ext_frag_telemetry_flag(VM_Thread* thread){
     vm_info("EXTERNAL FRAG TELEMETRY", "Attempting to set external fragmentation telemetry flag: %d", flag.data);
 }
 
+void __wrap__timer_us(VM_Thread* thread){
+
+    uint32_t us = hal_clock_us();
+    if(!push_stack(thread, make_prim_val(us, STATE_OPEN, TYPE_U32))){
+        vm_error("NATIVE", "Failed to pop stack for native timer_us");
+        return;
+    }
+
+}
+
 void wrap_dump_ext_frag_telemetry(VM_Thread* thread){
     dump_ext_frag_telemetry();
 }
@@ -51,4 +62,6 @@ void register_internal_telemetry_wrappers(void) {
 
     native_register("set_ext_frag_telemetry_flag", wrap_set_ext_frag_telemetry_flag);
     native_register("dump_ext_frag_telemetry", wrap_dump_ext_frag_telemetry);
+
+    native_register("timer_us", __wrap__timer_us);
 }

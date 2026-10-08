@@ -1,6 +1,7 @@
 #include "grrvm/vm_native.h"
 #include "grrvm/types.h"
 #include "grrvm/vm_log.h"
+#include "native_wrappers/heap_dump_wrapper.h"
 #include "native_wrappers/internal_telemetry_wrapper.h"
 #include "native_wrappers/math_wrapper.h"
 #include <stddef.h>
@@ -24,6 +25,7 @@ void native_registry_init(void) {
     // register native functions here
     register_math_wrappers();
     register_internal_telemetry_wrappers();
+    register_heap_dump_wrappers();
 }
 
 g_u32 native_hash(const char* str) {

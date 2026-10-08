@@ -8,6 +8,7 @@
 
 
 typedef enum prim_state {
+    STATE_ERROR = -1,
     STATE_OPEN = 0x0,
     STATE_LOCKED,
     STATE_CONSTANT,

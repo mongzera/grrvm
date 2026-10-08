@@ -1,7 +1,7 @@
 ::_global
-    ; Enable fragmentation telemetry
+    ; Enable runtime telemetry
     PUSH 1
-    INVOKE_NATIVE set_gc_runtime_telemetry_flag
+    INVOKE_NATIVE set_ext_frag_telemetry_flag
 
     ; Local 0: Total allocations counter (0 to 2000)
     PUSH 0
@@ -83,7 +83,7 @@
     ; PHASE 3: Check Termination
     ; =========================================================================
     LOAD_L 0
-    PUSH 2000
+    PUSH 10000
     CMPGT
     JZ .outer_loop
 

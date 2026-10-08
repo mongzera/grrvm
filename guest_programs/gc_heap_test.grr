@@ -1,0 +1,42 @@
+::_global
+
+    PUSH 5
+    H_ALLOC
+    STORE_L 0
+
+    PUSH 2
+    LOAD_L 0
+    H_STORE
+
+    PUSH 3
+    PUSH 1
+    LOAD_L 0
+    H_STORE_OFF
+
+    PUSH 4
+    PUSH 2
+    LOAD_L 0
+    H_STORE_OFF
+
+    LOAD_L 0
+    CALL print
+    HALT
+
+::print
+    STORE_L 0
+
+    LOAD_L 0
+    H_LOAD
+    POP
+
+    PUSH 1
+    LOAD_L 0
+    H_LOAD_OFF
+    POP
+
+    PUSH 2
+    LOAD_L 0
+    H_LOAD_OFF
+    POP
+
+    RET

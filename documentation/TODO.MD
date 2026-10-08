@@ -31,7 +31,7 @@ Example: POP_ADDR 2
 
 Also, Since RAM is now considered the HEAP, maybe we can separate the GLOBAL and HEAP memory
 
-## H_SET_TYPE [DONE]
+## H_SET_TYPE 
 Implement H_SET_TYPE <type> - so that we can set the type of a memory address
 Example: H_SET_TYPE uint32
 

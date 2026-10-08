@@ -8,6 +8,7 @@
 #include "grrvm/type_promotion.h"
 #include "grrvm/types.h"
 #include "grrvm/vm.h"
+#include "grrvm/vm_log.h"
 #include <math.h>
 
 /* Helper to convert float bit pattern to word */
@@ -44,6 +45,7 @@ static inline int type_safe_add(prim_val a, prim_val b, prim_val *out_res) {
     }
 
     *out_res = make_prim_val(data, STATE_OPEN, target_type);
+
     return 1;
 }
 
