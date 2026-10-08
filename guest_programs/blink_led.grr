@@ -1,0 +1,31 @@
+::_global
+    PUSH_T uint32 25
+    PUSH_T uint32 1
+    PUSH_T uint32 0
+    INVOKE_NATIVE gpio_init
+    .while_cond_0:
+    PUSH 1
+    JZ .while_end_1
+    PUSH_T uint32 25
+    INVOKE_NATIVE gpio_toggle
+    PUSH 5000
+    CALL delay_delay
+    JUMP .while_cond_0
+    .while_end_1:
+    HALT
+
+::delay_delay
+    STORE_L 0
+    .while_cond_0:
+    LOAD_L 0
+    PUSH 0
+    CMPGT
+    JZ .while_end_1
+    LOAD_L 0
+    DUP
+    DEC 1
+    STORE_L 0
+    POP
+    JUMP .while_cond_0
+    .while_end_1:
+    RET
