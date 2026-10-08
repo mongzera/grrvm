@@ -19,6 +19,7 @@ void dump_vm_heap_terminal(const VM *vm) {
 }
 
 bool dump_vm_heap_file(const VM *vm) {
+
     if (!vm) {
         printf("[VM Dump Error] Invalid VM pointer.\n");
         return false;

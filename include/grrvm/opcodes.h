@@ -78,6 +78,7 @@ typedef enum OPCODE{
     H_LOAD      = OPC_MEMORY_HEAP | 0x03,
     H_STORE_OFF = OPC_MEMORY_HEAP | 0x04,
     H_LOAD_OFF  = OPC_MEMORY_HEAP | 0x05,
+    H_SET_TYPE  = OPC_MEMORY_HEAP | 0x06,
 
 
     /** NATIVE OPERAND */

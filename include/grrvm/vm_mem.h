@@ -37,10 +37,10 @@ static inline prim_state set_vm_mem(VM* vm, word address_base, word offset, prim
 
     while(get_prim_type(*block_size) != TYPE_LENGTH) {
         block_root--;
-        block_size = &vm->ram[block_root];
+        block_size--;
     }
 
-    printf("ADDRESS BASE: %u OFFSET: %u, BLOCKSIZE: %u", address_base, offset, block_size->data);
+
     if(address_base + offset >= block_root + block_size->data){
         vm_error("MEMORY", "OUT OF ARRAY BOUNDS ACCESS!");
         return STATE_ERROR;
@@ -87,8 +87,8 @@ static inline prim_state set_heap_block_type(VM* vm, word address, prim_type typ
         return STATE_ERROR;
     }
 
-    prim_val *memslot = &vm->ram[address]; // target array block start
-    for(int i = 1; i < memslot->data; i++) {
+    prim_val *memslot = &vm->ram[address-1]; // target array block start
+    for(word i = 1; i < memslot->data; i++) {
         prim_val *slot = &memslot[i];
         *slot = convert_prim(*slot, type);
     }

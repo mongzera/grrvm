@@ -1,4 +1,5 @@
 #include "grrvm/evaluation.h""
+#include "parser/bytecode_parse.h"
 #include "grrvm/vm_mem.h"
 #include "grrvm/type_conditional.h"
 #include "grrvm/vm.h"
@@ -220,6 +221,24 @@ void eval_memory_heap_operand(VM_Thread *thread, word opcode){
                 break;
             }
 
+            break;
+        }
+
+        case H_SET_TYPE: {
+
+            prim_val reference;
+            if(!pop_stack(thread, &reference)){
+                vm_error("MEMORY HEAP OPERAND", "Failed to pop stack for H_SET_TYPE: Offset");
+            }
+
+            word datatype = get_instruction(thread);
+
+            prim_type prim_type = asm_to_vm_primtype(datatype);
+
+            set_heap_block_type(thread->vm, reference.data, prim_type);
+
+            // vm_error("OPCODE", "Not implemented: H_SET_TYPE");
+            // set_thread_inactive(thread);
             break;
         }
 

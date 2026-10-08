@@ -1,9 +1,9 @@
 Dumpfile for [gc_jitter_test.grr]
-Created at: 2026-09-30T05:25:00.376514237
+Created at: 2026-10-08T00:24:31.114613061
 =======================================================================
 ::_global [Instruction Count: 120]
 0 | PUSH 1
-2 | INVOKE_NATIVE -694293680
+2 | INVOKE_NATIVE 1648493979
 4 | PUSH 0
 6 | STORE_L 0
 8 | PUSH 0
@@ -75,7 +75,7 @@ Created at: 2026-09-30T05:25:00.376514237
 0x1
 0x1
 0xa0
-0xd69deb50
+0x6242059b
 0x1
 0x0
 0x50

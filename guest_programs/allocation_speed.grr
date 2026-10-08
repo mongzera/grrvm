@@ -1,6 +1,8 @@
 ::_global
     PUSH_T int32 10
     H_ALLOC
+    DUP
+    H_SET_TYPE uint32
     STORE_L 0
     PUSH_T uint32 3
     LOAD_L 0
@@ -53,6 +55,7 @@
     LOAD_L 0
     PUSH_T int32 10
     CALL bubble_sort
+    INVOKE_NATIVE dump_heap_file
     HALT
 
 ::bubble_sort

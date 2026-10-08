@@ -1,5 +1,5 @@
-Dumpfile for [gc_ext_frag_pre_post_gc.grr]
-Created at: 2026-10-06T18:09:52.509585253
+Dumpfile for [gc_test.grr]
+Created at: 2026-10-06T20:23:30.169837167
 =======================================================================
 ::_global [Instruction Count: 32]
 0 | PUSH 1
@@ -7,7 +7,7 @@ Created at: 2026-10-06T18:09:52.509585253
 4 | PUSH 0
 6 | STORE_L 0
 8 | PUSH 1
-10 | PUSH 2023
+10 | PUSH 8000
 12 | INVOKE_NATIVE -555540061
 14 | H_ALLOC
 15 | POP
@@ -37,7 +37,7 @@ Created at: 2026-10-06T18:09:52.509585253
 0x1
 0x1
 0x1
-0x7e7
+0x1f40
 0xa0
 0xdee321a3
 0x70
