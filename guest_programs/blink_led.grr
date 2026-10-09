@@ -16,16 +16,17 @@
 
 ::delay_delay
     STORE_L 0
+    INVOKE_NATIVE timer_us
+    STORE_L 1
     .while_cond_0:
+    INVOKE_NATIVE timer_us
+    LOAD_L 1
+    SUB
     LOAD_L 0
-    PUSH 0
-    CMPGT
+    PUSH 1000
+    MUL
+    CMPLTE
     JZ .while_end_1
-    LOAD_L 0
-    DUP
-    DEC 1
-    STORE_L 0
-    POP
     JUMP .while_cond_0
     .while_end_1:
     RET
