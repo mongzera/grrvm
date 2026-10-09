@@ -1,7 +1,6 @@
 #include "native_wrappers/math_wrapper.h"
 #include "grrvm/hal/vm_hal_math.h"
 #include "grrvm/type_checks.h"
-#include "grrvm/types.h"
 #include "grrvm/vm.h"
 #include "grrvm/vm_log.h"
 #include "grrvm/vm_native.h"

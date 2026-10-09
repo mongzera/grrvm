@@ -7,4 +7,5 @@
 inline uint64_t hal_clock_ns(void);
 inline uint32_t hal_clock_us(void);
 
+
 #endif // VM_HAL_TIMER

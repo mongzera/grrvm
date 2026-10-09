@@ -1,0 +1,86 @@
+Dumpfile for [blink_led.grr]
+Created at: 2026-10-09T22:06:14.842067930
+=======================================================================
+::_global [Instruction Count: 27]
+0 | PUSH_T 3 25
+3 | PUSH_T 3 1
+6 | PUSH_T 3 0
+9 | INVOKE_NATIVE -65780039
+11 | PUSH 1
+13 | JZ 11
+15 | PUSH_T 3 25
+18 | INVOKE_NATIVE 962740819
+20 | PUSH 5000
+22 | CALL 27
+24 | JUMP -15
+26 | HALT
+
+::delay_delay [Instruction Count: 22]
+27 | STORE_L 0
+29 | INVOKE_NATIVE 98961311
+31 | STORE_L 1
+33 | INVOKE_NATIVE 98961311
+35 | LOAD_L 1
+37 | SUB
+38 | LOAD_L 0
+40 | PUSH 1000
+42 | MUL
+43 | CMPLTE
+44 | JZ 2
+46 | JUMP -15
+48 | RET
+
+
+===========================[BINARY]=============================
+0x3
+0x31
+0x0
+0x7
+0x3
+0x19
+0x7
+0x3
+0x1
+0x7
+0x3
+0x0
+0xa0
+0xfc1446b9
+0x1
+0x1
+0x31
+0xb
+0x7
+0x3
+0x19
+0xa0
+0x39624253
+0x1
+0x1388
+0x33
+0x1b
+0x30
+0xfffffff1
+0x0
+0x50
+0x0
+0xa0
+0x5e6079f
+0x50
+0x1
+0xa0
+0x5e6079f
+0x51
+0x1
+0x11
+0x51
+0x0
+0x1
+0x3e8
+0x12
+0x23
+0x31
+0x2
+0x30
+0xfffffff1
+0x34
