@@ -11,5 +11,11 @@ VM* vm_create(void){
     vm->ram = malloc((sizeof(prim_val) * VM_HEAP_SLOTS));
     vm->vm_threads = malloc((sizeof(VM_Thread) * VM_MAX_THREADS));
 
+    for(int i = 0; i < VM_MAX_THREADS; i++){
+        set_thread_inactive(&vm->vm_threads[i]);
+    }
+    vm_alloc_init(vm);
+
+
     return vm;
 }

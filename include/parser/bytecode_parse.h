@@ -95,7 +95,7 @@ static inline global_data* find_genesis_row(global_data *nth_row){
 
 static inline void allocate_global_heap_block(VM* vm, global_data* last_row, uint32_t total_heap_block_size){
     global_data *current_row = find_genesis_row(last_row);
-    vm->global_heap_block_address = g_malloc_heap_block(vm, total_heap_block_size, 1).data;
+    vm->global_heap_block_address = g_malloc_heap_block(vm, total_heap_block_size, 1);
 
     uint32_t current_mem_slot = vm->global_heap_block_address + 1; // skip the global_heap_block_address since this will describe the heap block size for the GC to handle cleanly
     while (current_row != NULL) {
@@ -117,12 +117,10 @@ static inline void allocate_global_heap_block(VM* vm, global_data* last_row, uin
             };
         }
 
-        if(current_row->next != NULL){
-            current_row = current_row->next;
-        }
+        current_row = current_row->next;
     }
 
-    free_global_row(current_row);
+    free_global_row(last_row);
 }
 
 
@@ -184,6 +182,7 @@ static inline int bytecode_parser(const uint32_t *buffer, size_t buf_word_count,
         // for arrays
         current_row->header = prim_metadata;
         current_row->length = length;
+        current_row->data = malloc(sizeof(uint32_t) * length);
         total_data += length;
 
         for(uint32_t i = 0; i < length; i++){
@@ -192,6 +191,7 @@ static inline int bytecode_parser(const uint32_t *buffer, size_t buf_word_count,
     }
 
     total_heap_block_size = row_count + total_data;
+    printf("REQ HEAP BLOCK SIZE: %u\n", total_heap_block_size);
     allocate_global_heap_block(vm, current_row, total_heap_block_size);
 
     return 0;

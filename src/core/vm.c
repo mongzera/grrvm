@@ -21,11 +21,8 @@ void vm_start(VM* vm_instance){
         vm_error("vm_start", "vm_instance is NULL");
         return;
     }
-    for(int i = 0; i < VM_MAX_THREADS; i++){
-        set_thread_inactive(&vm_instance->vm_threads[i]);
-    }
-    vm_alloc_init(vm_instance);
     vm_new_thread(vm_instance, vm_instance->_program_start, 0);
+
     uint64_t initial_time = hal_clock_ns();
     vm_loop(vm_instance);
     uint64_t final_time = hal_clock_ns();

@@ -234,7 +234,7 @@ void vm_alloc_init(VM *vm) {
 // allocates a heap_block of n_slots size to be used as a general purpose memory
 // this is not for arrays
 //
-prim_val g_malloc_heap_block(VM *vm, word n_slots, byte print_error){
+int64_t g_malloc_heap_block(VM *vm, word n_slots, byte print_error){
     word total_needed = n_slots + 1; /* + header */
     byte want_order = 0;
 
@@ -244,7 +244,7 @@ prim_val g_malloc_heap_block(VM *vm, word n_slots, byte print_error){
 
     if (addr == VM_ALLOC_NONE) {
         if (print_error) vm_error("HEAP", "Out of memory (buddy order %u)", want_order);
-        return make_prim_val(0, STATE_OPEN, TYPE_NULL);
+        return -1;
     }
 
     word block_size = (word)VM_BUDDY_BASE_BLOCK_SLOTS << want_order;
@@ -254,7 +254,7 @@ prim_val g_malloc_heap_block(VM *vm, word n_slots, byte print_error){
     for (word i = 1; i <= n_slots; i++) {
         vm->ram[addr + i] = make_prim_val(0, STATE_OPEN, TYPE_NULL);
     }
-    return vm->ram[addr];
+    return addr;
 }
 
 static prim_val finish_alloc(VM *vm, word addr, word block_size, word n_slots) {
