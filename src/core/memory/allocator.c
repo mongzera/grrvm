@@ -1,5 +1,6 @@
 #include "grrvm/types.h"
 #include "grrvm/vm.h"
+#include "grrvm/vm_thread.h"
 #include "grrvm/vm_gc.h"
 #include "grrvm/vm_alloc.h"
 #include <string.h>
@@ -228,6 +229,33 @@ void vm_alloc_init(VM *vm) {
 /* =======================================================================
  * Allocation & Free API
  * ======================================================================= */
+
+
+// allocates a heap_block of n_slots size to be used as a general purpose memory
+// this is not for arrays
+//
+prim_val g_malloc_heap_block(VM *vm, word n_slots, byte print_error){
+    word total_needed = n_slots + 1; /* + header */
+    byte want_order = 0;
+
+    while (((word)VM_BUDDY_BASE_BLOCK_SLOTS << want_order) < total_needed) want_order++;
+
+    word addr = buddy_alloc(&vm->allocator.buddy, want_order);
+
+    if (addr == VM_ALLOC_NONE) {
+        if (print_error) vm_error("HEAP", "Out of memory (buddy order %u)", want_order);
+        return make_prim_val(0, STATE_OPEN, TYPE_NULL);
+    }
+
+    word block_size = (word)VM_BUDDY_BASE_BLOCK_SLOTS << want_order;
+
+    vm->ram[addr] = make_prim_val(block_size, STATE_LOCKED, TYPE_LENGTH);
+
+    for (word i = 1; i <= n_slots; i++) {
+        vm->ram[addr + i] = make_prim_val(0, STATE_OPEN, TYPE_NULL);
+    }
+    return vm->ram[addr];
+}
 
 static prim_val finish_alloc(VM *vm, word addr, word block_size, word n_slots) {
     vm->ram[addr] = make_prim_val(block_size, STATE_LOCKED, TYPE_LENGTH);

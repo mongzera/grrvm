@@ -1,7 +1,7 @@
 #ifndef GRRVM_EVALUATION_H
 #define GRRVM_EVALUATION_H
 
-#include "grrvm/vm.h"
+#include "grrvm/vm_thread.h"
 
 void eval_stack_operand         (VM_Thread* thread, word opcode);
 void eval_arithmetic_operand    (VM_Thread* thread, word opcode);

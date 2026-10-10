@@ -1,0 +1,7 @@
+:=_data
+    uint32 nums 1, 2, 3, 4
+    int8 x 3
+
+::_global
+    INVOKE_NATIVE dump_heap_file
+    HALT

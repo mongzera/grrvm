@@ -1,6 +1,6 @@
 #ifndef GRRVM_NATIVE_WRAPPERS_GPIO_WRAPPER_H
 #define GRRVM_NATIVE_WRAPPERS_GPIO_WRAPPER_H
-#include "grrvm/vm.h"
+#include "grrvm/vm_thread.h"
 
 
 // Expose the wrapper functions

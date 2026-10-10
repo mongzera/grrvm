@@ -122,6 +122,7 @@ void vm_alloc_init(struct VM *vm);
  * caller must check get_prim_state()/get_prim_type() before use. */
 prim_val g_malloc(struct VM_Thread *thread, word n_slots);
 prim_val g_malloc_direct(struct VM *vm, word n_slots, byte print_error);
+prim_val g_malloc_heap_block(struct VM *vm, word n_slots, byte print_error);
 
 /* Frees a block previously returned by g_malloc. reference must be the
  * exact TYPE_REFERENCE value g_malloc returned (its .data is the slot

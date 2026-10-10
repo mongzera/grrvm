@@ -1,5 +1,5 @@
 #include "native_wrappers/heap_dump_wrapper.h"
-#include "grrvm/vm.h"
+#include "grrvm/vm_thread.h"
 #include "grrvm/vm_dump.h"
 #include "grrvm/vm_native.h"
 

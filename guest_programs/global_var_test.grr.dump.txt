@@ -1,0 +1,37 @@
+Dumpfile for [global_var_test.grr]
+Created at: 2026-10-11T05:39:14.489506828
+=======================================================================
+:=_data [Variable Count: 2]
+|IMMUT|nums|
+		 TYPE: 3
+		 LENGTH: 4
+			 [0]: 1 | HEX: 0x1
+			 [1]: 2 | HEX: 0x2
+			 [2]: 3 | HEX: 0x3
+			 [3]: 4 | HEX: 0x4
+|IMMUT|x|
+		 TYPE: 5
+		 LENGTH: 1
+			 [0]: 3 | HEX: 0x3
+
+::_global [Instruction Count: 3]
+0 | INVOKE_NATIVE -2122813171
+2 | HALT
+
+
+===========================[BINARY]=============================
+0xc
+0x3
+0x0
+0x3
+0x4
+0x1
+0x2
+0x3
+0x4
+0x5
+0x1
+0x3
+0xa0
+0x8178710d
+0x0

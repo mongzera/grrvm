@@ -2,6 +2,7 @@
 #include "grrvm/telemetry/gc_telemetry.h"
 #include "grrvm/types.h"
 #include "grrvm/vm.h"
+#include "grrvm/vm_thread.h"
 #include "grrvm/vm_alloc.h"
 #include "grrvm/vm_gc.h"
 #include "grrvm/vm_log.h"

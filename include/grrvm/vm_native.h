@@ -2,7 +2,7 @@
 #define GRRVM_VM_NATIVE_H
 
 #include "grrvm/types.h"
-#include "grrvm/vm.h"
+#include "grrvm/vm_thread.h"
 
 #define MAX_NATIVE_FUNCTIONS 128
 #define FNV1A_PRIME          0x01000193U
