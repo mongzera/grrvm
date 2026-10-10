@@ -1,6 +1,6 @@
-#ifndef VM_HAL_PRINT
-#define VM_HAL_PRINT
+#ifndef GRRVM_HAL_VM_HAL_PRINT_H
+#define GRRVM_HAL_VM_HAL_PRINT_H
 
 int vm_hal_print(const char* text);
 
-#endif
+#endif /* GRRVM_HAL_VM_HAL_PRINT_H */

@@ -1,11 +1,10 @@
-#ifndef VM_THREAD_H
-#define VM_THREAD_H
+#ifndef GRRVM_VM_THREAD_H
+#define GRRVM_VM_THREAD_H
 
-#include "types.h"
-#include "vm.h"
+#include "grrvm/types.h"
+#include "grrvm/vm.h"
 
-
-void vm_new_thread(VM *vm, word program_counter, int id);
+/* vm_new_thread() is declared in vm.h */
 
 int push_stack(VM_Thread *thread, prim_val val);
 
@@ -29,4 +28,4 @@ static inline void set_instruction(VM_Thread *thread, word pc) {
     thread->pc = pc;
 }
 
-#endif
+#endif /* GRRVM_VM_THREAD_H */

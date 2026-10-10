@@ -1,8 +1,8 @@
-#include "../../../include/parser/bytecode_parse.h"
+#include "parser/bytecode_parse.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include "../../../include/grrvm/hal/load_vm.h"
+#include "grrvm/hal/load_vm.h"
 
 VM* load_vm(const void* data, size_t size) {
 

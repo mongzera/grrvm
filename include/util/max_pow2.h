@@ -1,5 +1,5 @@
-#ifndef MAX_POW2_H
-#define MAX_POW2_H
+#ifndef GRRVM_UTIL_MAX_POW2_H
+#define GRRVM_UTIL_MAX_POW2_H
 
 #include <stdint.h>
 
@@ -42,4 +42,4 @@ static inline uint32_t max_power_of_two_32(uint32_t x) {
 #endif
 }
 
-#endif /* MAX_POW2_H */
+#endif /* GRRVM_UTIL_MAX_POW2_H */

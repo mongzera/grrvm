@@ -1,22 +1,19 @@
-#ifndef VM_ALLOC_H
-#define VM_ALLOC_H
+#ifndef GRRVM_VM_ALLOC_H
+#define GRRVM_VM_ALLOC_H
 
 /*
- * IMPORTANT: this header is order-dependent. It must be #included from
- * vm.h itself, AFTER `prim_val` (and the word/byte/half typedefs) are
- * already visible, and BEFORE `struct VM` / `struct VM_Thread` are defined.
- * It forward-declares VM / VM_Thread as incomplete types (only used here
- * as pointers), so it does not need vm.h's full struct layout - avoiding
- * a genuine circular include (vm.h embeds VM_Allocator as a member of VM).
- *
- * Do not #include "grrvm/vm.h" from this file.
+ * Heap allocator (Buddy Forest + Slab). Self-contained: needs only prim_val.
+ * VM / VM_Thread are forward-declared by struct tag (not typedef) and only
+ * used as pointers here, so this header does not need vm.h - vm.h includes
+ * this file, not the other way round.
  */
 
+#include "grr_port_config.h"
 #include "grrvm/types.h"
-#include "grrvm/default_config.h"
+#include "grrvm/prim_val.h"
 
-typedef struct VM VM;
-typedef struct VM_Thread VM_Thread;
+struct VM;
+struct VM_Thread;
 
 /* ---------------- Tuning ---------------- */
 
@@ -115,7 +112,7 @@ typedef struct VM_HeapStats {
 /* ---------------- Public API ---------------- */
 
 /* Must be called once at VM startup, before any g_malloc/g_free. */
-void vm_alloc_init(VM *vm);
+void vm_alloc_init(struct VM *vm);
 
 /* Allocates n_slots usable slots. Physically reserves n_slots+1 (a
  * TYPE_LENGTH header slot immediately precedes the data). Returns a
@@ -123,17 +120,17 @@ void vm_alloc_init(VM *vm);
  * is meant to live on the stack (op_stack / call_stack_frame), not in
  * ram[]. On exhaustion, logs via vm_error and returns a GARBAGE prim_val;
  * caller must check get_prim_state()/get_prim_type() before use. */
-prim_val g_malloc(VM_Thread *thread, word n_slots);
-prim_val g_malloc_direct(VM *vm, word n_slots, byte print_error);
+prim_val g_malloc(struct VM_Thread *thread, word n_slots);
+prim_val g_malloc_direct(struct VM *vm, word n_slots, byte print_error);
 
 /* Frees a block previously returned by g_malloc. reference must be the
  * exact TYPE_REFERENCE value g_malloc returned (its .data is the slot
  * index right after the header). Reads the header for the block size,
  * so no bookkeeping beyond the reference itself is required. */
-void g_free(VM_Thread *, prim_val reference);
-void g_free_direct(VM *, word slot_index);
+void g_free(struct VM_Thread *, prim_val reference);
+void g_free_direct(struct VM *, word slot_index);
 
 /* O(#trees + #slab caches), no tree walking. Safe to call at any time. */
-void vm_heap_stats(const VM *vm, VM_HeapStats *out);
+void vm_heap_stats(const struct VM *vm, VM_HeapStats *out);
 
-#endif
+#endif /* GRRVM_VM_ALLOC_H */

@@ -1,5 +1,5 @@
-#ifndef VM_GC_H
-#define VM_GC_H
+#ifndef GRRVM_VM_GC_H
+#define GRRVM_VM_GC_H
 
 #include "grrvm/vm.h"
 /*
@@ -13,4 +13,4 @@ void set_gc_tag(VM* vm, word array_header_addr, byte tag);
 void set_tagged(VM* vm, prim_val reference);
 void set_untagged(VM* vm, prim_val reference);
 
-#endif
+#endif /* GRRVM_VM_GC_H */

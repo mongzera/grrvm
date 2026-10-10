@@ -1,7 +1,5 @@
 #include "grr_port_config.h"
-#include "grrvm/hal/vm_hal_timer.h"
 #include "grrvm/telemetry/gc_telemetry.h"
-#include "grrvm/telemetry/vm_telemetry.h"
 #include "grrvm/types.h"
 #include "grrvm/vm.h"
 #include "grrvm/vm_alloc.h"

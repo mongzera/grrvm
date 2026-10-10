@@ -1,8 +1,8 @@
-#ifndef VM_NATIVE_H
-#define VM_NATIVE_H
+#ifndef GRRVM_VM_NATIVE_H
+#define GRRVM_VM_NATIVE_H
 
-#include "types.h"
-#include "vm.h"
+#include "grrvm/types.h"
+#include "grrvm/vm.h"
 
 #define MAX_NATIVE_FUNCTIONS 128
 #define FNV1A_PRIME          0x01000193U
@@ -27,4 +27,4 @@ g_u32 native_hash(const char* str);
     #define REGISTER_NATIVE(fn_name)
 #endif
 
-#endif /* VM_NATIVE_H */
+#endif /* GRRVM_VM_NATIVE_H */

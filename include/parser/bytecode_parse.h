@@ -1,8 +1,8 @@
-#ifndef BYTECODE_PARSE
-#define BYTECODE_PARSE
+#ifndef GRRVM_PARSER_BYTECODE_PARSE_H
+#define GRRVM_PARSER_BYTECODE_PARSE_H
 
-#include "../grrvm/vm.h"
-#include "../grrvm/vm_log.h"
+#include "grrvm/vm.h"
+#include "grrvm/vm_log.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -67,7 +67,7 @@ static inline int bytecode_parser(const uint32_t *buffer, size_t buf_word_count,
     //load memory
     size_t mem_offset = 0;
 
-    vm_info("Bytecode Loader", "Offset: %d, Program Offset: %d", offset, program_offset);
+    vm_info("Bytecode Loader", "Offset: %u, Program Offset: %u", (unsigned)offset, (unsigned)program_offset);
 
     while(offset < program_offset){
         uint32_t asm_metadata = get_buffer_next(buffer, &offset);
@@ -93,4 +93,4 @@ static inline int bytecode_parser(const uint32_t *buffer, size_t buf_word_count,
     return 0;
 }
 
-#endif
+#endif /* GRRVM_PARSER_BYTECODE_PARSE_H */

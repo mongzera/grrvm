@@ -1,9 +1,7 @@
 #include "grrvm/types.h"
 #include "grrvm/vm.h"
 #include "grrvm/vm_gc.h"
-#include "grrvm/vm_mem.h"
 #include "grrvm/vm_alloc.h"
-#include "grrvm/vm_thread.h"
 #include <string.h>
 
 const word VM_SLAB_CLASS_SIZES[VM_SLAB_CLASS_COUNT] = { 8u, 16u, 32u };

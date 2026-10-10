@@ -1,15 +1,14 @@
-#ifndef TYPE_ARITHMETIC_H
-#define TYPE_ARITHMETIC_H
+#ifndef GRRVM_TYPE_ARITHMETIC_H
+#define GRRVM_TYPE_ARITHMETIC_H
 
 // --- TYPE-SAFE ARITHMETIC PRIMITIVES ---
 
+#include <math.h>
+#include "grrvm/types.h"
+#include "grrvm/prim_val.h"
 #include "grrvm/type_checks.h"
 #include "grrvm/type_conversion.h"
 #include "grrvm/type_promotion.h"
-#include "grrvm/types.h"
-#include "grrvm/vm.h"
-#include "grrvm/vm_log.h"
-#include <math.h>
 
 /* Helper to convert float bit pattern to word */
 static inline word float_to_prim_data(g_f32 f) {
@@ -172,4 +171,4 @@ static inline int type_safe_mod(prim_val a, prim_val b, prim_val *out_res, int *
     return 1;
 }
 
-#endif // TYPE_ARITHMETIC_H
+#endif /* GRRVM_TYPE_ARITHMETIC_H */

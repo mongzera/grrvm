@@ -1,20 +1,21 @@
-#ifndef VM_MEM_H
-#define VM_MEM_H
+#ifndef GRRVM_VM_MEM_H
+#define GRRVM_VM_MEM_H
 
+/* Direct / heap memory accessors. Needs the full VM, so it sits *above* vm.h:
+ * include it explicitly where get_vm_mem / set_vm_mem / set_heap_block_type
+ * are used (vm.h no longer pulls it in). */
 
-#include "grrvm/type_promotion.h"
-#include "grrvm/type_conversion.h"
-#include "grrvm/types.h"
 #include "grrvm/vm.h"
 #include "grrvm/vm_log.h"
-#include <stdio.h>
+#include "grrvm/type_conversion.h"
+#include "grrvm/type_promotion.h"
 
 // TODO: Add thread-ownership checking, this is important for thread safety and only the owner can modify if memory is STATE_LOCKED
 //
 //  direct-memory access
 static inline int get_vm_mem(VM* vm, word address, prim_val* out){
     // check address range
-    if(address < 0 || address >= VM_HEAP_SLOTS){
+    if(address >= VM_HEAP_SLOTS){
         vm_error("MEMORY", "OUT OF BOUNDS ACCESS!");
         return 0;
     }
@@ -95,5 +96,4 @@ static inline prim_state set_heap_block_type(VM* vm, word address, prim_type typ
     return STATE_OPEN;
 }
 
-
-#endif
+#endif /* GRRVM_VM_MEM_H */

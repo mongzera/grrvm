@@ -1,8 +1,10 @@
-#include "../../../include/grrvm/hal/init.h"
+#include "grrvm/hal/init.h"
+#include "grrvm/hal/load_vm.h"
 #include "grrvm/hal/vm_hal_math.h"
 #include "grrvm/vm.h"
 #include "grrvm/vm_native.h"
 #include <stdlib.h>
+#include <string.h>
 
 
 void print_command_unrecognized(void){

@@ -1,9 +1,8 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef GRRVM_DEFAULT_CONFIG_H
+#define GRRVM_DEFAULT_CONFIG_H
 
 #include <stdint.h>
-#include <sys/types.h>
-#include "grr_port_config.h"
+#include "grr_port_config.h" /* supplied by the port/target, not part of this tree */
 
 #ifndef VM_MAX_THREADS
 #define VM_MAX_THREADS 2
@@ -31,4 +30,4 @@
 #define VM_CALL_STACK_FRAME_MAX 128
 #endif
 
-#endif
+#endif /* GRRVM_DEFAULT_CONFIG_H */

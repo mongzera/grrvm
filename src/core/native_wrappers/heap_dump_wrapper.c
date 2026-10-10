@@ -2,7 +2,6 @@
 #include "grrvm/vm.h"
 #include "grrvm/vm_dump.h"
 #include "grrvm/vm_native.h"
-#include <stdio.h>
 
 void __wrap__heap_dump_terminal(VM_Thread *thread) {
     dump_vm_heap_terminal(thread->vm);

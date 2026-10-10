@@ -1,5 +1,5 @@
-#ifndef NATIVE_MATH_WRAPPER_H
-#define NATIVE_MATH_WRAPPER_H
+#ifndef GRRVM_NATIVE_WRAPPERS_MATH_WRAPPER_H
+#define GRRVM_NATIVE_WRAPPERS_MATH_WRAPPER_H
 
 #include "grrvm/vm_thread.h"
 
@@ -10,4 +10,4 @@ void wrap_math_max(VM_Thread* thread);
 // Optional: A bulk registration function for this specific module
 void register_math_wrappers(void);
 
-#endif /* NATIVE_MATH_WRAPPER_H */
+#endif /* GRRVM_NATIVE_WRAPPERS_MATH_WRAPPER_H */

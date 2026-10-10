@@ -1,5 +1,5 @@
-#ifndef VM_LOG_H
-#define VM_LOG_H
+#ifndef GRRVM_VM_LOG_H
+#define GRRVM_VM_LOG_H
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -79,4 +79,4 @@ static inline void vm_error(const char* title, const char* fmt, ...) {
     va_end(args);
 }
 
-#endif /* VM_LOG_H */
+#endif /* GRRVM_VM_LOG_H */

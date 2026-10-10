@@ -1,8 +1,8 @@
-#ifndef OPCODES_H
-#define OPCODES_H
+#ifndef GRRVM_OPCODES_H
+#define GRRVM_OPCODES_H
 
-#include "types.h"
 #include <stdint.h>
+#include "grrvm/types.h"
 typedef enum OPCODE_CATEGORY{
     OPC_STACK_OPERAND   = 0x00,
     OPC_ARITHMETIC      = 0x10,
@@ -91,4 +91,4 @@ static inline uint16_t get_opcode_cat(word opcode){
 }
 
 
-#endif
+#endif /* GRRVM_OPCODES_H */

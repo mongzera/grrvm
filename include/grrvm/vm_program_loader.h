@@ -1,12 +1,12 @@
-#ifndef VM_PROGRAM_LOADER_H
-#define VM_PROGRAM_LOADER_H
+#ifndef GRRVM_VM_PROGRAM_LOADER_H
+#define GRRVM_VM_PROGRAM_LOADER_H
 
-#include "grrvm/types.h"
-#include "grrvm/vm.h"
-#include "grrvm/vm_log.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "grrvm/types.h"
+#include "grrvm/vm.h"
+#include "grrvm/vm_log.h"
 
 static inline void vm_program_loader(char* src, VM* vm_instance){
     FILE *file = fopen(src, "rb");
@@ -48,4 +48,4 @@ static inline void vm_program_loader(char* src, VM* vm_instance){
 
 }
 
-#endif
+#endif /* GRRVM_VM_PROGRAM_LOADER_H */

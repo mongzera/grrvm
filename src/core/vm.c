@@ -1,9 +1,9 @@
-#include "../../include/grrvm/vm.h"
-#include "../../include/grrvm/evaluation.h"
-#include "../../include/grrvm/hal/vm_hal_timer.h"
-#include "../../include/grrvm/opcodes.h"
-#include "../../include/grrvm/vm_log.h"
-#include "../../include/grrvm/vm_thread.h"
+#include "grrvm/vm.h"
+#include "grrvm/evaluation.h"
+#include "grrvm/hal/vm_hal_timer.h"
+#include "grrvm/opcodes.h"
+#include "grrvm/vm_log.h"
+#include "grrvm/vm_thread.h"
 #include "grrvm/vm_alloc.h"
 #include <stdint.h>
 #include <stdio.h>

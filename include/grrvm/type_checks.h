@@ -1,8 +1,9 @@
-#ifndef TYPE_CHECKS_H
-#define TYPE_CHECKS_H
+#ifndef GRRVM_TYPE_CHECKS_H
+#define GRRVM_TYPE_CHECKS_H
 
+#include "grrvm/types.h"
+#include "grrvm/prim_val.h"
 #include "grrvm/type_conversion.h"
-#include "grrvm/vm.h"
 
 static inline int is_unsigned_type(prim_type t) {
     return (t == TYPE_U8 || t == TYPE_U16 || t == TYPE_U32 || t == TYPE_REFERENCE);
@@ -36,4 +37,4 @@ static inline int type_check_float(prim_val p) {
 }
 
 
-#endif
+#endif /* GRRVM_TYPE_CHECKS_H */

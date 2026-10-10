@@ -1,4 +1,5 @@
 #include "grrvm/hal/init.h"
+#include "grrvm/hal/load_vm.h"
 #include "grrvm/vm_native.h"
 #include "main_grr.h"
 #include "grrvm/hal/vm_hal_math.h"

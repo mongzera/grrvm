@@ -1,5 +1,5 @@
-#ifndef VM_HAL_MATH_H
-#define VM_HAL_MATH_H
+#ifndef GRRVM_HAL_VM_HAL_MATH_H
+#define GRRVM_HAL_VM_HAL_MATH_H
 
 #include "grrvm/types.h"
 
@@ -68,4 +68,4 @@ static inline g_f32 hal_lerp_f32(g_f32 a, g_f32 b, g_f32 t) {
 
 
 
-#endif
+#endif /* GRRVM_HAL_VM_HAL_MATH_H */

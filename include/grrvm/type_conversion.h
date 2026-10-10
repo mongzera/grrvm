@@ -1,8 +1,8 @@
-#ifndef TYPE_CONVERSION_H
-#define TYPE_CONVERSION_H
+#ifndef GRRVM_TYPE_CONVERSION_H
+#define GRRVM_TYPE_CONVERSION_H
 
 #include "grrvm/types.h"
-#include "grrvm/vm.h"
+#include "grrvm/prim_val.h"
 
 static inline g_f32 prim_to_float(prim_val val) {
     switch (get_prim_type(val)) {
@@ -123,4 +123,4 @@ static inline prim_val convert_prim(prim_val val, prim_type target_type) {
     return result;
 }
 
-#endif
+#endif /* GRRVM_TYPE_CONVERSION_H */

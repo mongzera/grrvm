@@ -1,5 +1,5 @@
-#ifndef TYPES_H
-#define TYPES_H
+#ifndef GRRVM_TYPES_H
+#define GRRVM_TYPES_H
 
 #include <stdint.h>
 
@@ -26,4 +26,4 @@ typedef int32_t  g_int;  /* Guaranteed 32-bit signed word */
 
 typedef uint8_t  byte;
 
-#endif /* TYPES_H */
+#endif /* GRRVM_TYPES_H */
