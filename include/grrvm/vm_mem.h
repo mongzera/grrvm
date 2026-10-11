@@ -5,7 +5,9 @@
  * include it explicitly where get_vm_mem / set_vm_mem / set_heap_block_type
  * are used (vm.h no longer pulls it in). */
 
+#include "grrvm/prim_val.h"
 #include "grrvm/vm.h"
+#include "grrvm/vm_alloc.h"
 #include "grrvm/vm_log.h"
 #include "grrvm/type_conversion.h"
 #include "grrvm/type_promotion.h"
@@ -32,17 +34,17 @@ static inline prim_state set_vm_mem(VM* vm, word address_base, word offset, prim
     }
 
     word block_root = address_base-1;
-    prim_val *block_size = &vm->ram[block_root];
+    prim_val *heap_block = &vm->ram[block_root];
 
-    // there will be instances where the block_size is not TYPE_LENGTH. So we iterate in reverse to find it.
+    // there will be instances where the block_size is not TYPE_HEAP_BLOCK. So we iterate in reverse to find it.
 
-    while(get_prim_type(*block_size) != TYPE_LENGTH) {
+    while(get_prim_type(*heap_block) != TYPE_HEAP_BLOCK) {
         block_root--;
-        block_size--;
+        heap_block--;
     }
 
 
-    if(address_base + offset >= block_root + block_size->data){
+    if(address_base + offset >= block_root + get_heap_block_size(heap_block->data)){
         vm_error("MEMORY", "OUT OF ARRAY BOUNDS ACCESS!");
         return STATE_ERROR;
     }

@@ -31,10 +31,10 @@ typedef enum prim_type {
     TYPE_I32,
     TYPE_I64, // NOTE: Unsupported
     TYPE_FLOAT,
-    TYPE_LENGTH,
+    TYPE_HEAP_BLOCK,
     TYPE_REFERENCE,
     PRIMTYPE_COUNT
-} prim_type;
+} prim_type; // maximum of 16 types
 
 typedef struct prim_val {
     union {

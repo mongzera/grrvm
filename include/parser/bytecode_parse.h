@@ -104,7 +104,7 @@ static inline void allocate_global_heap_block(VM* vm, global_data* last_row, uin
 
 
         vm->ram[current_mem_slot++] = (prim_val){
-            .metadata = pack_meta(STATE_LOCKED, TYPE_LENGTH),
+            .metadata = pack_meta(STATE_LOCKED, TYPE_HEAP_BLOCK),
             .data = length
         };
 
@@ -192,7 +192,9 @@ static inline int bytecode_parser(const uint32_t *buffer, size_t buf_word_count,
 
     total_heap_block_size = row_count + total_data;
     printf("REQ HEAP BLOCK SIZE: %u\n", total_heap_block_size);
-    allocate_global_heap_block(vm, current_row, total_heap_block_size);
+    if(total_heap_block_size > 0){
+        allocate_global_heap_block(vm, current_row, total_heap_block_size);
+    }
 
     return 0;
 }

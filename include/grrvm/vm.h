@@ -22,7 +22,7 @@
 typedef struct VM {
     word _program_start;
     word program_size;
-    word global_heap_block_address;
+    int64_t global_heap_block_address;
     word* program;
     prim_val* ram;
     global_var_table global_var_table;

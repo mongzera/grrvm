@@ -1,4 +1,5 @@
 #include "grr_port_config.h"
+#include "grrvm/prim_val.h"
 #include "grrvm/telemetry/gc_telemetry.h"
 #include "grrvm/types.h"
 #include "grrvm/vm.h"
@@ -6,6 +7,7 @@
 #include "grrvm/vm_alloc.h"
 #include "grrvm/vm_gc.h"
 #include "grrvm/vm_log.h"
+#include <assert.h>
 
 
 void run_gc(VM* vm) {
@@ -29,6 +31,10 @@ void mark_object(VM* vm) {
             continue;
         }
 
+        // Check the global variable heap allocation, tag that as well.
+        if(vm->global_heap_block_address >= 0){
+            set_gc_tag(vm, (word)(vm->global_heap_block_address & 0xFFFFFFFF), 1);
+        }
 
         // Check the call stack from the topmost frame towards the bottom.
         for (g_int j = thread->sfp + thread->n_local_vars; j >= 0; j--) {
@@ -87,11 +93,11 @@ void sweep_objects(VM* vm) {
          *
          * The allocator may own more slots than the logical array uses.
          */
-        if (get_prim_type(header) != TYPE_LENGTH) {
+        if (get_prim_type(header) != TYPE_HEAP_BLOCK) {
             continue;
         }
 
-        word block_size = header.data;
+        word block_size = get_heap_block_size(header.data);
 
         /*
          * A corrupted header must not be allowed to make the
@@ -159,7 +165,7 @@ void sweep_objects(VM* vm) {
 void set_gc_tag(VM* vm, word array_header_addr, byte tag) {
     prim_val *header = &vm->ram[array_header_addr];
 
-    if (get_prim_type(*header) != TYPE_LENGTH) {
+    if (get_prim_type(*header) != TYPE_HEAP_BLOCK) {
         vm_error(
             "GC",
             "Attempted to tag non-array reference: Address %u",
@@ -180,6 +186,7 @@ void set_gc_tag(VM* vm, word array_header_addr, byte tag) {
  * so subtract 1 to obtain the allocation header.
  */
 void set_tagged(VM* vm, prim_val reference) {
+    assert(get_prim_type(reference) == TYPE_REFERENCE);
     if (reference.data == 0) {
         vm_error("GC", "Attempted to tag invalid null reference!");
         return;

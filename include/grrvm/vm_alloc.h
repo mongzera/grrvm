@@ -134,4 +134,14 @@ void g_free_direct(struct VM *, word slot_index);
 /* O(#trees + #slab caches), no tree walking. Safe to call at any time. */
 void vm_heap_stats(const struct VM *vm, VM_HeapStats *out);
 
+// Extract the physical block size from the packed metadata word
+static inline word get_heap_block_size(word heap_metadata) {
+    return (heap_metadata >> 16) & 0xFFFF;
+}
+
+// Extract the logical size (n_slots) from the packed metadata word
+static inline word get_n_slots(word heap_metadata) {
+    return heap_metadata & 0xFFFF;
+}
+
 #endif /* GRRVM_VM_ALLOC_H */

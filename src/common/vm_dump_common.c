@@ -1,5 +1,6 @@
 
 #include "grrvm/common/vm_dump_common.h"
+#include "grrvm/prim_val.h"
 #include <stdint.h>
 
 static const char* get_state_str(prim_state state) {
@@ -14,19 +15,19 @@ static const char* get_state_str(prim_state state) {
 
 static const char* get_type_str(prim_type type) {
     switch (type) {
-        case TYPE_NULL:      return "NULL";
-        case TYPE_U8:        return "U8";
-        case TYPE_U16:       return "U16";
-        case TYPE_U32:       return "U32";
-        case TYPE_U64:       return "U64 (UNSUPPORTED)";
-        case TYPE_I8:        return "I8";
-        case TYPE_I16:       return "I16";
-        case TYPE_I32:       return "I32";
-        case TYPE_I64:       return "I64 (UNSUPPORTED)";
-        case TYPE_FLOAT:     return "FLOAT";
-        case TYPE_LENGTH:    return "LENGTH";
-        case TYPE_REFERENCE: return "REFERENCE";
-        default:             return "INVALID_TYPE";
+        case TYPE_NULL:         return "NULL";
+        case TYPE_U8:           return "U8";
+        case TYPE_U16:          return "U16";
+        case TYPE_U32:          return "U32";
+        case TYPE_U64:          return "U64 (UNSUPPORTED)";
+        case TYPE_I8:           return "I8";
+        case TYPE_I16:          return "I16";
+        case TYPE_I32:          return "I32";
+        case TYPE_I64:          return "I64 (UNSUPPORTED)";
+        case TYPE_FLOAT:        return "FLOAT";
+        case TYPE_HEAP_BLOCK:   return "HEAP_BLOCK";
+        case TYPE_REFERENCE:    return "REFERENCE";
+        default:                return "INVALID_TYPE";
     }
 }
 
@@ -74,7 +75,7 @@ void dump_heap_to_stream(FILE *out, const prim_val *heap, size_t capacity) {
                 fprintf(out, "%-16u | ", (uint16_t)(heap[i].data & 0xFFFF));
                 break;
             case TYPE_U32:
-            case TYPE_LENGTH:
+            case TYPE_HEAP_BLOCK:
             case TYPE_REFERENCE:
             default:
                 fprintf(out, "%-16u | ", heap[i].data);
