@@ -27,7 +27,7 @@ void eval_stack_operand(VM_Thread *thread, word opcode) {
         }
 
         case PUSH_ADDR: {
-            vm_error("PUSH_ADDR", "Not implemented yet!");
+            vm_error("PUSH_ADDR", "Deprecated!");
             set_thread_inactive(thread);
             break;
 

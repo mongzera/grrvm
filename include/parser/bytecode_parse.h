@@ -98,17 +98,20 @@ static inline void allocate_global_heap_block(VM* vm, global_data* last_row, uin
     vm->global_heap_block_address = g_malloc_heap_block(vm, total_heap_block_size, 1);
 
     uint32_t current_mem_slot = vm->global_heap_block_address + 1; // skip the global_heap_block_address since this will describe the heap block size for the GC to handle cleanly
+
+    int row_count = 0;
     while (current_row != NULL) {
         byte prim_metadata = asm_to_vm_metadata(current_row->header);
         word length = current_row->length;
 
-
         vm->ram[current_mem_slot++] = (prim_val){
             .metadata = pack_meta(STATE_LOCKED, TYPE_HEAP_BLOCK),
-            .data = length
+            .data = create_heap_metadata(length, length)
         };
 
-
+        vm->global_var_table.rows[row_count++] = (global_var_table_row){
+            .address = make_prim_val(current_mem_slot, STATE_OPEN, TYPE_REFERENCE) // current_mem_slot is now = header + 1
+        };
 
         for(uint32_t i = 0; i < length; i++){
             vm->ram[current_mem_slot++] = (prim_val){
@@ -190,8 +193,13 @@ static inline int bytecode_parser(const uint32_t *buffer, size_t buf_word_count,
         }
     }
 
+    // initialize global var table of the VM
+    global_var_table *var_table = &vm->global_var_table;
+    var_table->row_count = row_count;
+    var_table->rows = malloc(sizeof(global_var_table_row) * row_count);
+
+
     total_heap_block_size = row_count + total_data;
-    printf("REQ HEAP BLOCK SIZE: %u\n", total_heap_block_size);
     if(total_heap_block_size > 0){
         allocate_global_heap_block(vm, current_row, total_heap_block_size);
     }

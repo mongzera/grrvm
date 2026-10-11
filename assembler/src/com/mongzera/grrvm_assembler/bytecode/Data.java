@@ -4,16 +4,13 @@ import src.com.mongzera.grrvm_assembler.DebugMsg;
 import src.com.mongzera.grrvm_assembler.GrrError;
 import src.com.mongzera.grrvm_assembler.util.DataValueParser;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-
 public class Data {
     private final byte type;
     private final int size;
     private final String[] values;
     private final String name;
     private int[] raw_values;
-    private int assignedRAMAddress = -1;
+    private int assignedGlobalTableSlot = -1;
 
     private boolean isConstant = false;
 
@@ -78,11 +75,12 @@ public class Data {
 
     public void resolve(Bytecode bytecode, boolean isConstant) {
         this.isConstant = isConstant;
-        assignedRAMAddress = bytecode.getCurrentRAMAddress();
+        assignedGlobalTableSlot = bytecode.getCurrentTableSlot();
+        bytecode.incrementCurrentTableSlot();
+
         this.raw_values = new int[this.values.length];
         for (int i = 0; i < this.values.length; i++) {
             this.raw_values[i] = DataValueParser.parse(this.type, this.values[i]);
-            bytecode.incrementCurrrentRamAddress();
         }
     }
 
@@ -101,7 +99,7 @@ public class Data {
         return raw;
     }
 
-    public int getAssignedRAMAddress(){
-        return assignedRAMAddress;
+    public int getAssignedGlobalTableSlot(){
+        return assignedGlobalTableSlot;
     }
 }

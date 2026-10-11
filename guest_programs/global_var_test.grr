@@ -4,6 +4,13 @@
 
 ::_global
 
+    LOAD _data.nums
+    POP
+    PUSH_T int8 5
+    STORE _data.x
+    LOAD _data.x
+    POP
+
     INVOKE_NATIVE gc_run
 
     PUSH 1

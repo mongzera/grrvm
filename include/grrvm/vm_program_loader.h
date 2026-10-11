@@ -29,7 +29,7 @@ static inline void vm_program_loader(char* src, VM* vm_instance){
     uint32_t data_size = header[2];
 
     if (fread(vm_instance->program, sizeof(word), vm_instance->program_size, file) != vm_instance->program_size) {
-        printf("[ERROR] Failed to read instruction stream.\n");
+        vm_error("ERROR", "Failed to read instruction stream.\n");
         fclose(file);
         exit(-1);
     }
@@ -37,7 +37,7 @@ static inline void vm_program_loader(char* src, VM* vm_instance){
     prim_val raw_primitive;
     for (uint32_t i = 0; i < data_size; i++) {
         if (fread(&raw_primitive, sizeof(prim_val), 1, file) != 1) {
-            printf("[ERROR] Corrupt data payload at RAM index %d\n", i); // TODO:: Change this to vm_error next time
+            vm_error("ERROR", "Corrupt data payload at RAM index %d\n", i); // TODO:: Change this to vm_error next time
             fclose(file);
             exit(-1);
         }

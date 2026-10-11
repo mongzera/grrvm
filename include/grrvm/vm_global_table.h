@@ -9,7 +9,7 @@
 #include "grrvm/prim_val.h"
 
 typedef struct {
-    prim_val* address;
+    prim_val address;
 } global_var_table_row;
 
 typedef struct {

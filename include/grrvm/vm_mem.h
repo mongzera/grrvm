@@ -39,13 +39,15 @@ static inline prim_state set_vm_mem(VM* vm, word address_base, word offset, prim
     // there will be instances where the block_size is not TYPE_HEAP_BLOCK. So we iterate in reverse to find it.
 
     while(get_prim_type(*heap_block) != TYPE_HEAP_BLOCK) {
+
         block_root--;
         heap_block--;
     }
 
 
-    if(address_base + offset >= block_root + get_heap_block_size(heap_block->data)){
-        vm_error("MEMORY", "OUT OF ARRAY BOUNDS ACCESS!");
+    if(address_base + offset > block_root + get_heap_block_size(heap_block->data)){
+
+        vm_error("MEMORY", "OUT OF ARRAY BOUNDS ACCESS! add_base: %u | off: %u | block_root: %u | heap_block_size: %u", address_base, offset, block_root, get_heap_block_size(heap_block->data));
         return STATE_ERROR;
     }
 

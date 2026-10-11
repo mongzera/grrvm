@@ -142,8 +142,20 @@ public class ISA {
         operationCodes.add(new OpCode(OPC_MEMORY_LOCAL , (byte) 0x01, (byte) 1, "LOAD_L"));
 
         // MEMORY (GLOBAL) OPERAND
-        operationCodes.add(new OpCode(OPC_MEMORY_GLOBAL, (byte) 0x00, (byte) 0, "STORE"));
-        operationCodes.add(new OpCode(OPC_MEMORY_GLOBAL, (byte) 0x01, (byte) 0, "LOAD"));
+        operationCodes.add(new OpCode(OPC_MEMORY_GLOBAL, (byte) 0x00, (byte) 1, "STORE", (bytecode, segment, instruction) -> {
+            String var_name = instruction.getArg(0);
+            if(var_name.isEmpty()) DebugMsg.asm_error("ARGUMENT INVALID", "Argument is required for STORE");
+
+            instruction.setArg(0, Integer.toString(bytecode.getAbsoluteMemAddr(var_name)));
+
+        }));
+        operationCodes.add(new OpCode(OPC_MEMORY_GLOBAL, (byte) 0x01, (byte) 1, "LOAD", (bytecode, segment, instruction) -> {
+            String var_name = instruction.getArg(0);
+            if(var_name.isEmpty()) DebugMsg.asm_error("ARGUMENT INVALID", "Argument is required for STORE");
+
+            instruction.setArg(0, Integer.toString(bytecode.getAbsoluteMemAddr(var_name)));
+
+        }));
         operationCodes.add(new OpCode(OPC_MEMORY_GLOBAL, (byte) 0x02, (byte) 0, "LOCK"));
         operationCodes.add(new OpCode(OPC_MEMORY_GLOBAL, (byte) 0x03, (byte) 0, "UNLOCK"));
 

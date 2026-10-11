@@ -234,7 +234,7 @@ void vm_alloc_init(VM *vm) {
 
 prim_val finish_alloc(VM *vm, word addr, word block_size, word n_slots) {
     assert(block_size <= 65536); // ensure it wont overflow for uint16_t type
-    word heap_metadata = (block_size << 16) | n_slots;
+    word heap_metadata = create_heap_metadata(block_size, n_slots);
     vm->ram[addr] = make_prim_val(heap_metadata, STATE_LOCKED, TYPE_HEAP_BLOCK);
     for (word i = 1; i <= n_slots; i++) {
         vm->ram[addr + i] = make_prim_val(0, STATE_OPEN, TYPE_NULL);
