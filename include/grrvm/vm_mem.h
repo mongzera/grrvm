@@ -5,6 +5,7 @@
  * include it explicitly where get_vm_mem / set_vm_mem / set_heap_block_type
  * are used (vm.h no longer pulls it in). */
 
+#include <assert.h>
 #include "grrvm/prim_val.h"
 #include "grrvm/vm.h"
 #include "grrvm/vm_alloc.h"
@@ -30,6 +31,19 @@ static inline int get_vm_mem(VM* vm, word address, prim_val* out){
 static inline prim_state set_vm_mem(VM* vm, word address_base, word offset, prim_val data) {
     if (address_base + offset >= VM_HEAP_SLOTS) {
         vm_error("MEMORY", "OUT OF HEAP BOUNDS ACCESS!");
+        return STATE_ERROR;
+    }
+
+    /* GC invariant: references may only live on thread stacks (op_stack /
+     * call_stack_frame), never in ram[]. The collector scans only the stacks
+     * plus the global heap block itself, so a reference stored here would be
+     * untraced and its target swept while still "reachable" in the holder.
+     * The ISA has no dedicated instruction for this, but H_ALLOC + H_STORE
+     * could otherwise construct it on an uninitialized (TYPE_NULL) slot. */
+    if (get_prim_type(data) == TYPE_REFERENCE) {
+        assert(get_prim_type(data) != TYPE_REFERENCE &&
+               "references must not be stored into ram[] slots");
+        vm_error("MEMORY", "Type Error: References cannot be stored into memory slots!");
         return STATE_ERROR;
     }
 
@@ -87,13 +101,27 @@ static inline prim_state set_vm_mem(VM* vm, word address_base, word offset, prim
 }
 
 static inline prim_state set_heap_block_type(VM* vm, word address, prim_type type) {
-    if (address >= VM_HEAP_SLOTS) {
+    if (address == 0 || address >= VM_HEAP_SLOTS) {
         vm_error("MEMORY", "OUT OF BOUNDS ACCESS!");
         return STATE_ERROR;
     }
 
     prim_val *memslot = &vm->ram[address-1]; // target array block start
-    for(word i = 1; i < memslot->data; i++) {
+    if (get_prim_type(*memslot) != TYPE_HEAP_BLOCK) {
+        vm_error("MEMORY", "Type Error: H_SET_TYPE target is not a heap block!");
+        return STATE_ERROR;
+    }
+
+    /* memslot->data is the packed metadata word (block_size << 16 | n_slots),
+     * NOT a raw slot count. Convert exactly the logical n_slots data slots -
+     * never past the physical block, never past the heap. */
+    word n_slots = get_n_slots(memslot->data);
+    if (n_slots == 0 || (address - 1 + n_slots) >= VM_HEAP_SLOTS) {
+        vm_error("MEMORY", "Corrupt heap block metadata at 0x%X!", (unsigned)(address - 1));
+        return STATE_ERROR;
+    }
+
+    for(word i = 1; i <= n_slots; i++) {
         prim_val *slot = &memslot[i];
         *slot = convert_prim(*slot, type);
     }

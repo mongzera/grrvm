@@ -192,7 +192,10 @@ static void slab_free(VM *vm, word addr) {
  * ======================================================================= */
 
 void vm_alloc_init(VM *vm) {
-    memset(vm->ram, 0, sizeof(vm->ram));
+    /* Clear the whole heap, not just a pointer's worth: vm->ram comes from
+     * malloc (uninitialized), and the GC sweep reads slot types across the
+     * entire array - garbage metadata could look like TYPE_HEAP_BLOCK. */
+    memset(vm->ram, 0, sizeof(prim_val) * VM_HEAP_SLOTS);
 
     VM_Allocator *a = &vm->allocator;
 
