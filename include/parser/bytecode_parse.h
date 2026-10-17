@@ -157,6 +157,14 @@ static inline int bytecode_parser(const uint32_t *buffer, size_t buf_word_count,
         return -1;
     }
 
+    // vm->program only owns VM_PROGRAM_MAX_SIZE words - refuse oversized
+    // programs instead of overflowing the heap buffer on copy/fetch.
+    if(vm->program_size > VM_PROGRAM_MAX_SIZE){
+        vm_error("GRRVM BYTECODE PARSER", "Program size %u exceeds VM capacity of %u words!",
+                 (unsigned) vm->program_size, (unsigned) VM_PROGRAM_MAX_SIZE);
+        return -1;
+    }
+
 
     //load program
     for(word i = 0; i < vm->program_size; i++){

@@ -46,11 +46,12 @@
     PUSH 1
     CALL tensor_computeActiveVolume
     STORE_L 5
-    LOAD localVolume
+    PUSH_ADDR _data.localVolume
     PUSH 5
     ADD
     H_LOAD
     STORE_L 7
+    INVOKE_NATIVE dump_heap_file
     HALT
 
 ::tensor_getVoxel
@@ -66,7 +67,7 @@
     MUL
     LOAD_L 2
     ADD
-    LOAD _tensor.grid
+    PUSH_ADDR _tensor.grid
     ADD
     H_LOAD
     RET
@@ -86,9 +87,9 @@
     MUL
     LOAD_L 2
     ADD
-    LOAD _tensor.grid
+    PUSH_ADDR _tensor.grid
     ADD
-    PUSH 4
+    PUSH 8
     INVOKE_NATIVE vm_stack_debug
     H_STORE
     RET
@@ -144,7 +145,7 @@
     MUL
     LOAD_L 4
     ADD
-    LOAD _tensor.grid
+    PUSH_ADDR _tensor.grid
     ADD
     H_LOAD
     LOAD_L 0
