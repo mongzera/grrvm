@@ -6,6 +6,7 @@
 #include "native_wrappers/heap_dump_wrapper.h"
 #include "native_wrappers/internal_telemetry_wrapper.h"
 #include "native_wrappers/math_wrapper.h"
+#include "native_wrappers/vm_debug_wrapper.h"
 #include <stddef.h>
 
 typedef struct {
@@ -30,6 +31,7 @@ void native_registry_init(void) {
     register_heap_dump_wrappers();
     register_gpio_wrappers();
     register_gc_wrappers();
+    register_vm_debug_wrappers();
 }
 
 g_u32 native_hash(const char* str) {

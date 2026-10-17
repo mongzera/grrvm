@@ -48,6 +48,11 @@ static inline prim_state set_vm_mem(VM* vm, word address_base, word offset, prim
     }
 
     word block_root = address_base-1;
+
+    // we must assert that block_root is non-negative
+    assert(block_root >= 0 && "Block Root must be a non-negative address!");
+
+
     prim_val *heap_block = &vm->ram[block_root];
 
     // there will be instances where the block_size is not TYPE_HEAP_BLOCK. So we iterate in reverse to find it.

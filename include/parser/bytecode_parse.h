@@ -4,6 +4,7 @@
 #include "grrvm/prim_val.h"
 #include "grrvm/vm.h"
 #include "grrvm/vm_alloc.h"
+#include "grrvm/vm_dump.h"
 #include "grrvm/vm_global_table.h"
 #include "grrvm/vm_log.h"
 #include <assert.h>
@@ -110,7 +111,7 @@ static inline void allocate_global_heap_block(VM* vm, global_data* last_row, uin
         };
 
         vm->global_var_table.rows[row_count++] = (global_var_table_row){
-            .address = make_prim_val(current_mem_slot, STATE_OPEN, TYPE_REFERENCE) // current_mem_slot is now = header + 1
+            .address = make_prim_val(current_mem_slot, STATE_OPEN, TYPE_REFERENCE) // current_mem_slot must now be = global_heap_block_address + header + 1
         };
 
         for(uint32_t i = 0; i < length; i++){
@@ -124,6 +125,7 @@ static inline void allocate_global_heap_block(VM* vm, global_data* last_row, uin
     }
 
     free_global_row(last_row);
+    dump_vm_heap_file(vm);
 }
 
 
