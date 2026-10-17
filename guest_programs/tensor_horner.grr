@@ -89,8 +89,6 @@
     ADD
     PUSH_ADDR _tensor.grid
     ADD
-    PUSH 8
-    INVOKE_NATIVE vm_stack_debug
     H_STORE
     RET
 

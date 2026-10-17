@@ -125,7 +125,6 @@ static inline void allocate_global_heap_block(VM* vm, global_data* last_row, uin
     }
 
     free_global_row(last_row);
-    dump_vm_heap_file(vm);
 }
 
 

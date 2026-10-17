@@ -1,0 +1,35 @@
+:=_data
+  int32 speeds 1, 2, 3
+
+
+::_global
+    CALL heap
+    INVOKE_NATIVE dump_heap_file
+    HALT
+
+::heap
+    PUSH 4
+    H_ALLOC
+    STORE_L 0
+    PUSH 1
+    LOAD_L 0
+    H_STORE
+    PUSH 2
+    LOAD_L 0
+    PUSH 1
+    ADD
+    H_STORE
+    PUSH 3
+    LOAD_L 0
+    PUSH 2
+    ADD
+    H_STORE
+    PUSH 4
+    LOAD_L 0
+    PUSH 3
+    ADD
+    H_STORE
+    PUSH 5
+    H_ALLOC
+    STORE_L 1
+    RET
