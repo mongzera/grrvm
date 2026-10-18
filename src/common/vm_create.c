@@ -2,6 +2,7 @@
 #include "grrvm/prim_val.h"
 #include "grrvm/vm.h"
 #include "grrvm/vm_thread.h"
+#include <stdio.h>
 #include <stdlib.h>
 
 VM* vm_create(void){
@@ -14,8 +15,10 @@ VM* vm_create(void){
     for(int i = 0; i < VM_MAX_THREADS; i++){
         set_thread_inactive(&vm->vm_threads[i]);
     }
+
     vm_alloc_init(vm);
 
+    printf("Allocated Heap Size: %u", sizeof(vm->ram));
 
     return vm;
 }

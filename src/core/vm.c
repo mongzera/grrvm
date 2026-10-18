@@ -11,6 +11,8 @@
 #include <sys/types.h>
 #include <inttypes.h>
 
+#include <malloc.h>
+
 void vm_start(VM* vm_instance){
     // initialize system
     // initialize hal
@@ -22,6 +24,7 @@ void vm_start(VM* vm_instance){
         return;
     }
     vm_new_thread(vm_instance, vm_instance->_program_start, 0);
+
 
     uint64_t initial_time = hal_clock_ns();
     vm_loop(vm_instance);
