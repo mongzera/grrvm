@@ -1,7 +1,6 @@
-#include "grrvm/evaluation.h""
+#include "grrvm/evaluation.h"
 #include "parser/bytecode_parse.h"
 #include "grrvm/vm_mem.h"
-#include "grrvm/type_conditional.h"
 #include "grrvm/vm.h"
 #include "grrvm/type_checks.h"
 #include "grrvm/vm_alloc.h"

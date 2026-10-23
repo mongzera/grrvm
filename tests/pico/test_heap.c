@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <string.h>
+#include "grrvm/prim_val.h"
 #include "grrvm/vm.h"
 #include "grrvm/vm_alloc.h"
 #include "grrvm/vm_mem.h"
+#include "grrvm/vm_thread.h"
 
 /* VM is ~200KB (mostly ram[VM_HEAP_SLOTS]) - too big for the stack,
  * so it lives here as a single static instance reused across tests. */
@@ -67,7 +69,7 @@ static void test_slab_roundtrip(void) {
 
     word data_addr = ref.data;
     word header_addr = data_addr - 1;
-    CHECK(get_prim_type(vm.ram[header_addr]) == TYPE_LENGTH, "header slot is TYPE_LENGTH");
+    CHECK(get_prim_type(vm.ram[header_addr]) == TYPE_HEAP_BLOCK, "header slot is TYPE_HEAP_BLOCK");
     CHECK(vm.ram[header_addr].data == 8, "5 needed slots rounds up to the 8-slot slab class");
 
     prim_val v = make_prim_val(1234, STATE_OPEN, TYPE_U32);

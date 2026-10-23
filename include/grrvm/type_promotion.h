@@ -1,11 +1,12 @@
 #ifndef GRRVM_TYPE_PROMOTION_H
 #define GRRVM_TYPE_PROMOTION_H
 
+#include <stddef.h>
 #include <stdint.h>
+#include "grrvm/types.h"
+#include "grrvm/prim_val.h"
 #include "grrvm/type_checks.h"
 #include "grrvm/type_conversion.h"
-#include "grrvm/types.h"
-#include "grrvm/vm.h"
 
 /* --- TYPE RANKING & PROMOTION --- */
 static inline int get_type_rank(prim_type type) {

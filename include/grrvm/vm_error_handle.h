@@ -1,5 +1,5 @@
-#ifndef VM_ERROR_HANDLE
-#define VM_ERROR_HANDLE
+#ifndef GRRVM_VM_ERROR_HANDLE_H
+#define GRRVM_VM_ERROR_HANDLE_H
 
 #include "grrvm/vm.h"
 #include "grrvm/vm_log.h"
@@ -14,4 +14,4 @@ static inline void vm_error_push_overflow(VM_Thread *thread, char* emitter){
     set_thread_inactive(thread);
 }
 
-#endif
+#endif /* GRRVM_VM_ERROR_HANDLE_H */

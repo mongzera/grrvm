@@ -5,7 +5,7 @@
 #define VM_MAX_THREADS 2
 
 // guest program
-#define VM_PROGRAM_MAX_SIZE 256
+#define VM_PROGRAM_MAX_SIZE 1024 // this is probably not being followed in the vm_load.c
 
 // memory
 #define VM_HEAP_SLOTS (200 * 1024 / 8) // 200KB * 1024 bytes / 8 bytes (sizeof prim_val) = 25600 SLOTS

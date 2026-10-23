@@ -27,27 +27,29 @@ void eval_stack_operand(VM_Thread *thread, word opcode) {
         }
 
         case PUSH_ADDR: {
-            vm_error("PUSH_ADDR", "Not implemented yet!");
-            set_thread_inactive(thread);
-            break;
+            // Push the global heap reference (base address) of the n-th row of
+            // the global var table. The assembler resolves PUSH_ADDR <var> to
+            // that variable's table slot, so guest code can compute
+            // "base + index" and feed it to H_LOAD / H_STORE.
+            word global_var_id = get_instruction(thread);
 
-            word address = get_instruction(thread);
-            prim_val out;
-
-            // replace this: get_vm_mem -> get_global_mem
-            if(!get_vm_mem(thread->vm, address, &out)){
-                vm_error("PUSH_ADDR", "Failed to get memory at address %u", address);
-                has_error = 1;
+            if (global_var_id >= thread->vm->global_var_table.row_count) {
+                vm_error("PUSH_ADDR", "Global var table index %u out of range (row_count: %u)",
+                         (unsigned) global_var_id,
+                         (unsigned) thread->vm->global_var_table.row_count);
+                set_thread_inactive(thread);
                 break;
             }
-            if(get_prim_type(out) != TYPE_FLOAT) vm_info("PUSH", "VALUE: %d", out.data);
-            else vm_info("PUSH", "VALUE: %f", out.float_data);
-            if (!push_stack(thread, out)) {
-                vm_error("STACK OVERFLOW", "Thread operand stack limit reached during PUSH!");
-                has_error = 1;
+
+            prim_val reference = thread->vm->global_var_table.rows[global_var_id].address;
+
+            vm_info("PUSH_ADDR", "[row=%u, address=%u]", (unsigned) global_var_id, (unsigned) reference.data);
+
+            if (!push_stack(thread, reference)) {
+                vm_error("STACK OVERFLOW", "Thread operand stack limit reached during PUSH_ADDR!");
+                set_thread_inactive(thread);
             }
             break;
-
         }
 
         case PUSH_T: {

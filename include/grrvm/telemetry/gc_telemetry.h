@@ -1,9 +1,9 @@
-#ifndef GC_TELEMETRY_H
-#define GC_TELEMETRY_H
+#ifndef GRRVM_TELEMETRY_GC_TELEMETRY_H
+#define GRRVM_TELEMETRY_GC_TELEMETRY_H
 
 #include "grrvm/types.h"
 #include "grrvm/vm.h"
-#include "grrvm/vm_alloc.h"
+#include "grrvm/vm_alloc.h" /* VM_HeapStats */
 
 
 typedef enum {
@@ -23,4 +23,4 @@ float measure_ext_frag(VM_HeapStats heap_stats);
 void pre_gc_telemetry(VM* vm);
 void post_gc_telemetry(VM* vm);
 
-#endif // GC_TELEMETRY_H
+#endif /* GRRVM_TELEMETRY_GC_TELEMETRY_H */

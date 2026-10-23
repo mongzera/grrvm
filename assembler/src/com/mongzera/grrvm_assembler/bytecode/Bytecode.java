@@ -24,7 +24,7 @@ public class Bytecode{
     private boolean hasGlobalSubroutine = false;
     private ArrayList<Segment> segments = new ArrayList<>();
     private int currentInstructionLine = 0;
-    private int currentRAMAddressAlloc = 0;
+    private int currentGlobalTableSlot = 0;
 
     private Stream stream = null;
 
@@ -166,15 +166,20 @@ public class Bytecode{
                 if(data == null) DebugMsg.asm_error("UNKNOWN VARIABLE", String.format("Variable [%s] is not defined!", dataSubroutineVar));
 
                 assert data != null;
-                return data.getAssignedRAMAddress();
+                return data.getAssignedGlobalTableSlot();
             }
         }
 
         return -1;
     }
 
-    public int getCurrentRAMAddress(){return currentRAMAddressAlloc;}
-    public void incrementCurrrentRamAddress(){currentRAMAddressAlloc++;}
+    public int getCurrentTableSlot(){return currentGlobalTableSlot;}
+
+    public void incrementCurrentTableSlot(){
+        currentGlobalTableSlot++;
+    }
+
+
 
     public static class Stream{
         private int programSize = 0;

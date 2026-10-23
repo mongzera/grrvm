@@ -1,5 +1,5 @@
-#ifndef VM_DUMP_H
-#define VM_DUMP_H
+#ifndef GRRVM_VM_DUMP_H
+#define GRRVM_VM_DUMP_H
 
 #include "vm.h"
 #include <stdbool.h>
@@ -12,4 +12,4 @@ void dump_vm_heap_terminal(const VM *vm);
 // Returns true if output was written successfully, false on I/O error.
 bool dump_vm_heap_file(const VM *vm);
 
-#endif // VM_DUMP_H
+#endif /* GRRVM_VM_DUMP_H */

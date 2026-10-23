@@ -1,0 +1,37 @@
+:=_data
+    uint32 nums 1, 2, 3, 4
+    int8 x 3
+
+::_global
+
+    LOAD _data.nums
+    POP
+    PUSH_T int8 5
+    STORE _data.x
+    LOAD _data.x
+    POP
+
+    INVOKE_NATIVE gc_run
+
+    PUSH 1
+    INVOKE_NATIVE set_ext_frag_telemetry_flag
+    PUSH 0 ;
+    STORE_L 0
+
+    .while_0:
+        PUSH 1 ; Minimum number of slots
+        PUSH 8000 ; Maximum number of slots
+        INVOKE_NATIVE math_rng_range
+        H_ALLOC
+        POP
+        LOAD_L 0
+        INC 1
+        STORE_L 0
+        LOAD_L 0
+        PUSH 4
+        CMPGT
+        JZ .while_0
+
+
+    INVOKE_NATIVE dump_heap_file
+    HALT

@@ -1,5 +1,5 @@
-#ifndef VM_HAL_GPIO_H
-#define VM_HAL_GPIO_H
+#ifndef GRRVM_HAL_VM_HAL_GPIO_H
+#define GRRVM_HAL_VM_HAL_GPIO_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -35,4 +35,4 @@ void             hal_gpio_clear(hal_gpio_pin_t pin);
 void             hal_gpio_toggle(hal_gpio_pin_t pin);
 hal_gpio_state_t hal_gpio_read(hal_gpio_pin_t pin);
 
-#endif // HAL_GPIO_H
+#endif /* GRRVM_HAL_VM_HAL_GPIO_H */

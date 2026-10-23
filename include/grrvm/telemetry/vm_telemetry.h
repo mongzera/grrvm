@@ -1,5 +1,5 @@
-#ifndef VM_TELEMETRY_H
-#define VM_TELEMETRY_H
+#ifndef GRRVM_TELEMETRY_VM_TELEMETRY_H
+#define GRRVM_TELEMETRY_VM_TELEMETRY_H
 
 #define MAX_TELEMETRY_ENTRIES 2048
 
@@ -16,4 +16,4 @@ typedef struct {
 
 } telemetry_ext_frag;
 
-#endif
+#endif /* GRRVM_TELEMETRY_VM_TELEMETRY_H */

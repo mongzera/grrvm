@@ -1,13 +1,13 @@
-#ifndef TYPE_CONDITIONAL_H
-#define TYPE_CONDITIONAL_H
+#ifndef GRRVM_TYPE_CONDITIONAL_H
+#define GRRVM_TYPE_CONDITIONAL_H
 
 // --- TYPE-SAFE CONDITIONAL & RELATIONAL PRIMITIVES ---
 
+#include "grrvm/types.h"
+#include "grrvm/prim_val.h"
 #include "grrvm/type_checks.h"
 #include "grrvm/type_conversion.h"
 #include "grrvm/type_promotion.h"
-#include "grrvm/types.h"
-#include "grrvm/vm.h"
 #include "grrvm/vm_math.h"
 
 static inline int type_safe_eq(prim_val a, prim_val b, prim_val *out_res) {
@@ -116,4 +116,4 @@ static inline int type_safe_gte(prim_val a, prim_val b, prim_val *out_res) {
     return 1;
 }
 
-#endif // TYPE_CONDITIONAL_H
+#endif /* GRRVM_TYPE_CONDITIONAL_H */

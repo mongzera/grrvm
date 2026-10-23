@@ -1,9 +1,10 @@
+#include "grrvm/prim_val.h"
 #include "grrvm/types.h"
 #include "grrvm/vm.h"
-#include "grrvm/vm_gc.h"
-#include "grrvm/vm_mem.h"
-#include "grrvm/vm_alloc.h"
 #include "grrvm/vm_thread.h"
+#include "grrvm/vm_gc.h"
+#include "grrvm/vm_alloc.h"
+#include <assert.h>
 #include <string.h>
 
 const word VM_SLAB_CLASS_SIZES[VM_SLAB_CLASS_COUNT] = { 8u, 16u, 32u };
@@ -191,7 +192,10 @@ static void slab_free(VM *vm, word addr) {
  * ======================================================================= */
 
 void vm_alloc_init(VM *vm) {
-    memset(vm->ram, 0, sizeof(vm->ram));
+    /* Clear the whole heap, not just a pointer's worth: vm->ram comes from
+     * malloc (uninitialized), and the GC sweep reads slot types across the
+     * entire array - garbage metadata could look like TYPE_HEAP_BLOCK. */
+    memset(vm->ram, 0, sizeof(prim_val) * VM_HEAP_SLOTS);
 
     VM_Allocator *a = &vm->allocator;
 
@@ -231,13 +235,40 @@ void vm_alloc_init(VM *vm) {
  * Allocation & Free API
  * ======================================================================= */
 
-static prim_val finish_alloc(VM *vm, word addr, word block_size, word n_slots) {
-    vm->ram[addr] = make_prim_val(block_size, STATE_LOCKED, TYPE_LENGTH);
+prim_val finish_alloc(VM *vm, word addr, word block_size, word n_slots) {
+    assert(block_size <= 65536); // ensure it wont overflow for uint16_t type
+    word heap_metadata = create_heap_metadata(block_size, n_slots);
+    vm->ram[addr] = make_prim_val(heap_metadata, STATE_LOCKED, TYPE_HEAP_BLOCK);
     for (word i = 1; i <= n_slots; i++) {
         vm->ram[addr + i] = make_prim_val(0, STATE_OPEN, TYPE_NULL);
     }
     return make_prim_val(addr + 1, STATE_OPEN, TYPE_REFERENCE);
 }
+
+
+// allocates a heap_block of n_slots size to be used as a general purpose memory
+// this is not for allocated arrays
+int64_t g_malloc_heap_block(VM *vm, word n_slots, byte print_error){
+    word total_needed = n_slots + 1; /* + header */
+    byte want_order = 0;
+
+    while (((word)VM_BUDDY_BASE_BLOCK_SLOTS << want_order) < total_needed) want_order++;
+
+    word addr = buddy_alloc(&vm->allocator.buddy, want_order);
+
+    if (addr == VM_ALLOC_NONE) {
+        if (print_error) vm_error("HEAP", "Heap Block Alloc Out of Memory (buddy order %u)", want_order);
+        return -1;
+    }
+
+    word block_size = (word)VM_BUDDY_BASE_BLOCK_SLOTS << want_order;
+
+    // this is a direct heap allocation for general-purpose usage, we declare n_slots = block_size being allocated
+
+    finish_alloc(vm, addr, block_size, block_size);
+    return addr;
+}
+
 
 prim_val g_malloc_direct(VM *vm, word n_slots, byte print_error) {
     word total_needed = n_slots + 1; /* + header */
@@ -278,11 +309,11 @@ prim_val g_malloc(VM_Thread *thread, word n_slots) {
 void g_free_direct(VM *vm, word data_addr) {
     word header_addr = data_addr - 1;
     prim_val header = vm->ram[header_addr];
-    if (get_prim_type(header) != TYPE_LENGTH) {
+    if (get_prim_type(header) != TYPE_HEAP_BLOCK) {
         vm_error("HEAP", "Double free or corrupted reference at 0x%X!", data_addr);
         return;
     }
-    word block_size = header.data;
+    word block_size = get_heap_block_size(header.data);
 
     vm->ram[header_addr] = make_prim_val(0, STATE_OPEN, TYPE_NULL);
 

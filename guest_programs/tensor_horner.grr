@@ -1,0 +1,182 @@
+:=_tensor
+  uint32 grid 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+
+:=_data
+  uint32 localVolume 1, 2, 3, 4, 5, 6, 7, 8
+
+
+::_global
+    PUSH 0
+    PUSH 0
+    PUSH 0
+    PUSH 10
+    CALL tensor_setVoxel
+    PUSH 1
+    PUSH 2
+    PUSH 3
+    PUSH 42
+    CALL tensor_setVoxel
+    PUSH 3
+    PUSH 3
+    PUSH 3
+    PUSH 99
+    CALL tensor_setVoxel
+    PUSH 0
+    PUSH 0
+    PUSH 0
+    CALL tensor_getVoxel
+    STORE_L 1
+    PUSH 1
+    PUSH 2
+    PUSH 3
+    CALL tensor_getVoxel
+    STORE_L 2
+    PUSH 3
+    PUSH 3
+    PUSH 3
+    CALL tensor_getVoxel
+    STORE_L 3
+    PUSH 1
+    PUSH 2
+    PUSH 3
+    PUSH 4
+    PUSH 4
+    CALL tensor_hornerIndex
+    STORE_L 4
+    PUSH 1
+    CALL tensor_computeActiveVolume
+    STORE_L 5
+    PUSH_ADDR _data.localVolume
+    PUSH 5
+    ADD
+    H_LOAD
+    STORE_L 7
+    INVOKE_NATIVE dump_heap_file
+    HALT
+
+::tensor_getVoxel
+    STORE_L 2
+    STORE_L 1
+    STORE_L 0
+    LOAD_L 0
+    PUSH 4
+    MUL
+    LOAD_L 1
+    ADD
+    PUSH 4
+    MUL
+    LOAD_L 2
+    ADD
+    PUSH_ADDR _tensor.grid
+    ADD
+    H_LOAD
+    RET
+
+::tensor_setVoxel
+    STORE_L 3
+    STORE_L 2
+    STORE_L 1
+    STORE_L 0
+    LOAD_L 3
+    LOAD_L 0
+    PUSH 4
+    MUL
+    LOAD_L 1
+    ADD
+    PUSH 4
+    MUL
+    LOAD_L 2
+    ADD
+    PUSH_ADDR _tensor.grid
+    ADD
+    H_STORE
+    RET
+
+::tensor_hornerIndex
+    STORE_L 4
+    STORE_L 3
+    STORE_L 2
+    STORE_L 1
+    STORE_L 0
+    LOAD_L 0
+    LOAD_L 3
+    MUL
+    LOAD_L 1
+    ADD
+    LOAD_L 4
+    MUL
+    LOAD_L 2
+    ADD
+    RET
+
+::tensor_computeActiveVolume
+    STORE_L 0
+    PUSH 0
+    STORE_L 1
+    PUSH 0
+    STORE_L 2
+    .for_cond_0:
+    LOAD_L 2
+    PUSH 4
+    CMPLT
+    JZ .for_end_2
+    PUSH 0
+    STORE_L 3
+    .for_cond_3:
+    LOAD_L 3
+    PUSH 4
+    CMPLT
+    JZ .for_end_5
+    PUSH 0
+    STORE_L 4
+    .for_cond_6:
+    LOAD_L 4
+    PUSH 4
+    CMPLT
+    JZ .for_end_8
+    LOAD_L 2
+    PUSH 4
+    MUL
+    LOAD_L 3
+    ADD
+    PUSH 4
+    MUL
+    LOAD_L 4
+    ADD
+    PUSH_ADDR _tensor.grid
+    ADD
+    H_LOAD
+    LOAD_L 0
+    CMPGTE
+    JZ .endif_9
+    LOAD_L 1
+    PUSH 1
+    ADD
+    STORE_L 1
+    .endif_9:
+    .for_step_7:
+    LOAD_L 4
+    DUP
+    INC 1
+    STORE_L 4
+    POP
+    JUMP .for_cond_6
+    .for_end_8:
+    .for_step_4:
+    LOAD_L 3
+    DUP
+    INC 1
+    STORE_L 3
+    POP
+    JUMP .for_cond_3
+    .for_end_5:
+    .for_step_1:
+    LOAD_L 2
+    DUP
+    INC 1
+    STORE_L 2
+    POP
+    JUMP .for_cond_0
+    .for_end_2:
+    LOAD_L 1
+    RET

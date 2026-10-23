@@ -1,8 +1,10 @@
-#include "../../../include/parser/bytecode_parse.h"
+#include "parser/bytecode_parse.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include "../../../include/grrvm/hal/load_vm.h"
+#include "grrvm/hal/load_vm.h"
+#include "grrvm/vm.h"
+
 
 VM* load_vm(const void* data, size_t size) {
 
@@ -45,8 +47,8 @@ VM* load_vm(const void* data, size_t size) {
         return NULL;
     }
 
-    // Pass word_count to the parser instead of byte count
-    VM *vm = (VM*)malloc(sizeof(VM));
+    VM *vm = vm_create();
+
     if (vm == NULL) {
         perror("Memory allocation failed for VM");
         free(buffer);

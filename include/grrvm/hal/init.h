@@ -1,12 +1,6 @@
-#ifndef INIT_H
-#define INIT_H
-
-#include <stdio.h>
-#include <string.h>
-#include "grrvm/vm_log.h"
-#include "grrvm/vm.h"
-#include "grrvm/hal/load_vm.h"
+#ifndef GRRVM_HAL_INIT_H
+#define GRRVM_HAL_INIT_H
 
 int init(int argc, char* argv[]);
 
-#endif
+#endif /* GRRVM_HAL_INIT_H */

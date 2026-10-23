@@ -1,15 +1,17 @@
-#include "../../include/grrvm/vm.h"
-#include "../../include/grrvm/evaluation.h"
-#include "../../include/grrvm/hal/vm_hal_timer.h"
-#include "../../include/grrvm/opcodes.h"
-#include "../../include/grrvm/vm_log.h"
-#include "../../include/grrvm/vm_thread.h"
+#include "grrvm/vm.h"
+#include "grrvm/evaluation.h"
+#include "grrvm/hal/vm_hal_timer.h"
+#include "grrvm/opcodes.h"
+#include "grrvm/vm_log.h"
+#include "grrvm/vm_thread.h"
 #include "grrvm/vm_alloc.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <inttypes.h>
+
+#include <malloc.h>
 
 void vm_start(VM* vm_instance){
     // initialize system
@@ -21,11 +23,9 @@ void vm_start(VM* vm_instance){
         vm_error("vm_start", "vm_instance is NULL");
         return;
     }
-    for(int i = 0; i < VM_MAX_THREADS; i++){
-        set_thread_inactive(&vm_instance->vm_threads[i]);
-    }
-    vm_alloc_init(vm_instance);
     vm_new_thread(vm_instance, vm_instance->_program_start, 0);
+
+
     uint64_t initial_time = hal_clock_ns();
     vm_loop(vm_instance);
     uint64_t final_time = hal_clock_ns();
@@ -64,7 +64,7 @@ void vm_loop(VM* vm){
                 case OPC_BRANCHING          : eval_branching_operand(thread, opcode); break;
                 case OPC_BITWISE            : eval_bitwise_operand(thread, opcode); break;
                 case OPC_MEMORY_LOCAL       : eval_memory_local_operand(thread, opcode); break;
-                // case OPC_MEMORY_GLOBAL      : eval_memory_global_operand(thread, opcode); break;
+                case OPC_MEMORY_GLOBAL      : eval_memory_global_operand(thread, opcode); break;
                 case OPC_MEMORY_HEAP        : eval_memory_heap_operand(thread, opcode); break;
                 case OPC_NATIVE             : eval_native_operand(thread, opcode); break;
                 default:{

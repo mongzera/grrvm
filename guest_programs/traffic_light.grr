@@ -1,0 +1,89 @@
+:=_data
+    uint8 RED 1
+    uint8 YELLOW 5
+    uint8 GREEN 9
+
+::_global
+    PUSH 1
+    STORE_L 0
+    PUSH 5
+    STORE_L 1
+    PUSH 9
+    STORE_L 2
+    CALL setup
+    HALT
+
+::gpio_delay
+    STORE_L 0
+    INVOKE_NATIVE timer_us
+    STORE_L 1
+    .while_cond_0:
+    INVOKE_NATIVE timer_us
+    LOAD_L 1
+    SUB
+    LOAD_L 0
+    PUSH 1000
+    MUL
+    CMPLTE
+    JZ .while_end_1
+    JUMP .while_cond_0
+    .while_end_1:
+    RET
+
+::setup
+    LOAD _data.RED
+    PUSH_T uint8 1
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_init
+    LOAD _data.YELLOW
+    PUSH_T uint8 1
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_init
+    LOAD _data.GREEN
+    PUSH_T uint8 1
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_init
+    PUSH 1000
+    CALL gpio_delay
+    .while_cond_0:
+    PUSH 1
+    JZ .while_end_1
+    CALL loop
+    JUMP .while_cond_0
+    .while_end_1:
+    RET
+
+::loop
+    LOAD _data.GREEN
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH 300
+    CALL gpio_delay
+    LOAD _data.GREEN
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    LOAD _data.YELLOW
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH 50
+    CALL gpio_delay
+    LOAD _data.YELLOW
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    LOAD _data.RED
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH 200
+    CALL gpio_delay
+    LOAD _data.YELLOW
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH 50
+    CALL gpio_delay
+    LOAD _data.YELLOW
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    LOAD _data.RED
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    RET

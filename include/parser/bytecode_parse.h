@@ -1,15 +1,18 @@
-#ifndef BYTECODE_PARSE
-#define BYTECODE_PARSE
+#ifndef GRRVM_PARSER_BYTECODE_PARSE_H
+#define GRRVM_PARSER_BYTECODE_PARSE_H
 
-#include "../grrvm/vm.h"
-#include "../grrvm/vm_log.h"
+#include "grrvm/prim_val.h"
+#include "grrvm/vm.h"
+#include "grrvm/vm_alloc.h"
+#include "grrvm/vm_dump.h"
+#include "grrvm/vm_global_table.h"
+#include "grrvm/vm_log.h"
+#include <assert.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdint.h>
-
-static inline uint32_t get_buffer_next(const uint32_t *buffer, size_t* current_offset){
-    return buffer[(*current_offset)++];
-}
+#include <stdlib.h>
+#include <sys/types.h>
 
 static inline prim_type asm_to_vm_primtype(byte asm_type){
     switch (asm_type) {
@@ -35,6 +38,102 @@ static inline byte asm_to_vm_metadata(uint32_t asm_metadata){
     return pack_meta(is_constant, t);
 }
 
+typedef struct global_data {
+    uint32_t header;
+    uint32_t length;
+    uint32_t* data;
+    struct global_data *next;
+    struct global_data *prev;
+} global_data;
+
+static inline global_data* create_global_row(global_data* current) {
+    global_data* new_row = malloc(sizeof(global_data));
+    if (new_row == NULL) {
+        vm_error("GLOBAL DATA PARSE", "Cannot create new Global Data Row!");
+        return NULL;
+    }
+
+    new_row->header = 0;
+    new_row->length = 0;
+    new_row->data = NULL;
+    new_row->next = NULL;
+    new_row->prev = current;
+
+    if (current != NULL) {
+        current->next = new_row;
+    }
+
+    return new_row;
+}
+
+static inline void free_global_row(global_data* last_row) {
+    global_data* this_row = last_row;
+
+    // Loop until we hit NULL, which safely frees every node including the head
+    while (this_row != NULL) {
+        global_data* prev_row = this_row->prev;
+
+        // Free internal data buffer first if it was dynamically allocated
+        free(this_row->data);
+
+        // Free the row itself
+        free(this_row);
+
+        this_row = prev_row;
+    }
+}
+
+static inline global_data* find_genesis_row(global_data *nth_row){
+    global_data *current = nth_row;
+    assert(current != NULL);
+
+    while (current->prev != NULL) {
+        current = current->prev;
+    }
+
+    return current;
+}
+
+static inline void allocate_global_heap_block(VM* vm, global_data* last_row, uint32_t total_heap_block_size){
+    global_data *current_row = find_genesis_row(last_row);
+    vm->global_heap_block_address = g_malloc_heap_block(vm, total_heap_block_size, 1);
+
+    uint32_t current_mem_slot = vm->global_heap_block_address + 1; // skip the global_heap_block_address since this will describe the heap block size for the GC to handle cleanly
+
+    int row_count = 0;
+    while (current_row != NULL) {
+        byte prim_metadata = asm_to_vm_metadata(current_row->header);
+        word length = current_row->length;
+
+        vm->ram[current_mem_slot++] = (prim_val){
+            .metadata = pack_meta(STATE_LOCKED, TYPE_HEAP_BLOCK),
+            .data = create_heap_metadata(length, length)
+        };
+
+        vm->global_var_table.rows[row_count++] = (global_var_table_row){
+            .address = make_prim_val(current_mem_slot, STATE_OPEN, TYPE_REFERENCE) // current_mem_slot must now be = global_heap_block_address + header + 1
+        };
+
+        for(uint32_t i = 0; i < length; i++){
+            vm->ram[current_mem_slot++] = (prim_val){
+                .metadata = prim_metadata,
+                .data = current_row->data[i]
+            };
+        }
+
+        current_row = current_row->next;
+    }
+
+    free_global_row(last_row);
+}
+
+
+static inline uint32_t get_buffer_next(const uint32_t *buffer, size_t* current_offset){
+    return buffer[(*current_offset)++];
+}
+
+
+
 static inline int bytecode_parser(const uint32_t *buffer, size_t buf_word_count, VM* vm) {
     if (buffer == NULL || vm == NULL) return -1;
 
@@ -57,6 +156,14 @@ static inline int bytecode_parser(const uint32_t *buffer, size_t buf_word_count,
         return -1;
     }
 
+    // vm->program only owns VM_PROGRAM_MAX_SIZE words - refuse oversized
+    // programs instead of overflowing the heap buffer on copy/fetch.
+    if(vm->program_size > VM_PROGRAM_MAX_SIZE){
+        vm_error("GRRVM BYTECODE PARSER", "Program size %u exceeds VM capacity of %u words!",
+                 (unsigned) vm->program_size, (unsigned) VM_PROGRAM_MAX_SIZE);
+        return -1;
+    }
+
 
     //load program
     for(word i = 0; i < vm->program_size; i++){
@@ -65,32 +172,48 @@ static inline int bytecode_parser(const uint32_t *buffer, size_t buf_word_count,
     }
 
     //load memory
-    size_t mem_offset = 0;
+    global_data* current_row = NULL;
+    uint32_t row_count = 0;
+    uint32_t total_data = 0;
+    uint32_t total_heap_block_size = 0;
 
-    vm_info("Bytecode Loader", "Offset: %d, Program Offset: %d", offset, program_offset);
+    vm_info("Bytecode Loader", "Offset: %u, Program Offset: %u", (unsigned)offset, (unsigned)program_offset);
 
     while(offset < program_offset){
+        current_row = create_global_row(current_row);
+        row_count++;
+
+        if(current_row == NULL){
+            exit(-1);
+        }
+
         uint32_t asm_metadata = get_buffer_next(buffer, &offset);
         uint32_t length = get_buffer_next(buffer, &offset);
         byte prim_metadata = asm_to_vm_metadata(asm_metadata);
 
-
         // for arrays
-        if(length > 1){
-            vm->ram[mem_offset].metadata = prim_metadata;
-            vm->ram[mem_offset].data = length;
-            set_val_type(&vm->ram[mem_offset], TYPE_LENGTH);
-            mem_offset++;
-        }
+        current_row->header = prim_metadata;
+        current_row->length = length;
+        current_row->data = malloc(sizeof(uint32_t) * length);
+        total_data += length;
 
         for(uint32_t i = 0; i < length; i++){
-            vm->ram[mem_offset].metadata = prim_metadata;
-            vm->ram[mem_offset].data = get_buffer_next(buffer, &offset);
-            mem_offset++;
+            current_row->data[i] = get_buffer_next(buffer, &offset);
         }
+    }
+
+    // initialize global var table of the VM
+    global_var_table *var_table = &vm->global_var_table;
+    var_table->row_count = row_count;
+    var_table->rows = malloc(sizeof(global_var_table_row) * row_count);
+
+
+    total_heap_block_size = row_count + total_data;
+    if(total_heap_block_size > 0){
+        allocate_global_heap_block(vm, current_row, total_heap_block_size);
     }
 
     return 0;
 }
 
-#endif
+#endif /* GRRVM_PARSER_BYTECODE_PARSE_H */

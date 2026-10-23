@@ -1,7 +1,7 @@
 #include "native_wrappers/internal_telemetry_wrapper.h"
 #include "grrvm/hal/vm_hal_timer.h"
 #include "grrvm/telemetry/gc_telemetry.h"
-#include "grrvm/vm.h"
+#include "grrvm/vm_thread.h"
 #include "grrvm/vm_log.h"
 #include "grrvm/vm_native.h"
 #include "grrvm/vm_thread.h"

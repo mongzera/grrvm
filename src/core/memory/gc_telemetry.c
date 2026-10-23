@@ -4,7 +4,6 @@
 #include "grrvm/telemetry/vm_telemetry.h"
 #include "grrvm/types.h"
 #include "grrvm/vm_alloc.h"
-#include "grrvm/vm_log.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
