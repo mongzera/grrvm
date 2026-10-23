@@ -1,0 +1,356 @@
+::_global
+    CALL setup
+    HALT
+
+::gpio_delay
+    STORE_L 0
+    INVOKE_NATIVE timer_us
+    STORE_L 1
+    .while_cond_0:
+    INVOKE_NATIVE timer_us
+    LOAD_L 1
+    SUB
+    LOAD_L 0
+    PUSH 1000
+    MUL
+    CMPLTE
+    JZ .while_end_1
+    JUMP .while_cond_0
+    .while_end_1:
+    RET
+
+::setup
+    PUSH 1
+    STORE_L 0
+    .while_cond_0:
+    LOAD_L 0
+    PUSH 7
+    CMPLTE
+    JZ .while_end_1
+    LOAD_L 0
+    PUSH_T uint8 1
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_init
+    LOAD_L 0
+    PUSH 1
+    ADD
+    STORE_L 0
+    JUMP .while_cond_0
+    .while_end_1:
+    PUSH 1000
+    CALL gpio_delay
+    .while_cond_2:
+    PUSH 1
+    JZ .while_end_3
+    CALL loop
+    JUMP .while_cond_2
+    .while_end_3:
+    RET
+
+::displayDigit
+    STORE_L 0
+    LOAD_L 0
+    PUSH 9
+    CMPEQ
+    JZ .else_0
+    PUSH_T uint8 1
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 2
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 3
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 4
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 5
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 6
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 7
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    JUMP .endif_1
+    .else_0:
+    LOAD_L 0
+    PUSH 8
+    CMPEQ
+    JZ .else_2
+    PUSH_T uint8 1
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 2
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 3
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 4
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 5
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 6
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 7
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    JUMP .endif_3
+    .else_2:
+    LOAD_L 0
+    PUSH 7
+    CMPEQ
+    JZ .else_4
+    PUSH_T uint8 1
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 2
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 3
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 4
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 5
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 6
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 7
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    JUMP .endif_5
+    .else_4:
+    LOAD_L 0
+    PUSH 6
+    CMPEQ
+    JZ .else_6
+    PUSH_T uint8 1
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 2
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 3
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 4
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 5
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 6
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 7
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    JUMP .endif_7
+    .else_6:
+    LOAD_L 0
+    PUSH 5
+    CMPEQ
+    JZ .else_8
+    PUSH_T uint8 1
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 2
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 3
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 4
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 5
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 6
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 7
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    JUMP .endif_9
+    .else_8:
+    LOAD_L 0
+    PUSH 4
+    CMPEQ
+    JZ .else_10
+    PUSH_T uint8 1
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 2
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 3
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 4
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 5
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 6
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 7
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    JUMP .endif_11
+    .else_10:
+    LOAD_L 0
+    PUSH 3
+    CMPEQ
+    JZ .else_12
+    PUSH_T uint8 1
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 2
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 3
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 4
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 5
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 6
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 7
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    JUMP .endif_13
+    .else_12:
+    LOAD_L 0
+    PUSH 2
+    CMPEQ
+    JZ .else_14
+    PUSH_T uint8 1
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 2
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 3
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 4
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 5
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 6
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 7
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    JUMP .endif_15
+    .else_14:
+    LOAD_L 0
+    PUSH 1
+    CMPEQ
+    JZ .else_16
+    PUSH_T uint8 1
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 2
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 3
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 4
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 5
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 6
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 7
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    JUMP .endif_17
+    .else_16:
+    LOAD_L 0
+    PUSH 0
+    CMPEQ
+    JZ .endif_18
+    PUSH_T uint8 1
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 2
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 3
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 4
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 5
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 6
+    PUSH_T uint8 1
+    INVOKE_NATIVE gpio_write
+    PUSH_T uint8 7
+    PUSH_T uint8 0
+    INVOKE_NATIVE gpio_write
+    .endif_18:
+    .endif_17:
+    .endif_15:
+    .endif_13:
+    .endif_11:
+    .endif_9:
+    .endif_7:
+    .endif_5:
+    .endif_3:
+    .endif_1:
+    RET
+
+::loop
+    PUSH 9
+    STORE_L 0
+    .while_cond_0:
+    LOAD_L 0
+    PUSH 0
+    CMPGTE
+    JZ .while_end_1
+    LOAD_L 0
+    CALL displayDigit
+    PUSH 1000
+    CALL gpio_delay
+    LOAD_L 0
+    PUSH 0
+    CMPEQ
+    JZ .endif_2
+    JUMP .while_end_1
+    .endif_2:
+    LOAD_L 0
+    PUSH 1
+    SUB
+    STORE_L 0
+    JUMP .while_cond_0
+    .while_end_1:
+    RET
