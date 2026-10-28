@@ -262,6 +262,13 @@ if(PORT STREQUAL "pico")
     target_link_libraries(grrvm_core
         PUBLIC
             pico_stdlib
+            # Flash-safe runtime program storage (program_store.c):
+            #   hardware_flash - flash_range_erase/program
+            #   pico_flash     - flash_safe_execute
+            #   hardware_sync  - interrupt control used by pico_flash
+            hardware_flash
+            pico_flash
+            hardware_sync
     )
 
     # The final executable also links against the Pico SDK.
@@ -324,6 +331,13 @@ if(PORT STREQUAL "posix")
             PRIVATE
                 "${CMAKE_CURRENT_SOURCE_DIR}/tests/common"
                 "${CMAKE_CURRENT_SOURCE_DIR}/tests/posix"
+        )
+
+        # POSIX tests may read checked-in .grr.o artifacts from disk.
+        target_compile_definitions(
+            "${TEST_NAME}"
+            PRIVATE
+                GRRVM_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/guest_programs"
         )
 
         target_link_libraries(
