@@ -6,6 +6,7 @@
  * are used (vm.h no longer pulls it in). */
 
 #include <assert.h>
+#include "grr_port_config.h"
 #include "grrvm/prim_val.h"
 #include "grrvm/vm.h"
 #include "grrvm/vm_alloc.h"
@@ -29,13 +30,18 @@ static inline int get_vm_mem(VM* vm, word address, prim_val* out){
 }
 
 static inline prim_state set_vm_mem(VM* vm, word address_base, word offset, prim_val data) {
-    if (address_base + offset >= VM_HEAP_SLOTS) {
+    if (address_base <= 0 || address_base + offset >= VM_HEAP_SLOTS) {
         vm_error("MEMORY", "OUT OF HEAP BOUNDS ACCESS!");
         return STATE_ERROR;
     }
 
+    if(offset < 0){
+        vm_error("MEMORY", "Bounds Access Error: Offsets relative to base address must be non-negative!");
+        return STATE_ERROR;
+    }
+
     /* GC invariant: references may only live on thread stacks (op_stack /
-     * call_stack_frame), never in ram[]. The collector scans only the stacks
+     * call_stack_frame / global_heap_address_block), never in ram[]. The collector scans only the stacks
      * plus the global heap block itself, so a reference stored here would be
      * untraced and its target swept while still "reachable" in the holder.
      * The ISA has no dedicated instruction for this, but H_ALLOC + H_STORE
@@ -47,6 +53,7 @@ static inline prim_state set_vm_mem(VM* vm, word address_base, word offset, prim
         return STATE_ERROR;
     }
 
+
     word block_root = address_base-1;
 
     // we must assert that block_root is non-negative
@@ -55,16 +62,8 @@ static inline prim_state set_vm_mem(VM* vm, word address_base, word offset, prim
 
     prim_val *heap_block = &vm->ram[block_root];
 
-    // there will be instances where the block_size is not TYPE_HEAP_BLOCK. So we iterate in reverse to find it.
 
-    while(get_prim_type(*heap_block) != TYPE_HEAP_BLOCK) {
-
-        block_root--;
-        heap_block--;
-    }
-
-
-    if(address_base + offset > block_root + get_heap_block_size(heap_block->data)){
+    if(offset > get_n_slots(heap_block->data)){
 
         vm_error("MEMORY", "OUT OF ARRAY BOUNDS ACCESS! add_base: %u | off: %u | block_root: %u | heap_block_size: %u", address_base, offset, block_root, get_heap_block_size(heap_block->data));
         return STATE_ERROR;

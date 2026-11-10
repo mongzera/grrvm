@@ -250,10 +250,17 @@ prim_val finish_alloc(VM *vm, word addr, word block_size, word n_slots) {
 // this is not for allocated arrays
 int64_t g_malloc_heap_block(VM *vm, word n_slots, byte print_error){
     word total_needed = n_slots + 1; /* + header */
+
+    // want_order = 0, is the BASE_BLOCK (MIN_BLOC) = 64
     byte want_order = 0;
 
+    // increase the assigned slots by BASE_BLOCK_SLOT ^ (2 * want order)
+    // Example: total_needed = 67; BASE_BLOC_SLOT = 64; want_order = 0;
+    // Iteration 1: BASE_BLOCK_SLOTS << want_order = 64, which is less than 67 (total_needed); therefore, increase want_order by 1
+    // Iteration 2: BASE_BLOCK_SLOTS << want_order = 128, which is more than 67 (total_needed)
     while (((word)VM_BUDDY_BASE_BLOCK_SLOTS << want_order) < total_needed) want_order++;
 
+    // address is given here based on the given want_order.
     word addr = buddy_alloc(&vm->allocator.buddy, want_order);
 
     if (addr == VM_ALLOC_NONE) {
@@ -261,6 +268,7 @@ int64_t g_malloc_heap_block(VM *vm, word n_slots, byte print_error){
         return -1;
     }
 
+    // From the computed want_order, we can now determine the block_size
     word block_size = (word)VM_BUDDY_BASE_BLOCK_SLOTS << want_order;
 
     // this is a direct heap allocation for general-purpose usage, we declare n_slots = block_size being allocated
@@ -299,6 +307,10 @@ prim_val g_malloc_direct(VM *vm, word n_slots, byte print_error) {
 prim_val g_malloc(VM_Thread *thread, word n_slots) {
     VM *vm = thread->vm;
     prim_val reference = g_malloc_direct(vm, n_slots, 0);
+
+    // if the type of the returned reference is not TYPE_REFERENCE, that means it probably does not have enough memory
+    // we run Garbage Collector here to free up potential spaces and re-attempt allocation.
+    // If re-allocation still fails, we enable print_error to provide output.
     if (get_prim_type(reference) != TYPE_REFERENCE) {
         run_gc(vm);
         reference = g_malloc_direct(vm, n_slots, 1);
