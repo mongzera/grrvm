@@ -1,25 +1,40 @@
-#include "parser/bytecode_parse.h"
+#include "grrvm/hal/load_vm.h"
+#include "grrvm/vm_log.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
-#include "grrvm/hal/load_vm.h"
-#include "grrvm/vm.h"
 
+/*
+ * POSIX wrapper: reads a .grr.o file into memory and hands the bytes to
+ * the shared loader (load_vm_from_bytes). All parsing/validation happens
+ * there, so POSIX and Pico accept exactly the same images.
+ */
+VM* load_vm_from_file(const char* path) {
+    if (path == NULL) {
+        vm_error("LOAD VM", "File path is NULL!");
+        return NULL;
+    }
 
-VM* load_vm(const void* data, size_t size) {
-
-    const char* dir = (const char*)data;
-
-    FILE *file = fopen(dir, "rb");
+    FILE *file = fopen(path, "rb");
     if (file == NULL) {
         perror("Error opening file");
         return NULL;
     }
 
+    if (fseek(file, 0, SEEK_END) != 0) {
+        perror("Error seeking file");
+        fclose(file);
+        return NULL;
+    }
 
-    fseek(file, 0, SEEK_END);
     long file_size = ftell(file);
     rewind(file);
+
+    if (file_size <= 0) {
+        fprintf(stderr, "Error: file is empty or unreadable: %s\n", path);
+        fclose(file);
+        return NULL;
+    }
 
     // Validate that the file size is aligned to 4-byte boundaries
     if (file_size % sizeof(uint32_t) != 0) {
@@ -28,40 +43,25 @@ VM* load_vm(const void* data, size_t size) {
         return NULL;
     }
 
-    long word_count = file_size / sizeof(uint32_t);
-    uint32_t *buffer = (uint32_t*)malloc(file_size); // file_size bytes = word_count * sizeof(uint32_t)
-
+    uint8_t *buffer = (uint8_t*)malloc((size_t)file_size);
     if (buffer == NULL) {
         perror("Memory allocation failed");
         fclose(file);
         return NULL;
     }
 
-    // Read word_count elements of size uint32_t
-    size_t words_read = fread(buffer, sizeof(uint32_t), word_count, file);
+    size_t bytes_read = fread(buffer, 1, (size_t)file_size, file);
     fclose(file);
 
-    if (words_read < word_count) {
-        perror("Error reading full binary word sequence");
+    if (bytes_read != (size_t)file_size) {
+        perror("Error reading binary image");
         free(buffer);
         return NULL;
     }
 
-    VM *vm = vm_create();
+    VM *vm = load_vm_from_bytes(buffer, (size_t)file_size);
 
-    if (vm == NULL) {
-        perror("Memory allocation failed for VM");
-        free(buffer);
-        return NULL;
-    }
-
-    if (bytecode_parser(buffer, word_count, vm) != 0) {
-            free(buffer);
-            free(vm); // Free vm on parser failure to avoid leaking memory
-            return NULL;
-        }
-
-    // Clean up temporary buffer if the parser copies instructions elsewhere inside `vm`
+    // The parser copies everything it needs, so the file buffer can go now.
     free(buffer);
 
     return vm;

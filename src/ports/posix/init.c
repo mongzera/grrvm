@@ -32,7 +32,7 @@ void compile(char* src){
 
 void execute(char* src){
     vm_info("[EXECUTE]", "%s\n", src);
-    VM* vm = load_vm(src, strlen(src));
+    VM* vm = load_vm_from_file(src);
     vm_start(vm);
     vm_terminate(vm);
 }

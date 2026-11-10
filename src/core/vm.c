@@ -2,6 +2,7 @@
 #include "grrvm/evaluation.h"
 #include "grrvm/hal/vm_hal_timer.h"
 #include "grrvm/opcodes.h"
+#include "grrvm/vm_host_poll.h"
 #include "grrvm/vm_log.h"
 #include "grrvm/vm_thread.h"
 #include "grrvm/vm_alloc.h"
@@ -35,11 +36,35 @@ void vm_start(VM* vm_instance){
             (double)(final_time - initial_time) / 1e9);
 }
 
+#if defined(__GNUC__) || defined(__clang__)
+#define GRR_WEAK __attribute__((weak))
+#else
+#define GRR_WEAK
+#endif
+
+/* Default host-poll hook: never interrupts execution. Ports (e.g. the
+ * Pico upload service) override this with a strong definition. */
+GRR_WEAK int vm_host_poll(void) {
+    return 0;
+}
+
 void vm_loop(VM* vm){
     int consecutive_skip = 0;
+    uint32_t poll_counter = 0;
     while(1){
         // stop when non of the threads are active
         if(consecutive_skip > VM_MAX_THREADS) break;
+
+        // Give the host a chance to interrupt a running program (for
+        // example to start a replacement upload). Polled every 256
+        // iterations to keep the per-instruction cost negligible.
+        if ((poll_counter++ & 0xFFu) == 0u && vm_host_poll()) {
+            vm_info("VM LOOP", "Host requested execution stop!");
+            for (int i = 0; i < VM_MAX_THREADS; i++) {
+                set_thread_inactive(&vm->vm_threads[i]);
+            }
+            break;
+        }
 
         for (int i = 0; i < VM_MAX_THREADS; i++) {
             VM_Thread* thread = &vm->vm_threads[i];
@@ -80,6 +105,13 @@ void vm_loop(VM* vm){
 }
 
 void vm_terminate(VM* vm){
-    // free all, not just this
+    if (vm == NULL) return;
+
+    // Release every heap block vm_create() allocated (repeated
+    // load/run/terminate cycles would otherwise leak all of them).
+    free(vm->program);
+    free(vm->ram);
+    free(vm->vm_threads);
+    free(vm->global_var_table.rows);
     free(vm);
 }
