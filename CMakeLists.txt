@@ -181,6 +181,12 @@ endif()
 # ==============================================================================
 
 option(
+    GRRVM_BUILD_TESTS
+    "Compile tests into the GRRVM Pico firmware"
+    OFF
+)
+
+option(
     VM_DEBUG_ENABLE
     "Enable VM debug logging and tracing"
     ON
@@ -356,59 +362,35 @@ if(PORT STREQUAL "posix")
 endif()
 
 
+
 # ==============================================================================
 # Pico Tests
 #
-# ONLY:
-#
-#   tests/common/**
-#   tests/pico/**
+# Tests are compiled directly into grrvm.uf2.
+# No separate test firmware executables are generated.
 # ==============================================================================
 
-if(PORT STREQUAL "pico")
-
-    file(GLOB COMMON_TEST_SOURCES CONFIGURE_DEPENDS
-        "${CMAKE_CURRENT_SOURCE_DIR}/tests/common/*.c"
-    )
+if(PORT STREQUAL "pico" AND GRRVM_BUILD_TESTS)
 
     file(GLOB PICO_TEST_SOURCES CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/common/*.c"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/pico/*.c"
     )
 
-    foreach(TEST_SRC IN LISTS
-        COMMON_TEST_SOURCES
-        PICO_TEST_SOURCES
+    target_sources(grrvm
+        PRIVATE
+            ${PICO_TEST_SOURCES}
     )
 
-        get_filename_component(TEST_NAME
-            "${TEST_SRC}"
-            NAME_WE
-        )
+    target_include_directories(grrvm
+        PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/common"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/pico"
+    )
 
-        add_executable(
-            "${TEST_NAME}"
-            "${TEST_SRC}"
-        )
-
-        target_include_directories(
-            "${TEST_NAME}"
-            PRIVATE
-                "${CMAKE_CURRENT_SOURCE_DIR}/tests/common"
-                "${CMAKE_CURRENT_SOURCE_DIR}/tests/pico"
-        )
-
-        target_link_libraries(
-            "${TEST_NAME}"
-            PRIVATE
-                grrvm_core
-                pico_stdlib
-        )
-
-        pico_enable_stdio_usb("${TEST_NAME}" 1)
-        pico_enable_stdio_uart("${TEST_NAME}" 1)
-
-        pico_add_extra_outputs("${TEST_NAME}")
-
-    endforeach()
+    target_compile_definitions(grrvm
+        PRIVATE
+            GRRVM_BUILD_TESTS=1
+    )
 
 endif()

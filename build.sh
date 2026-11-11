@@ -56,7 +56,6 @@ for arg in "$@"; do
 
         --pico|-p)
             TARGET_PORT="pico"
-            RUN_TESTS=false
             ;;
 
         --posix)
@@ -130,6 +129,12 @@ else
     VM_DEBUG_FLAG="OFF"
 fi
 
+if [ "$RUN_TESTS" = true ]; then
+    BUILD_TESTS_FLAG="ON"
+else
+    BUILD_TESTS_FLAG="OFF"
+fi
+
 
 # ==============================================================================
 # Build Directory
@@ -164,8 +169,8 @@ cmake \
     -B "${BUILD_DIR}" \
     -DPORT="${TARGET_PORT}" \
     -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
-    -DVM_DEBUG_ENABLE="${VM_DEBUG_FLAG}"
-
+    -DVM_DEBUG_ENABLE="${VM_DEBUG_FLAG}" \
+    -DGRRVM_BUILD_TESTS="${BUILD_TESTS_FLAG}"
 
 # ==============================================================================
 # Build

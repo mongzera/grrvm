@@ -37,6 +37,11 @@ int init(int argc, char* argv[]) {
     stdio_init_all();
     hal_rng_init(0);
 
+    #ifdef GRRVM_BUILD_TESTS
+        run_all_tests();
+        return 0;
+    #endif
+
     // Give the host time to enumerate CDC and open the serial port.
     sleep_ms(2000);
 
