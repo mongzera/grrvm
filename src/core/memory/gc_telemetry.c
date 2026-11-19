@@ -51,6 +51,13 @@ static struct {
     byte ran;
 } bench_params;
 
+/* NOTE: a churn workload cannot be driven from C. The collector's only roots
+ * are the thread stacks (call_stack_frame / op_stack) and the global heap
+ * block header, so a block whose reference is held in a C static is swept at
+ * the very next collection. Any workload that must keep "islands" alive
+ * across collections has to hold them in guest locals - see
+ * guest_programs/gc_jitter_test.grr. */
+
 /* ---------------- Flags ---------------- */
 
 void telemetry_flag_set(TelemetryFlags flag) {

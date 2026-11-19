@@ -132,6 +132,7 @@ Files:
 | `set_gc_runtime_telemetry_flag` | on | enable pause stream |
 | `set_ext_frag_telemetry_flag` | on | enable Ef stream |
 | `bench_alloc` | batches, per_batch, min_slots, max_slots, seed | timed allocation batches |
+| `rand_seed` | seed | fixes `math_rng_range`'s sequence (0 = reseed from entropy, rejected) |
 | `set_gc_enabled` | on | 0 = `g_malloc` skips GC (isolate allocator) |
 | `telemetry_flush` | — | emit CSV once, after the run |
 | `timer_us` | — | pushes monotonic µs (guest-side section timing) |
@@ -160,6 +161,22 @@ assert zlib.crc32(payload) & 0xFFFFFFFF == trailer_crc
 ef = 1 - longest / (buddy_free + slab_free)      # per FRAG row
 speed_us = elapsed_us / allocs                   # per ALLOC row, allocs > 0
 ```
+
+### Constraint: a native cannot hold live blocks
+
+The collector's only roots are each active thread's `call_stack_frame` and
+`op_stack` plus the global heap block header (`mark_object()` in
+`src/core/memory/gc.c`). A reference held in a C static — for example inside
+a benchmark native — is invisible to the collector, so the block it points at
+is swept at the next collection. That rules out a C-side "retained islands"
+workload: an early `bench_churn` native kept 8 islands in a static array and
+every collection reclaimed them, leaving the heap fully free and producing a
+degenerate post-GC Ef of 0.0.
+
+Any workload that must keep data alive across collections has to hold it in
+**guest locals**, which are part of the call frame. That is why
+`gc_jitter_test.grr` runs its churn loop in guest code with anchors in locals
+1..3, and why `telemetry_bench_alloc()` uses only the no-GC fast path.
 
 ### Buffer sizing (static, `.bss`)
 
@@ -266,16 +283,21 @@ GCC builds the VM, it does not produce guest code.
 
 ## 7. Open work
 
-1. **Rewrite the evaluation guest programs** (step 5, not yet done):
-   `guest_programs/gc_jitter_test.grr` currently enables only the Ef flag
-   yet dumps GC runtime, loops to ~10,000 allocations instead of the SOP's
-   2,000, and its discard loop runs 8 iterations (off-by-one). Its stale
-   `.dump.txt` fixture should be deleted. `guest_programs/allocation_speed.grr`
-   measures nothing at all — it allocates one 10-slot array and bubble-sorts
-   it; replace it with `bench_alloc`. Both should end with
-   `INVOKE_NATIVE telemetry_flush`.
-2. **Host-side analysis script**: parse the CSV, verify the CRC, compute Ef
-   per FRAG row, µs/allocation per ALLOC row, and σ/max/p99 per PAUSE stream.
+1. ~~Rewrite the evaluation guest programs~~ — **done**:
+   * `gc_jitter_test.grr`: `rand_seed 12345`, anchors in locals 1..3, 500
+     rounds x 4 allocations = the SOP's 2,000, both telemetry flags on, one
+     `telemetry_flush` at the end. Islands survive collections, so post-GC
+     Ef is meaningful (observed: 128,256 slots free but longest block only
+     65,536).
+   * `allocation_speed.grr`: `bench_alloc(30, 64, 32, 256, 20261)` = 1,920
+     timed allocations, peak live heap 16,384 slots so it fits the Pico.
+   * Both `.grr.o` images regenerated (`assembler/bin/grrasm x.grr > x.grr.o`);
+     `tests/posix/test_load_vm_file.c` loads them, so the suite covers them.
+2. ~~Host-side analysis script~~ — **done**: `tools/analyze_telemetry.py`
+   verifies the CRC, reports dropped samples, and computes pause stats
+   (n/mean/σ/min/p50/p99/max), Ef before and after each GC, and µs per
+   allocation. Use `--json` for machine-readable output and `--strict` to
+   fail on a CRC mismatch.
 3. **Evaluation chapter**: one table per SOP variable, both runtimes, matched
    heaps, same seed.
 4. **References**: apply §6.1, then the scope and framework rewrites.
@@ -296,7 +318,16 @@ GCC builds the VM, it does not produce guest code.
 # Assembler on POSIX: the port's compile() is a stub, so invoke the jar.
 assembler/bin/grrasm prog.grr > prog.grr.o
 ./build/posix/grrvm -r prog.grr.o
+
+# Measure: run a workload image, then analyse the flushed dump.
+./build/posix/grrvm -r guest_programs/gc_jitter_test.grr.o \
+    | python3 tools/analyze_telemetry.py
+./build/posix/grrvm -r guest_programs/allocation_speed.grr.o \
+    | python3 tools/analyze_telemetry.py --json --strict
 ```
+
+Note: `-r` prints the VM's instruction log to stderr, so redirect `2>/dev/null`
+when piping a dump into the analyser (the CSV goes to stdout).
 
 Latest known sizes (Pico, no tests, with telemetry): FLASH 101,628 B,
 RAM 19,740 B. With tests: FLASH 127,436 B, RAM 21,956 B (pre-telemetry).

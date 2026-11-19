@@ -1,13 +1,45 @@
+; GC pause ("jitter") workload.
+;
+; Measures the SOP variable: the distribution of stop-the-world pause times,
+; sampled once per collection by run_gc().
+;
+; This workload MUST run in guest code. The collector's only roots are the
+; thread stacks (call_stack_frame / op_stack) and the global heap block, so a
+; block whose reference is held anywhere else - a C static in a native, for
+; instance - is swept at the next collection. Retained "islands" therefore
+; have to live in locals 1..3, which are part of the call frame and are
+; scanned by mark_object().
+;
+; Shape of one round:
+;   - allocate 3 anchors of random size and store them in locals 1..3. The
+;     previous anchor in each local becomes unreachable garbage, which is
+;     what fragments the heap around the surviving islands.
+;   - allocate 1 large transient and discard it immediately.
+; One round = 4 allocations, so 500 rounds = the SOP's 2,000 allocations.
+;
+; rand_seed makes the size sequence identical on every run and every runtime;
+; without it the POSIX port seeds from /dev/urandom and the run is not
+; reproducible.
+;
+; Nothing is printed until the single telemetry_flush at the end, so console
+; latency cannot enter a pause sample. n = 30 independent runs is the
+; evaluator's job: run this image 30 times.
+
 ::_global
-    ; Enable runtime telemetry
+    INVOKE_NATIVE telemetry_reset
+
     PUSH 1
     INVOKE_NATIVE set_ext_frag_telemetry_flag
 
-    ; Local 0: Total allocations counter (0 to 2000)
+    PUSH 1
+    INVOKE_NATIVE set_gc_runtime_telemetry_flag
+
+    PUSH_T uint32 12345
+    INVOKE_NATIVE rand_seed
+
+    ; Locals: 0 = round counter, 1..3 = live anchors (GC roots)
     PUSH 0
     STORE_L 0
-
-    ; Local 1, 2, 3: Live anchor slots (Islands of retained memory)
     PUSH 0
     STORE_L 1
     PUSH 0
@@ -15,89 +47,45 @@
     PUSH 0
     STORE_L 3
 
-.outer_loop:
-    ; =========================================================================
-    ; PHASE 1: Allocate & Retain 3 objects (Overwrites previous anchors)
-    ; =========================================================================
+.round:
+    LOAD_L 0
+    PUSH 500
+    CMPLT
+    JZ .done
 
-    ; Anchor 1: Random size (1..1024 slots)
+    ; Anchor 1: 24..1024 slots
     PUSH 24
     PUSH 1024
     INVOKE_NATIVE math_rng_range
     H_ALLOC
-    STORE_L 1               ; Replaces old Local 1 (previous object becomes dead)
-    LOAD_L 0
-    INC 1
-    STORE_L 0
+    STORE_L 1
 
-    ; Anchor 2: Random size (1..2048 slots)
+    ; Anchor 2: 1..2048 slots
     PUSH 1
     PUSH 2048
     INVOKE_NATIVE math_rng_range
     H_ALLOC
-    STORE_L 2               ; Replaces old Local 2
-    LOAD_L 0
-    INC 1
-    STORE_L 0
+    STORE_L 2
 
-    ; Anchor 3: Random size (1..512 slots)
+    ; Anchor 3: 128..512 slots
     PUSH 128
     PUSH 512
     INVOKE_NATIVE math_rng_range
     H_ALLOC
-    STORE_L 3               ; Replaces old Local 3
-    LOAD_L 0
-    INC 1
-    STORE_L 0
+    STORE_L 3
 
-    ; =========================================================================
-    ; PHASE 2: Allocate & Immediately Discard 7 objects (Transient Churn)
-    ; =========================================================================
-
-    ; Local 4: Discard batch counter
-    PUSH 0
-    STORE_L 4
-
-.discard_loop:
+    ; Transient: 1203..4014 slots, discarded immediately
     PUSH 1203
     PUSH 4014
     INVOKE_NATIVE math_rng_range
     H_ALLOC
-    POP                     ; Discard immediately
+    POP
 
-    ; Increment total & batch counters
     LOAD_L 0
     INC 1
     STORE_L 0
+    JUMP .round
 
-    LOAD_L 4
-    INC 1
-    STORE_L 4
-
-    LOAD_L 4
-    PUSH 7
-    CMPGT
-    JZ .discard_loop
-
-    ; =========================================================================
-    ; PHASE 3: Check Termination
-    ; =========================================================================
-    LOAD_L 0
-    PUSH 10000
-    CMPGT
-    JZ .outer_loop
-
-    ; =========================================================================
-    ; PHASE 4: Release Anchors & Final Verification
-    ; =========================================================================
-    ; Clear retained handles to verify if heap returns to baseline 0.360000014
-    PUSH 0
-    STORE_L 1
-    PUSH 0
-    STORE_L 2
-    PUSH 0
-    STORE_L 3
-
-    INVOKE_NATIVE dump_gc_runtime_telemetry
-    INVOKE_NATIVE dump_ext_frag_telemetry
+.done:
+    INVOKE_NATIVE telemetry_flush
     HALT

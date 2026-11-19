@@ -6,6 +6,8 @@
 // Expose the wrapper functions
 void wrap_math_abs(VM_Thread* thread);
 void wrap_math_max(VM_Thread* thread);
+void wrap_math_rng_range(VM_Thread* thread);
+void wrap_math_rand_seed(VM_Thread* thread);
 
 // Optional: A bulk registration function for this specific module
 void register_math_wrappers(void);
