@@ -105,10 +105,10 @@ static void test_missing_and_bad_files(void) {
     remove("test_bad.bin");
 }
 
-int main(void) {
+int test_load_vm_file(void) {
     test_valid_artifacts();
     test_missing_and_bad_files();
 
     printf("\n%d passed, %d failed\n", g_pass, g_fail);
-    return g_fail == 0 ? 0 : 1;
+    return g_fail;
 }

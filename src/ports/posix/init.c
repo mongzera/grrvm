@@ -1,6 +1,7 @@
 #include "grrvm/hal/init.h"
 #include "grrvm/hal/load_vm.h"
 #include "grrvm/hal/vm_hal_math.h"
+#include "grrvm/debug/run_tests.h"
 #include "grrvm/vm.h"
 #include "grrvm/vm_native.h"
 #include <stdlib.h>
@@ -37,17 +38,24 @@ void execute(char* src){
     vm_terminate(vm);
 }
 
-void testing(void){
-    vm_info("[TESTING ENVIRONMENT]%s", "\n");
+/* Removes -t/--test from argv (wherever it appears) and reports whether it
+ * was present, so the tests can run first and the remaining arguments are
+ * handled exactly as they would be without the flag. */
+static int strip_test_flag(int argc, char* argv[], int* requested){
+    int kept = 1; /* argv[0] is the program name */
 
-    VM* vm = malloc(sizeof(VM));
-    if(vm == NULL) {
-        vm_error("TESTING", "vm_instance is NULL");
-        return;
+    *requested = 0;
+
+    for(int i = 1; i < argc; i++){
+        if(strcmp(argv[i], "-t") == 0 || strcmp(argv[i], "--test") == 0){
+            *requested = 1;
+            continue;
+        }
+        argv[kept++] = argv[i];
     }
 
-    vm_start(vm);
-
+    argv[kept] = NULL;
+    return kept;
 }
 
 int init(int argc, char* argv[]){
@@ -57,7 +65,23 @@ int init(int argc, char* argv[]){
 
     native_registry_init();
 
+    int tests_requested = 0;
+    argc = strip_test_flag(argc, argv, &tests_requested);
 
+    if(tests_requested){
+#ifdef GRRVM_BUILD_TESTS
+        int failures = run_all_tests();
+        if(failures != 0){
+            printf("[GRRVM] System checks failed (%d); aborting.\n", failures);
+            return 1;
+        }
+        printf("[GRRVM] System checks passed; continuing.\n");
+#else
+        printf("[GRRVM] This build has no tests compiled in "
+               "(configure with -DGRRVM_BUILD_TESTS=ON).\n");
+        return 1;
+#endif
+    }
 
     if(argc == 1){
         print_help();
@@ -65,7 +89,6 @@ int init(int argc, char* argv[]){
     else if(argc == 3){
         if(strcmp(argv[1], "-c") == 0 || strcmp(argv[1], "--compile") == 0)     compile(argv[2]);
         else if(strcmp(argv[1], "-r") == 0 || strcmp(argv[1], "--run") == 0)    execute(argv[2]);
-        else if(strcmp(argv[1], "-t") == 0 || strcmp(argv[1], "--test") == 0)    testing();
         else print_help();
     }
     else{

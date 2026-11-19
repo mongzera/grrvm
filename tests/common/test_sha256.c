@@ -129,12 +129,12 @@ static void test_crc32(void) {
           "CRC32 of the real .grr.o image matches zlib.crc32");
 }
 
-int main(void) {
+int test_sha256(void) {
     test_sha256_vectors();
     test_sha256_incremental();
     test_sha256_real_image();
     test_crc32();
 
     printf("\n%d passed, %d failed\n", g_pass, g_fail);
-    return g_fail == 0 ? 0 : 1;
+    return g_fail;
 }

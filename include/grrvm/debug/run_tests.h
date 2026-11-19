@@ -1,11 +1,10 @@
-static inline void run_tests_common(void){
-    test_load_vm();
-}
+#ifndef GRRVM_DEBUG_RUN_TESTS_H
+#define GRRVM_DEBUG_RUN_TESTS_H
 
-static inline void run_tests_pico(void){
+/* Runs every test compiled into this build (common + selected port).
+ *
+ * Returns the number of failed checks: 0 means all checks passed.
+ * Only available when GRRVM_BUILD_TESTS is enabled at configure time. */
+int run_all_tests(void);
 
-}
-
-static inline void run_tests_posix(void){
-
-}
+#endif /* GRRVM_DEBUG_RUN_TESTS_H */

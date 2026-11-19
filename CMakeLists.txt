@@ -216,6 +216,17 @@ if(ENABLE_VM_COLORS)
 
 endif()
 
+# Public so the port's init.c can run the test suite before the runtime
+# starts, while the tests themselves are only linked into the executable.
+if(GRRVM_BUILD_TESTS)
+
+    target_compile_definitions(grrvm_core
+        PUBLIC
+            GRRVM_BUILD_TESTS=1
+    )
+
+endif()
+
 
 # ==============================================================================
 # Main Executable
@@ -303,61 +314,52 @@ endif()
 #
 #   tests/common/**
 #   tests/posix/**
+#
+# Tests are linked INTO the grrvm executable (tests/run_tests.c) so they
+# execute in-process via `grrvm --test`; no standalone test executables.
 # ==============================================================================
 
 if(PORT STREQUAL "posix")
 
     enable_testing()
 
-    file(GLOB COMMON_TEST_SOURCES CONFIGURE_DEPENDS
-        "${CMAKE_CURRENT_SOURCE_DIR}/tests/common/*.c"
-    )
+    if(GRRVM_BUILD_TESTS)
 
-    file(GLOB POSIX_TEST_SOURCES CONFIGURE_DEPENDS
-        "${CMAKE_CURRENT_SOURCE_DIR}/tests/posix/*.c"
-    )
-
-    foreach(TEST_SRC IN LISTS
-        COMMON_TEST_SOURCES
-        POSIX_TEST_SOURCES
-    )
-
-        get_filename_component(TEST_NAME
-            "${TEST_SRC}"
-            NAME_WE
+        file(GLOB COMMON_TEST_SOURCES CONFIGURE_DEPENDS
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/common/*.c"
         )
 
-        add_executable(
-            "${TEST_NAME}"
-            "${TEST_SRC}"
+        file(GLOB POSIX_TEST_SOURCES CONFIGURE_DEPENDS
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/posix/*.c"
         )
 
-        target_include_directories(
-            "${TEST_NAME}"
+        target_sources(grrvm
             PRIVATE
+                "${CMAKE_CURRENT_SOURCE_DIR}/tests/run_tests.c"
+                ${COMMON_TEST_SOURCES}
+                ${POSIX_TEST_SOURCES}
+        )
+
+        target_include_directories(grrvm
+            PRIVATE
+                "${CMAKE_CURRENT_SOURCE_DIR}/tests"
                 "${CMAKE_CURRENT_SOURCE_DIR}/tests/common"
                 "${CMAKE_CURRENT_SOURCE_DIR}/tests/posix"
         )
 
-        # POSIX tests may read checked-in .grr.o artifacts from disk.
-        target_compile_definitions(
-            "${TEST_NAME}"
+        target_compile_definitions(grrvm
             PRIVATE
+                GRRVM_TEST_POSIX=1
+                # POSIX tests may read checked-in .grr.o artifacts from disk.
                 GRRVM_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/guest_programs"
         )
 
-        target_link_libraries(
-            "${TEST_NAME}"
-            PRIVATE
-                grrvm_core
-        )
-
         add_test(
-            NAME "${TEST_NAME}"
-            COMMAND "${TEST_NAME}"
+            NAME grrvm_tests
+            COMMAND grrvm --test
         )
 
-    endforeach()
+    endif()
 
 endif()
 
@@ -379,18 +381,25 @@ if(PORT STREQUAL "pico" AND GRRVM_BUILD_TESTS)
 
     target_sources(grrvm
         PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/run_tests.c"
             ${PICO_TEST_SOURCES}
     )
 
     target_include_directories(grrvm
         PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/common"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/pico"
     )
 
     target_compile_definitions(grrvm
         PRIVATE
-            GRRVM_BUILD_TESTS=1
+            GRRVM_TEST_PICO=1
+            # pico_malloc panics on a failed malloc, which turns any
+            # out-of-memory during the boot checks into a hard reset. The
+            # allocation sites already handle NULL, so let them report the
+            # failure instead of panicking in the test firmware.
+            PICO_MALLOC_PANIC=0
     )
 
 endif()

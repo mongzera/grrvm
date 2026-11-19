@@ -12,6 +12,7 @@
  * exactly as on the device.
  */
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "grrvm/program_transfer.h"
 
@@ -25,8 +26,12 @@ static int g_pass = 0, g_fail = 0;
 /* --- Mock storage --------------------------------------------------- */
 
 #define MOCK_CAPACITY 8192u
+#define RESPONSE_CAPACITY 8192u
 
-static uint8_t  s_flash[MOCK_CAPACITY];
+/* These are heap-allocated instead of static: the Pico test build shares
+ * the ~222 KB C heap with a 200 KB VM, and 16 KB of static mock buffers
+ * pushed vm_create()'s malloc() past the end of RAM (panic). */
+static uint8_t* s_flash = NULL;
 static uint32_t s_written;        /* bytes handed to write() */
 static int      s_begin_count, s_write_count, s_flush_count;
 static int      s_validate_count, s_commit_count, s_abort_count;
@@ -35,12 +40,12 @@ static int      s_validate_status;   /* returned by validate() when != 0 */
 static int      s_committed;
 static int      s_erased;            /* begin() wiped the slot */
 
-static uint8_t  s_responses[8192];
+static uint8_t* s_responses = NULL;
 static size_t   s_response_len;
 static int      s_response_count;
 
 static void mock_reset(void) {
-    memset(s_flash, 0, sizeof(s_flash));
+    memset(s_flash, 0, MOCK_CAPACITY);
     s_written = 0;
     s_begin_count = s_write_count = s_flush_count = 0;
     s_validate_count = s_commit_count = s_abort_count = 0;
@@ -58,7 +63,7 @@ static int mock_begin(void* ctx, const grr_xfer_header* h) {
     (void)ctx; (void)h;
     if (s_fail_begin) return -1;
     s_begin_count++;
-    memset(s_flash, 0xFF, sizeof(s_flash)); /* old program gone from here on */
+    memset(s_flash, 0xFF, MOCK_CAPACITY); /* old program gone from here on */
     s_written = 0;
     s_erased = 1;
     s_committed = 0;
@@ -106,7 +111,7 @@ static int mock_abort(void* ctx) {
 
 static void mock_emit(void* ctx, const uint8_t* frame, size_t length) {
     (void)ctx;
-    if (s_response_len + length <= sizeof(s_responses)) {
+    if (s_response_len + length <= RESPONSE_CAPACITY) {
         memcpy(s_responses + s_response_len, frame, length);
         s_response_len += length;
         s_response_count++;
@@ -645,7 +650,17 @@ static void test_golden_frames(void) {
           "CHUNK frame bytes match the Python reference uploader");
 }
 
-int main(void) {
+int test_program_transfer(void) {
+    s_flash = (uint8_t*)malloc(MOCK_CAPACITY);
+    s_responses = (uint8_t*)malloc(RESPONSE_CAPACITY);
+    if (s_flash == NULL || s_responses == NULL) {
+        free(s_flash);
+        free(s_responses);
+        s_flash = s_responses = NULL;
+        printf("  [FAIL] could not allocate the mock storage buffers\n");
+        return 1;
+    }
+
     make_image();
 
     test_golden_frames();
@@ -661,5 +676,10 @@ int main(void) {
     test_busy_tracking();
 
     printf("\n%d passed, %d failed\n", g_pass, g_fail);
-    return g_fail == 0 ? 0 : 1;
+
+    free(s_flash);
+    free(s_responses);
+    s_flash = s_responses = NULL;
+
+    return g_fail;
 }

@@ -14,17 +14,20 @@
  */
 #define NDEBUG
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "grrvm/prim_val.h"
 #include "grrvm/vm.h"
 #include "grrvm/vm_alloc.h"
 #include "grrvm/vm_mem.h"
+#include "test_suite.h"
 
 /* VM is too big for the stack (ram[VM_HEAP_SLOTS]) - one static instance.
  * vm_alloc_init() clears vm->ram but does not allocate it (vm_create does),
- * so the test owns the allocation here. */
+ * so the runner provides a shared heap arena (see test_suite.h) rather than
+ * each suite allocating a full static heap. */
 static VM vm;
-static prim_val ram_storage[VM_HEAP_SLOTS];
+static prim_val* ram_storage = NULL;
 
 static int g_pass = 0, g_fail = 0;
 
@@ -35,7 +38,7 @@ static int g_pass = 0, g_fail = 0;
 
 static void reset_vm(void) {
     memset(&vm, 0, sizeof(vm));
-    memset(ram_storage, 0, sizeof(ram_storage));
+    memset(ram_storage, 0, sizeof(prim_val) * VM_HEAP_SLOTS);
     vm.ram = ram_storage;
     vm_alloc_init(&vm);
 }
@@ -153,12 +156,20 @@ static void test_set_type_converts_exactly_block(void) {
           "neighboring block metadata intact after H_SET_TYPE");
 }
 
-int main(void) {
+int test_ref_guard(void) {
+    ram_storage = test_heap_arena();
+    if (ram_storage == NULL) {
+        printf("  [FAIL] could not allocate the VM heap\n");
+        return 1;
+    }
+
     test_ref_store_rejected_on_raw_block();
     test_ref_store_rejected_on_typed_block();
     test_numeric_stores_still_work();
     test_set_type_converts_exactly_block();
 
+    ram_storage = NULL;
+
     printf("\n%d passed, %d failed\n", g_pass, g_fail);
-    return g_fail == 0 ? 0 : 1;
+    return g_fail;
 }

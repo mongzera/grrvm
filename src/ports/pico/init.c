@@ -1,6 +1,7 @@
 #include "grrvm/hal/init.h"
 #include "grrvm/hal/load_vm.h"
 #include "grrvm/hal/vm_hal_math.h"
+#include "grrvm/debug/run_tests.h"
 #include "grrvm/program_transfer.h"
 #include "grrvm/vm.h"
 #include "grrvm/vm_native.h"
@@ -38,8 +39,14 @@ int init(int argc, char* argv[]) {
     hal_rng_init(0);
 
     #ifdef GRRVM_BUILD_TESTS
-        run_all_tests();
-        return 0;
+        if (run_all_tests() != 0) {
+            printf("[GRRVM] FATAL: system checks failed; halting before "
+                   "the runtime starts.\n");
+            for (;;) {
+                sleep_ms(1000);
+            }
+        }
+        printf("[GRRVM] System checks passed.\n");
     #endif
 
     // Give the host time to enumerate CDC and open the serial port.

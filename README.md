@@ -609,9 +609,10 @@ images.
 ## 8. Building and testing
 
 ```bash
-./build.sh                      # POSIX build + ctest + runs grrvm
-./build.sh --no-test            # POSIX build only
-./build.sh --pico               # Pico build -> build/pico/grrvm.uf2
+./build.sh                      # POSIX build + runs grrvm (no tests compiled)
+./build.sh --test               # POSIX build + ctest + in-process system checks
+./build.sh --pico               # Pico build -> build/pico/grrvm.uf2 (no tests)
+./build.sh --pico --test        # Pico build with boot-time system checks
 ctest --output-on-failure       # from build/posix
 ```
 

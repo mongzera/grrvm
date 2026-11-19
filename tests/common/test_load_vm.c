@@ -251,7 +251,7 @@ static void test_ex_error_codes(void) {
           "malformed image reports GRR_LOAD_ERR_IMAGE");
 }
 
-int main(void) {
+int test_load_vm(void) {
     test_valid_synthetic();
     test_valid_real_images();
     test_reject_small_or_misaligned();
@@ -261,5 +261,5 @@ int main(void) {
     test_ex_error_codes();
 
     printf("\n%d passed, %d failed\n", g_pass, g_fail);
-    return g_fail == 0 ? 0 : 1;
+    return g_fail;
 }

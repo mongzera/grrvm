@@ -27,7 +27,7 @@ CLEAN_BUILD=false
 BUILD_TYPE="Debug"
 TARGET_PORT="posix"
 OVERRIDE_VM_DEBUG=""
-RUN_TESTS=true
+RUN_TESTS=false
 
 
 # ==============================================================================
@@ -86,15 +86,19 @@ Build:
     --debug, -d      Enable VM debug logging
     --no-debug       Disable VM debug logging
 
-Tests:
-    --test, -t       Run tests
-    --no-test        Skip tests
+Tests (off by default, so test code is not compiled into the firmware):
+    --test, -t       Compile and run tests
+                     POSIX: run before the runtime starts
+                     Pico:  run at boot, then continue
+    --no-test        Do not compile tests (default)
 
 Examples:
     ./build.sh
+    ./build.sh --test
     ./build.sh --clean
     ./build.sh --release
     ./build.sh --pico
+    ./build.sh --pico --test
     ./build.sh --pico --clean
 EOF
 
