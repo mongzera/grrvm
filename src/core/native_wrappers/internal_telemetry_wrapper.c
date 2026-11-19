@@ -56,6 +56,69 @@ void wrap_dump_ext_frag_telemetry(VM_Thread* thread){
     dump_ext_frag_telemetry();
 }
 
+/* -- Evaluation control surface ----------------------------------------
+ * None of these log while the guest runs: a vm_info() inside a timed
+ * region would show up in the very samples it is meant to observe.
+ * ------------------------------------------------------------------- */
+
+void wrap_telemetry_reset(VM_Thread* thread){
+    (void)thread;
+    telemetry_reset_all();
+}
+
+void wrap_telemetry_flush(VM_Thread* thread){
+    (void)thread;
+    telemetry_flush();
+}
+
+/* set_gc_enabled(0) stops g_malloc from collecting, so external
+ * fragmentation and fast-path latency can be measured on the allocator
+ * alone. The flag is inverted in the VM struct (gc_disabled) so a zeroed
+ * VM keeps collection on. */
+void wrap_set_gc_enabled(VM_Thread* thread){
+    prim_val flag;
+    if(!pop_stack(thread, &flag)){
+        vm_error("NATIVE", "Failed to pop stack for native set_gc_enabled");
+        return;
+    }
+
+    if(thread->vm != NULL){
+        thread->vm->gc_disabled = flag.data ? 0 : 1;
+    }
+}
+
+/* bench_alloc(batches, per_batch, min_slots, max_slots, seed)
+ * Arguments are pushed left-to-right, so they pop in reverse. */
+void wrap_bench_alloc(VM_Thread* thread){
+    prim_val batches, per_batch, min_slots, max_slots, seed;
+
+    if(!pop_stack(thread, &seed)
+       || !pop_stack(thread, &max_slots)
+       || !pop_stack(thread, &min_slots)
+       || !pop_stack(thread, &per_batch)
+       || !pop_stack(thread, &batches)){
+        vm_error("NATIVE", "bench_alloc needs 5 arguments: batches, "
+                 "per_batch, min_slots, max_slots, seed");
+        return;
+    }
+
+    /* prim_val.data is an unsigned word, so a negative guest argument
+     * would already have wrapped to a huge positive value. Reinterpret as
+     * signed and clamp: telemetry_bench_alloc() treats zero as "record
+     * nothing", which is better than walking a 4-billion-iteration loop. */
+    g_int  b   = (g_int)(int32_t)batches.data;
+    g_int  per = (g_int)(int32_t)per_batch.data;
+    g_int  lo  = (g_int)(int32_t)min_slots.data;
+    g_int  hi  = (g_int)(int32_t)max_slots.data;
+
+    telemetry_bench_alloc(thread->vm,
+                          (word)(b   > 0 ? b   : 0),
+                          (word)(per > 0 ? per : 0),
+                          (word)(lo  > 0 ? lo  : 0),
+                          (word)(hi  > 0 ? hi  : 0),
+                          (g_u32)seed.data);
+}
+
 void register_internal_telemetry_wrappers(void) {
     native_register("set_gc_runtime_telemetry_flag", wrap_set_gc_runtime_telemetry_flag);
     native_register("dump_gc_runtime_telemetry", wrap_dump_gc_runtime_telemetry);
@@ -64,4 +127,9 @@ void register_internal_telemetry_wrappers(void) {
     native_register("dump_ext_frag_telemetry", wrap_dump_ext_frag_telemetry);
 
     native_register("timer_us", __wrap__timer_us);
+
+    native_register("telemetry_reset", wrap_telemetry_reset);
+    native_register("telemetry_flush", wrap_telemetry_flush);
+    native_register("bench_alloc", wrap_bench_alloc);
+    native_register("set_gc_enabled", wrap_set_gc_enabled);
 }

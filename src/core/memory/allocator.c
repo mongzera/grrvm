@@ -311,8 +311,15 @@ prim_val g_malloc(VM_Thread *thread, word n_slots) {
     // if the type of the returned reference is not TYPE_REFERENCE, that means it probably does not have enough memory
     // we run Garbage Collector here to free up potential spaces and re-attempt allocation.
     // If re-allocation still fails, we enable print_error to provide output.
+    //
+    // set_gc_enabled(0) skips the collection so the evaluator can measure the
+    // allocator alone (external fragmentation and fast-path latency) without
+    // reclamation changing the heap underneath it. The retry still runs so a
+    // disabled collector reports "out of memory" instead of failing silently.
     if (get_prim_type(reference) != TYPE_REFERENCE) {
-        run_gc(vm);
+        if (!vm->gc_disabled) {
+            run_gc(vm);
+        }
         reference = g_malloc_direct(vm, n_slots, 1);
     }
     return reference;
@@ -371,7 +378,30 @@ void vm_heap_stats(const VM *vm, VM_HeapStats *out) {
         }
     }
 
-    /* Dedicated Buddy-only telemetry fields for fragmentation metrics */
+    /* Slab side of the same question. A cache holds
+     * VM_BUDDY_BASE_BLOCK_SLOTS / class_size sub-blocks of class_size
+     * slots each (slab_alloc fills its free list that way), so its free
+     * slots are exactly (count - used_count) whole sub-blocks. Those are
+     * free memory and must be in the Ef denominator, and a free 8/16/32
+     * slot sub-block is itself an allocatable contiguous block. */
+    word slab_free_slots = 0;
+    word longest_slab = 0;
+    for (word i = 0; i < VM_MAX_SLAB_CACHES; i++) {
+        if (!a->slab.cache_in_use[i]) continue;
+
+        const SlabCache *sc = &a->slab.caches[i];
+        word class_size = VM_SLAB_CLASS_SIZES[sc->class_index];
+        if (class_size == 0) continue;
+
+        word count = VM_BUDDY_BASE_BLOCK_SLOTS / class_size;
+        if (sc->used_count >= count) continue; /* cache is full */
+
+        slab_free_slots += (count - (word)sc->used_count) * class_size;
+        if (class_size > longest_slab) longest_slab = class_size;
+    }
+
     out->buddy_free_slots = buddy_free_slots;
     out->longest_buddy_block = longest_buddy;
+    out->slab_free_slots = slab_free_slots;
+    out->longest_slab_block = longest_slab;
 }

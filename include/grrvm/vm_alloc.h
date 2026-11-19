@@ -97,16 +97,32 @@ typedef struct VM_Allocator {
 
 /* ---------------- Heap statistics ---------------- */
 
-/* Both fields are in slots and count the whole heap (buddy + slab).
- *  total_free_slots  - every free slot: free buddy blocks plus free
- *                      sub-blocks sitting in partially used slab caches.
- *  longest_free_block - size (header included) of the largest single
- *                      block g_malloc could hand out right now. The
- *                      largest usable payload is this minus 1.
- * External fragmentation, e.g.: 1.0f - (float)longest / (float)total. */
+/* All four fields are in slots and describe the whole heap (buddy + slab).
+ *
+ *  buddy_free_slots    - free slots owned by the buddy forest.
+ *  longest_buddy_block - size (header included) of the largest single
+ *                        block g_malloc could hand out from the forest
+ *                        right now; largest usable payload is this - 1.
+ *  slab_free_slots     - free slots sitting in partially used slab caches
+ *                        (each is a whole class-sized sub-block).
+ *  longest_slab_block  - largest free sub-block in any slab cache
+ *                        (0, 8, 16 or 32 slots).
+ *
+ * Total free memory is buddy_free_slots + slab_free_slots, and the largest
+ * block the allocator can actually return is max() of the two 'longest'
+ * fields - a free slab sub-block satisfies a small request just as a
+ * buddy block satisfies a large one. External fragmentation is therefore
+ *
+ *   1.0f - (float)longest / (float)(buddy_free + slab_free)
+ *
+ * which is what measure_ext_frag() computes. Omitting the slab fields
+ * (as an earlier version did) understates Ef, and makes a heap packed
+ * entirely into slab caches look perfectly unfragmented. */
 typedef struct VM_HeapStats {
     word buddy_free_slots;
     word longest_buddy_block;
+    word slab_free_slots;
+    word longest_slab_block;
 } VM_HeapStats;
 
 /* ---------------- Public API ---------------- */

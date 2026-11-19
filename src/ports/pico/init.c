@@ -3,6 +3,7 @@
 #include "grrvm/hal/vm_hal_math.h"
 #include "grrvm/debug/run_tests.h"
 #include "grrvm/program_transfer.h"
+#include "grrvm/telemetry/gc_telemetry.h"
 #include "grrvm/vm.h"
 #include "grrvm/vm_native.h"
 #include "program_store.h"
@@ -29,6 +30,18 @@
 static void run_guest(VM* vm) {
     vm_start(vm);
     vm_terminate(vm);
+}
+
+/* Strong override of the weak hook in src/core/memory/gc_telemetry.c.
+ *
+ * USB CDC has no flow control: if the host has not opened the port yet,
+ * the telemetry dump is written into the void and the run is lost. This
+ * runs after the guest program has finished, so waiting costs nothing in
+ * the measurement. Bounded to ~5 s so a headless board still terminates. */
+void telemetry_pre_flush_hook(void) {
+    for (int i = 0; i < 50 && !stdio_usb_connected(); i++) {
+        sleep_ms(100);
+    }
 }
 
 int init(int argc, char* argv[]) {
