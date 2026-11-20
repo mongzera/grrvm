@@ -191,17 +191,29 @@ class SerialTransport:
     def read_response(self, timeout: float) -> tuple:
         """Reads until one well-formed RESPONSE frame arrives or timeout."""
         deadline = time.monotonic() + timeout
+
         while time.monotonic() < deadline:
             if self._find_response() == 0:
                 if len(self._buf) >= RESP_FRAME_SIZE:
                     frame = self._buf[:RESP_FRAME_SIZE]
                     self._buf = self._buf[RESP_FRAME_SIZE:]
-                    parsed = parse_response(frame)
-                    if parsed is not None:
-                        return parsed
-                    continue  # not parseable: resync on the next scan
 
-            # Frame incomplete (or nothing yet): always read more bytes.
+                    # Debug raw response bytes
+                    print(f"[RAW RX] {frame.hex(' ')}")
+
+                    parsed = parse_response(frame)
+
+                    if parsed is not None:
+                        status, ack, aux = parsed
+                        print(
+                            f"[PARSED] status=0x{status:02X}, "
+                            f"ack=0x{ack:02X}, aux={aux}"
+                        )
+                        return parsed
+
+                    print("[WARNING] Invalid response frame")
+                    continue
+
             chunk = self._read_some()
             if chunk:
                 self._buf += chunk
@@ -255,6 +267,7 @@ def upload(args) -> None:
             print(f"  no response to header (attempt {attempt}/{args.retries})")
             continue
         status, ack, aux = resp
+
         if status == RESP_OK and ack == 0x01:
             ready = True
             print(f"  READY (chunk size {aux})")
@@ -289,6 +302,14 @@ def upload(args) -> None:
             continue
 
         status, ack, aux = resp
+
+        print(
+            f"[DEBUG] sent_chunk={index}, "
+            f"status=0x{status:02X}, "
+            f"ack=0x{ack:02X}, "
+            f"aux={aux}, "
+            f"expected_aux={index}"
+        )
 
         if status == RESP_OK and ack == 0x02 and aux == index:
             index += 1

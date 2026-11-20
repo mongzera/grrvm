@@ -289,8 +289,14 @@ GCC builds the VM, it does not produce guest code.
      `telemetry_flush` at the end. Islands survive collections, so post-GC
      Ef is meaningful (observed: 128,256 slots free but longest block only
      65,536).
-   * `allocation_speed.grr`: `bench_alloc(30, 64, 32, 256, 20261)` = 1,920
-     timed allocations, peak live heap 16,384 slots so it fits the Pico.
+   * `allocation_speed.grr`: `bench_alloc(30, 64, 8, 255, 20261)` = 1,920
+     timed allocations, peak live heap 64 * 256 = 16,384 slots so it fits
+     the Pico. The bounds matter: a request of n slots reserves n + 1 for
+     the header, is a slab allocation only while that fits in 32 slots
+     (hence min 8, not 32 — 32 slots needs 33 and goes to buddy) and rounds
+     up to a buddy block (hence max 255, not 256 — 256 slots needs 257 and
+     becomes a 512-slot block, 64 * 512 = 32,768 slots, more than the Pico
+     heap).
    * Both `.grr.o` images regenerated (`assembler/bin/grrasm x.grr > x.grr.o`);
      `tests/posix/test_load_vm_file.c` loads them, so the suite covers them.
 2. ~~Host-side analysis script~~ — **done**: `tools/analyze_telemetry.py`

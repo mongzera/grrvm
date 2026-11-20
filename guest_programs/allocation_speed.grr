@@ -5,9 +5,14 @@
 ;
 ; Each batch allocates 64 random-sized blocks on the no-GC fast path, then
 ; releases them AFTER the timer stops, so the measured window contains only
-; allocation work. Peak live heap is bounded by
-;   per_batch * max_slots = 64 * 256 = 16,384 slots (131 KB)
-; which fits the Pico's 25,600-slot (200 KB) heap with room to spare.
+; allocation work. The sizes span both fast paths: a request of n slots
+; reserves n + 1 (header) and is served from a slab cache when that fits in
+; 32 slots, so 8..31 slots exercise slabs and 32..255 exercise buddy blocks.
+;
+; Peak live heap is bounded by per_batch * 256 = 16,384 slots (128 KiB):
+; max_slots is 255, not 256, because 256 requested slots plus the header is
+; 257 and would round up to a 512-slot buddy block, i.e. 64 * 512 = 32,768
+; slots, which exceeds the Pico's 25,600-slot (200 KiB) heap.
 ;
 ; 30 * 64 = 1,920 timed allocations per run (~2,000 as the SOP specifies).
 ;
@@ -18,8 +23,8 @@
 
     PUSH 30
     PUSH 64
-    PUSH 32
-    PUSH 256
+    PUSH 8
+    PUSH 255
     PUSH_T uint32 20261
     INVOKE_NATIVE bench_alloc
 

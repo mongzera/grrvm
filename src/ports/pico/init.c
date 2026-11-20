@@ -10,6 +10,7 @@
 #include "program_transfer.h"
 
 #include "pico/stdlib.h"
+#include "pico/stdio_usb.h"
 
 /*
  * Pico startup flow - guest programs are loaded from persistent flash
@@ -49,6 +50,7 @@ int init(int argc, char* argv[]) {
     (void)argv;
 
     stdio_init_all();
+    stdio_set_translate_crlf(&stdio_usb, false);
     hal_rng_init(0);
 
     #ifdef GRRVM_BUILD_TESTS
