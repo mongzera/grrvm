@@ -22,6 +22,7 @@
  *   INVOKE_NATIVE telemetry_reset          ; clear buffers
  *   INVOKE_NATIVE set_gc_enabled  (0|1)    ; isolate allocator from collector
  *   ... workload ...
+ *   INVOKE_NATIVE full_heap_scan           ; optional Ef_full checkpoint
  *   INVOKE_NATIVE telemetry_flush          ; single CSV stream, once
  */
 
@@ -53,6 +54,18 @@ void dump_ext_frag_telemetry(void);
  * Returns NAN when the heap has no free slots at all: a full heap has no
  * meaningful fragmentation figure and must not be reported as "0.0". */
 float measure_ext_frag(VM_HeapStats heap_stats);
+
+/* Ef over the full heap scan: 1 - longest contiguous free run / free slots.
+ * This is the algorithm-independent counterpart of measure_ext_frag():
+ * it uses the physical layout in ram[] (buddy and slab together) instead of
+ * each allocator's own bookkeeping, so a linear block heap can compute the
+ * same figure. Returns NAN when the heap has no free slots. */
+float measure_full_heap_frag(VM_FullHeapStats heap_stats);
+
+/* Appends one rounded-up (or dropped, if the static buffer is saturated)
+ * FULLSCAN sample. Called by the full_heap_scan native; no output happens
+ * until telemetry_flush(). */
+void telemetry_record_full_heap_scan(const VM_FullHeapStats* heap_stats);
 
 void pre_gc_telemetry(VM* vm);
 void post_gc_telemetry(VM* vm);

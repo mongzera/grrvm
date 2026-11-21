@@ -36,7 +36,12 @@ VM* vm_create(void){
 
     vm_alloc_init(vm);
 
-    printf("Allocated Heap Size: %u", sizeof(vm->ram));
+    /* sizeof(vm->ram) is the pointer size, not the heap. Keep this line
+     * newline-terminated: it shares stdout with the telemetry dump, and a
+     * missing newline glues it onto the #GRRTELEM header and breaks the
+     * payload CRC. */
+    printf("Allocated Heap Size: %u\n",
+           (unsigned)(sizeof(prim_val) * VM_HEAP_SLOTS));
 
     return vm;
 }

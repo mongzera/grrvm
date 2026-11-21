@@ -5,6 +5,7 @@
  * Sample storage for the three SOP variables:
  *
  *   external fragmentation (Ef)  -> telemetry_frag
+ *   full heap layout / Ef_full   -> telemetry_fullscan
  *   GC pause / jitter            -> telemetry_pause
  *   allocation speed             -> telemetry_alloc
  *
@@ -37,6 +38,13 @@
 #define VM_TELEM_MAX_ALLOC 64u
 #endif
 
+/* One row per INVOKE_NATIVE full_heap_scan. The scan is O(VM_HEAP_SLOTS),
+ * so it is meant for checkpoints, not per-allocation sampling; 64 covers a
+ * workload that scans before/after each phase of a run. */
+#ifndef VM_TELEM_MAX_FULLSCAN
+#define VM_TELEM_MAX_FULLSCAN 64u
+#endif
+
 /* Upper bound on allocations held live inside one timed batch. Bounds the
  * reference stack the benchmark needs; a larger batch is clamped, which
  * caps peak heap use at VM_TELEM_BENCH_MAX_LIVE * max_slots slots. */
@@ -61,6 +69,20 @@ typedef struct {
     uint32_t post_slab_free;
     uint32_t post_longest;
 } telemetry_frag;
+
+/* One algorithm-independent full heap scan. Free/allocated slots and the
+ * free-region shape, measured from the block headers in ram[] rather than
+ * from buddy/slab bookkeeping. `longest_free_region` is the longest
+ * physically contiguous free run; the host derives
+ * Ef_full = 1 - longest_free_region / free_slots, and reports NAN/None when
+ * free_slots == 0. */
+typedef struct {
+    uint32_t total_slots;
+    uint32_t allocated_slots;
+    uint32_t free_slots;
+    uint32_t free_regions;
+    uint32_t longest_free_region;
+} telemetry_fullscan;
 
 /* One timed allocation batch: `allocs` successful allocations completed in
  * `elapsed_us`. Host computes speed as elapsed_us / allocs, so a batch that

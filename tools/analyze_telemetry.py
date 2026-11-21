@@ -5,6 +5,9 @@ Reads the CSV emitted by `INVOKE_NATIVE telemetry_flush` (from a file or
 stdin), verifies its CRC32 trailer, and reports the three SOP variables:
 
   external fragmentation  Ef = 1 - longest / (buddy_free + slab_free)
+  full heap fragmentation Ef_full = 1 - longest_free_region / free_slots,
+                          measured from block headers across the whole heap
+                          (algorithm-independent; see full_heap_scan)
   GC jitter               pause distribution: n, mean, sd, min, max, p50, p99
   allocation speed        elapsed_us / allocs per timed batch
 
@@ -72,7 +75,7 @@ def parse(text: str) -> Tuple[Dict, List[Dict]]:
 
         parts = line.split(",")
         kind = parts[0]
-        if kind not in ("PAUSE", "FRAG", "ALLOC"):
+        if kind not in ("PAUSE", "FRAG", "ALLOC", "FULLSCAN"):
             continue
 
         try:
@@ -88,6 +91,15 @@ def parse(text: str) -> Tuple[Dict, List[Dict]]:
                     "post_buddy_free": int(parts[5]),
                     "post_slab_free": int(parts[6]),
                     "post_longest": int(parts[7]),
+                })
+            elif kind == "FULLSCAN":
+                rows.append({
+                    "kind": kind, "seq": int(parts[1]),
+                    "total_slots": int(parts[2]),
+                    "allocated_slots": int(parts[3]),
+                    "free_slots": int(parts[4]),
+                    "free_regions": int(parts[5]),
+                    "longest_free_region": int(parts[6]),
                 })
             else:  # ALLOC
                 rows.append({"kind": kind, "seq": int(parts[1]),
@@ -177,6 +189,20 @@ def analyse(rows: List[Dict]) -> Dict:
             "ef_post": ef(r["post_longest"], post_free),
         })
 
+    fullscan_rows = []
+    for r in rows:
+        if r["kind"] != "FULLSCAN":
+            continue
+        fullscan_rows.append({
+            "seq": r["seq"],
+            "total_slots": r["total_slots"],
+            "allocated_slots": r["allocated_slots"],
+            "free_slots": r["free_slots"],
+            "free_regions": r["free_regions"],
+            "longest_free_region": r["longest_free_region"],
+            "ef": ef(r["longest_free_region"], r["free_slots"]),
+        })
+
     speeds = []
     for r in rows:
         if r["kind"] != "ALLOC" or r["allocs"] <= 0:
@@ -185,12 +211,15 @@ def analyse(rows: List[Dict]) -> Dict:
 
     ef_pre = [f["ef_pre"] for f in frag_rows if f["ef_pre"] is not None]
     ef_post = [f["ef_post"] for f in frag_rows if f["ef_post"] is not None]
+    ef_full = [f["ef"] for f in fullscan_rows if f["ef"] is not None]
 
     return {
         "pause_us": stats(pauses),
         "ef_pre": stats(ef_pre),
         "ef_post": stats(ef_post),
         "ef_rows": frag_rows,
+        "ef_full_heap": stats(ef_full),
+        "fullscan_rows": fullscan_rows,
         "alloc_us_per_call": stats(speeds),
         "alloc_batches": len(speeds),
     }
@@ -208,7 +237,7 @@ def report(meta: Dict, result: Dict) -> None:
         verdict = "OK" if meta["crc_ok"] else "MISMATCH"
         print("crc        : %s (expected %s, computed %s)"
               % (verdict, meta["crc_expected"], meta["crc_actual"]))
-        for key in ("pause", "frag", "alloc"):
+        for key in ("pause", "frag", "alloc", "fullscan"):
             d = dropped(meta["trailer"], key)
             if d:
                 recorded, total = d
@@ -237,6 +266,17 @@ def report(meta: Dict, result: Dict) -> None:
             print("n=%d mean=%.3f min=%.3f max=%.3f"
                   % (s["n"], s["mean"], s["min"], s["max"]))
 
+    s = result["ef_full_heap"]
+    if s["n"]:
+        print("\n-- Full heap fragmentation (algorithm-independent) --")
+        print("n=%d mean=%.3f min=%.3f max=%.3f"
+              % (s["n"], s["mean"], s["min"], s["max"]))
+        for f in result["fullscan_rows"]:
+            shape = ("n/a" if f["ef"] is None else "%.3f" % f["ef"])
+            print("  seq=%d free=%d/%d regions=%d longest=%d ef=%s"
+                  % (f["seq"], f["free_slots"], f["total_slots"],
+                     f["free_regions"], f["longest_free_region"], shape))
+
     a = result["alloc_us_per_call"]
     if a["n"]:
         print("\n-- Allocation speed --")
@@ -244,7 +284,8 @@ def report(meta: Dict, result: Dict) -> None:
               % (a["n"], a["mean"], a["sd"], a["min"], a["max"],
                  1e6 / a["mean"] if a["mean"] else 0))
 
-    if not (p["n"] or result["ef_pre"]["n"] or a["n"]):
+    if not (p["n"] or result["ef_pre"]["n"] or a["n"]
+            or result["ef_full_heap"]["n"]):
         print("\n(no samples - was a telemetry flag enabled before the workload?)")
 
 

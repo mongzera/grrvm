@@ -405,3 +405,62 @@ void vm_heap_stats(const VM *vm, VM_HeapStats *out) {
     out->slab_free_slots = slab_free_slots;
     out->longest_slab_block = longest_slab;
 }
+
+/* =======================================================================
+ * Full heap scan
+ * =======================================================================
+ * Reconstructs the allocation layout from the heap itself rather than from
+ * either allocator's local metadata. Every allocation - slab sub-block or
+ * buddy block - starts with a TYPE_HEAP_BLOCK header whose payload packs the
+ * physical block size, and the collector already relies on that to sweep.
+ * Walking ram[] the same way therefore yields one allocated/free region map
+ * that does not care which allocator owns a slot. Free slab sub-blocks have
+ * no header (their first slot is reused as the free-list link) and are
+ * counted as free, which is what they are. */
+void vm_full_heap_scan(const VM *vm, VM_FullHeapStats *out) {
+    word allocated_slots = 0;
+    word free_slots = 0;
+    word free_regions = 0;
+    word longest_free_region = 0;
+    word run = 0; /* current contiguous free run, in slots */
+
+    for (word i = 0; i < VM_HEAP_SLOTS; ) {
+        prim_val slot = vm->ram[i];
+
+        if (get_prim_type(slot) != TYPE_HEAP_BLOCK) {
+            run++;
+            free_slots++;
+            i++;
+            continue;
+        }
+
+        word block_size = get_heap_block_size(slot.data);
+        /* The collector rejects a header that cannot be bounded by the
+         * heap. Here the scan is telemetry, not correctness, so a corrupt
+         * header is treated as one allocated slot instead of aborting the
+         * walk - otherwise it could skip over live regions. */
+        if (block_size == 0 || block_size > VM_HEAP_SLOTS - i) {
+            block_size = 1;
+        }
+
+        if (run > 0) {
+            if (run > longest_free_region) longest_free_region = run;
+            free_regions++;
+            run = 0;
+        }
+
+        allocated_slots += block_size;
+        i += block_size;
+    }
+
+    if (run > 0) {
+        if (run > longest_free_region) longest_free_region = run;
+        free_regions++;
+    }
+
+    out->total_slots = VM_HEAP_SLOTS;
+    out->allocated_slots = allocated_slots;
+    out->free_slots = free_slots;
+    out->free_regions = free_regions;
+    out->longest_free_region = longest_free_region;
+}

@@ -28,6 +28,7 @@ static const char* k_artifacts[] = {
     "7segment.grr.o",
     "allocation_speed.grr.o",
     "blink_led.grr.o",
+    "full_heap_scan.grr.o",
     "gc_heap_test.grr.o",
     "gc_jitter_test.grr.o",
     "gcc_ext_frag_pre_post_gc.grr.o",
