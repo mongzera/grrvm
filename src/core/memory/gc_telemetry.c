@@ -13,6 +13,11 @@
  *     (recorded, total) pair rather than silently overwriting samples.
  *   - Heap statistics are sampled *outside* the timed GC window so the Ef
  *     scan never inflates the pause it is measured alongside.
+ *   - Ef has two definitions. The pre/post FRAG stream is allocator-aware
+ *     (buddy longest[] + slab free lists); the on-demand FULLSCAN stream is
+ *     a layout-only walk of the block headers, which is the definition that
+ *     also applies to a linear block heap such as MicroPython's. See
+ *     vm_full_heap_scan() in vm_alloc.h.
  */
 
 #include "grrvm/telemetry/gc_telemetry.h"
@@ -29,13 +34,15 @@ uint32_t telemetry_flags = 0;
 
 /* ---------------- Sample storage ---------------- */
 
-static telemetry_pause pause_samples[VM_TELEM_MAX_PAUSE];
-static telemetry_frag  frag_samples[VM_TELEM_MAX_FRAG];
-static telemetry_alloc alloc_samples[VM_TELEM_MAX_ALLOC];
+static telemetry_pause    pause_samples[VM_TELEM_MAX_PAUSE];
+static telemetry_frag     frag_samples[VM_TELEM_MAX_FRAG];
+static telemetry_alloc    alloc_samples[VM_TELEM_MAX_ALLOC];
+static telemetry_fullscan fullscan_samples[VM_TELEM_MAX_FULLSCAN];
 
 static uint32_t pause_recorded, pause_total;
 static uint32_t frag_recorded,  frag_total;
 static uint32_t alloc_recorded, alloc_total;
+static uint32_t fullscan_recorded, fullscan_total;
 
 /* One collection is in flight: a pre-hook has stored the start timestamp
  * and/or the pre-GC heap components. */
@@ -80,6 +87,7 @@ void telemetry_reset_all(void) {
     pause_recorded = pause_total = 0;
     frag_recorded  = frag_total  = 0;
     alloc_recorded = alloc_total = 0;
+    fullscan_recorded = fullscan_total = 0;
 
     pause_pending = 0;
     frag_pending  = 0;
@@ -166,6 +174,18 @@ static void emit_alloc_rows(void) {
     }
 }
 
+static void emit_fullscan_rows(void) {
+    for (uint32_t i = 0; i < fullscan_recorded; i++) {
+        const telemetry_fullscan* s = &fullscan_samples[i];
+        telemetry_emit("FULLSCAN,%u,%u,%u,%u,%u,%u\n", (unsigned)(i + 1),
+                       (unsigned)s->total_slots,
+                       (unsigned)s->allocated_slots,
+                       (unsigned)s->free_slots,
+                       (unsigned)s->free_regions,
+                       (unsigned)s->longest_free_region);
+    }
+}
+
 void telemetry_flush(void) {
     /* Ports that need the console attached (USB CDC enumeration) do it
      * here. The guest program has finished, so waiting is free. */
@@ -173,10 +193,11 @@ void telemetry_flush(void) {
 
     emission_crc = 0;
 
-    telemetry_emit("#GRRTELEM,2,heap_slots,%u,pause_max,%u,frag_max,%u,"
-                   "alloc_max,%u\n",
+    telemetry_emit("#GRRTELEM,3,heap_slots,%u,pause_max,%u,frag_max,%u,"
+                   "alloc_max,%u,fullscan_max,%u\n",
                    (unsigned)VM_HEAP_SLOTS, (unsigned)VM_TELEM_MAX_PAUSE,
-                   (unsigned)VM_TELEM_MAX_FRAG, (unsigned)VM_TELEM_MAX_ALLOC);
+                   (unsigned)VM_TELEM_MAX_FRAG, (unsigned)VM_TELEM_MAX_ALLOC,
+                   (unsigned)VM_TELEM_MAX_FULLSCAN);
 
     if (bench_params.ran) {
         telemetry_emit("#GRRBENCH,batches,%u,per_batch,%u,min_slots,%u,"
@@ -191,13 +212,15 @@ void telemetry_flush(void) {
     emit_pause_rows();
     emit_frag_rows();
     emit_alloc_rows();
+    emit_fullscan_rows();
 
     /* Raw counts (recorded, attempted) so dropped samples are visible. */
     telemetry_emit_raw("#GRRTELEM,END,pause,%u,%u,frag,%u,%u,alloc,%u,%u,"
-                       "crc,0x%08X\n",
+                       "fullscan,%u,%u,crc,0x%08X\n",
                        (unsigned)pause_recorded, (unsigned)pause_total,
                        (unsigned)frag_recorded, (unsigned)frag_total,
                        (unsigned)alloc_recorded, (unsigned)alloc_total,
+                       (unsigned)fullscan_recorded, (unsigned)fullscan_total,
                        (unsigned)emission_crc);
 }
 
@@ -215,6 +238,21 @@ void dump_ext_frag_telemetry(void) {
 
 /* ---------------- Sampling ---------------- */
 
+void telemetry_record_full_heap_scan(const VM_FullHeapStats* heap_stats) {
+    if (heap_stats == NULL) return;
+
+    if (fullscan_recorded < VM_TELEM_MAX_FULLSCAN) {
+        telemetry_fullscan* s = &fullscan_samples[fullscan_recorded];
+        s->total_slots          = heap_stats->total_slots;
+        s->allocated_slots      = heap_stats->allocated_slots;
+        s->free_slots           = heap_stats->free_slots;
+        s->free_regions         = heap_stats->free_regions;
+        s->longest_free_region  = heap_stats->longest_free_region;
+        fullscan_recorded++;
+    }
+    fullscan_total++;
+}
+
 float measure_ext_frag(VM_HeapStats heap_stats) {
     word total_free = heap_stats.buddy_free_slots + heap_stats.slab_free_slots;
 
@@ -228,6 +266,15 @@ float measure_ext_frag(VM_HeapStats heap_stats) {
                  : heap_stats.longest_slab_block;
 
     return 1.0f - ((float)longest / (float)total_free);
+}
+
+float measure_full_heap_frag(VM_FullHeapStats heap_stats) {
+    /* Same NAN guard as measure_ext_frag(): a heap with nothing free has no
+     * fragmentation figure, and 0.0 would read as "perfectly packed". */
+    if (heap_stats.free_slots == 0) return (float)NAN;
+
+    return 1.0f - ((float)heap_stats.longest_free_region
+                   / (float)heap_stats.free_slots);
 }
 
 void pre_gc_telemetry(VM* vm) {

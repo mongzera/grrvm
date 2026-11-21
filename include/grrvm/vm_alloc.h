@@ -125,6 +125,34 @@ typedef struct VM_HeapStats {
     word longest_slab_block;
 } VM_HeapStats;
 
+/* ---------------- Full heap scan ----------------
+ * One algorithm-independent view of the whole heap. vm_heap_stats() reports
+ * each allocator's own bookkeeping (a buddy longest[] value and a slab
+ * sub-block size) and takes the max; that is the right answer for "what can
+ * this allocator hand out", but it is not comparable to a linear block heap
+ * such as MicroPython's. This scan instead walks ram[] linearly from slot 0,
+ * exactly like sweep_objects(), and uses every TYPE_HEAP_BLOCK header's
+ * physical block_size to skip allocated regions. Everything not covered by
+ * such a header is free. The result is the physical layout of the heap -
+ * one list of allocated/free regions regardless of which allocator produced
+ * them - so the same computation applies to any runtime that stores block
+ * sizes in headers.
+ *
+ * Note the two different questions:
+ *   VM_HeapStats      - allocator-aware: largest block g_malloc can return.
+ *   VM_FullHeapStats  - layout-only: longest physically contiguous free run.
+ * The layout metric can be optimistic (a free run may cross slab sub-block
+ * or cache boundaries and cannot be handed out as one allocation), which is
+ * precisely why it is the fair cross-runtime comparison: it measures
+ * contiguity, not allocation policy. */
+typedef struct VM_FullHeapStats {
+    word total_slots;          /* slots scanned (VM_HEAP_SLOTS) */
+    word allocated_slots;      /* slots covered by a TYPE_HEAP_BLOCK header */
+    word free_slots;           /* total_slots - allocated_slots */
+    word free_regions;         /* number of contiguous free runs */
+    word longest_free_region;  /* slots in the longest contiguous free run */
+} VM_FullHeapStats;
+
 /* ---------------- Public API ---------------- */
 
 /* Must be called once at VM startup, before any g_malloc/g_free. */
@@ -149,6 +177,12 @@ void g_free_direct(struct VM *, word slot_index);
 
 /* O(#trees + #slab caches), no tree walking. Safe to call at any time. */
 void vm_heap_stats(const struct VM *vm, VM_HeapStats *out);
+
+/* O(VM_HEAP_SLOTS) linear walk of ram[]. Builds a single free-region map
+ * over buddy and slab allocations alike; see VM_FullHeapStats. Safe to call
+ * at any time, but it touches every heap slot, so keep it out of timed
+ * regions. Never allocates and never prints. */
+void vm_full_heap_scan(const struct VM *vm, VM_FullHeapStats *out);
 
 // Create heap metadata
 static inline word create_heap_metadata(word block_size, word n_slots){

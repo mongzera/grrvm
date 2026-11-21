@@ -1,0 +1,167 @@
+
+; GRRVM - High-Churn Full Heap Fragmentation Benchmark
+;
+; Purpose:
+;   Measure physical external fragmentation under sustained
+;   dynamic allocation and automatic garbage collection.
+;
+; Workload:
+;   500 rounds x 4 allocations = 2,000 allocations
+;
+;   3 surviving anchors (locals 1..3)
+;   1 temporary allocation discarded immediately
+;
+;   Each round overwrites the previous anchors.
+;   Unreachable blocks remain allocated until GC.
+;
+; GC:
+;   Triggered only when an allocation fails.
+;   No H_FREE, no explicit GC.
+;
+; Full heap scanning:
+;   Initial scan
+;   Every 10 rounds (50 scans)
+;   Final scan
+;
+;   Total: 52 FULLSCAN records
+;   Within fullscan_max = 64.
+;
+; Output:
+;   PAUSE records
+;   FULLSCAN records
+;
+; Seed: 12345
+;
+; IMPORTANT:
+;   full_heap_scan must not allocate memory.
+;   Scans are outside GC pause timing.
+
+::_global
+
+    INVOKE_NATIVE telemetry_reset
+
+    ; Enable GC pause telemetry
+    PUSH 1
+    INVOKE_NATIVE set_gc_runtime_telemetry_flag
+
+    ; Deterministic allocation sizes
+    PUSH_T uint32 12345
+    INVOKE_NATIVE rand_seed
+
+    ; ------------------------------------------
+    ; Locals
+    ;
+    ; 0 = round counter
+    ; 1 = live anchor A
+    ; 2 = live anchor B
+    ; 3 = live anchor C
+    ; ------------------------------------------
+
+    PUSH 0
+    STORE_L 0
+
+    PUSH 0
+    STORE_L 1
+
+    PUSH 0
+    STORE_L 2
+
+    PUSH 0
+    STORE_L 3
+
+    ; Checkpoint 1: initial heap
+    INVOKE_NATIVE full_heap_scan
+    POP
+
+.round:
+
+    LOAD_L 0
+    PUSH 500
+    CMPLT
+    JZ .done
+
+    ; ------------------------------------------
+    ; Anchor A: 24..1024 slots
+    ; ------------------------------------------
+
+    PUSH 24
+    PUSH 1024
+    INVOKE_NATIVE math_rng_range
+
+    H_ALLOC
+    STORE_L 1
+
+    ; Previous anchor A becomes unreachable.
+
+    ; ------------------------------------------
+    ; Anchor B: 1..2048 slots
+    ; ------------------------------------------
+
+    PUSH 1
+    PUSH 2048
+    INVOKE_NATIVE math_rng_range
+
+    H_ALLOC
+    STORE_L 2
+
+    ; Previous anchor B becomes unreachable.
+
+    ; ------------------------------------------
+    ; Anchor C: 128..512 slots
+    ; ------------------------------------------
+
+    PUSH 128
+    PUSH 512
+    INVOKE_NATIVE math_rng_range
+
+    H_ALLOC
+    STORE_L 3
+
+    ; Previous anchor C becomes unreachable.
+
+    ; ------------------------------------------
+    ; Temporary: 1203..4014 slots
+    ; ------------------------------------------
+
+    PUSH 1203
+    PUSH 4014
+    INVOKE_NATIVE math_rng_range
+
+    H_ALLOC
+    POP
+
+    ; Temporary becomes unreachable immediately.
+
+    ; ------------------------------------------
+    ; Increment round counter
+    ; ------------------------------------------
+
+    LOAD_L 0
+    INC 1
+    STORE_L 0
+
+    ; ------------------------------------------
+    ; Sample heap every 10 rounds
+    ; ------------------------------------------
+
+    LOAD_L 0
+    PUSH 10
+    MOD
+
+    JNZ .round
+
+    INVOKE_NATIVE full_heap_scan
+    POP
+
+    JUMP .round
+
+.done:
+
+    ; Final checkpoint
+    INVOKE_NATIVE full_heap_scan
+    POP
+
+    ; Emit buffered telemetry
+    INVOKE_NATIVE telemetry_flush
+
+    HALT

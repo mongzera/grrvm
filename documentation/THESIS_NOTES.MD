@@ -75,6 +75,7 @@ The 200 KB Pico heap is **intentional**; do not "optimise" it down.
 | Variable | Definition used by the code | Where |
 |---|---|---|
 | External fragmentation | `Ef = 1 − longest / total_free`, where `total_free = buddy_free + slab_free` and `longest = max(longest_buddy_block, longest_slab_block)`. Returns `NAN` when `total_free == 0`. | `measure_ext_frag()` |
+| External fragmentation, full heap scan | `Ef_full = 1 − longest_free_region / free_slots`, where both terms come from a single linear walk of `ram[]` that skips every `TYPE_HEAP_BLOCK` by its physical `block_size` (buddy and slab together). Returns `NAN` when `free_slots == 0`. | `vm_full_heap_scan()` + `measure_full_heap_frag()` |
 | GC jitter | Distribution of stop-the-world pause `= post − pre` per collection, **excluding** the heap-statistics scans. Report n, mean, σ, min, max, p99. | `pre/post_gc_telemetry()` |
 | Allocation speed | `elapsed_us / allocs` over repeated batches, fast-path allocations only, frees outside the timed window. | `telemetry_bench_alloc()` |
 
@@ -96,6 +97,21 @@ Rationale for the definitions:
   `hal_clock_us()` reads per allocation would swamp the sub-microsecond
   paths being measured. Per-GC timestamps are fine — there are far fewer of
   them.
+* **Two fragmentation metrics, on purpose.** `Ef` asks the allocator a
+  question: *what is the largest block you can hand out right now?* It reads
+  buddy `longest[]` and the slab free lists, so it is the right number for
+  GRRVM's own behaviour but it embeds the allocator's policy. `Ef_full`
+  asks the heap a question: *how much of the address space is physically
+  contiguous?* It walks `ram[]` from slot 0 the same way `sweep_objects()`
+  does, uses each block's header to skip allocated regions, and counts the
+  gaps. Because that walk only assumes block-size headers — which
+  MicroPython's linear block heap also has — it is the definition that can
+  be applied to both runtimes. The honest caveat is that a free run found
+  this way can cross slab sub-block or slab-cache boundaries and therefore
+  need not be allocatable as one request; `Ef_full` measures contiguity,
+  not allocatability, and that is exactly why it is fair for a
+  cross-runtime layout comparison. Report it alongside `Ef`, not instead
+  of it.
 
 ---
 
@@ -132,6 +148,7 @@ Files:
 | `set_gc_runtime_telemetry_flag` | on | enable pause stream |
 | `set_ext_frag_telemetry_flag` | on | enable Ef stream |
 | `bench_alloc` | batches, per_batch, min_slots, max_slots, seed | timed allocation batches |
+| `full_heap_scan` | — | O(`VM_HEAP_SLOTS`) unified layout scan; records one `FULLSCAN` row and pushes `Ef_full` as a `TYPE_FLOAT` |
 | `rand_seed` | seed | fixes `math_rng_range`'s sequence (0 = reseed from entropy, rejected) |
 | `set_gc_enabled` | on | 0 = `g_malloc` skips GC (isolate allocator) |
 | `telemetry_flush` | — | emit CSV once, after the run |
@@ -144,13 +161,18 @@ Natives pop in reverse push order (last pushed pops first) — see
 ### Output format
 
 ```
-#GRRTELEM,2,heap_slots,25600,pause_max,512,frag_max,128,alloc_max,64
+#GRRTELEM,3,heap_slots,25600,pause_max,512,frag_max,128,alloc_max,64,fullscan_max,64
 #GRRBENCH,batches,30,per_batch,100,min_slots,32,max_slots,2048,seed,12345
 PAUSE,<seq>,<delta_us>
 FRAG,<seq>,<pre_buddy_free>,<pre_slab_free>,<pre_longest>,<post_buddy_free>,<post_slab_free>,<post_longest>
 ALLOC,<seq>,<allocs>,<elapsed_us>
-#GRRTELEM,END,pause,<recorded>,<total>,frag,<recorded>,<total>,alloc,<recorded>,<total>,crc,0x<CRC32>
+FULLSCAN,<seq>,<total_slots>,<allocated_slots>,<free_slots>,<free_regions>,<longest_free_region>
+#GRRTELEM,END,pause,<recorded>,<total>,frag,<recorded>,<total>,alloc,<recorded>,<total>,fullscan,<recorded>,<total>,crc,0x<CRC32>
 ```
+
+Version 3 added the `FULLSCAN` row and the `fullscan` trailer pair; a
+version-2 reader that ignores unknown row kinds and trailer keys still
+parses the stream.
 
 The CRC covers every byte from the first `#GRRTELEM` line up to (not
 including) the `END` line. Host-side:
@@ -160,6 +182,7 @@ payload = b"".join(line + b"\n" for line in collected_lines_before_END)
 assert zlib.crc32(payload) & 0xFFFFFFFF == trailer_crc
 ef = 1 - longest / (buddy_free + slab_free)      # per FRAG row
 speed_us = elapsed_us / allocs                   # per ALLOC row, allocs > 0
+ef_full = 1 - longest_free_region / free_slots   # per FULLSCAN row
 ```
 
 ### Constraint: a native cannot hold live blocks
@@ -181,8 +204,9 @@ Any workload that must keep data alive across collections has to hold it in
 ### Buffer sizing (static, `.bss`)
 
 `VM_TELEM_MAX_PAUSE` 512 (2 KB), `VM_TELEM_MAX_FRAG` 128 (3 KB),
-`VM_TELEM_MAX_ALLOC` 64 (512 B), `VM_TELEM_BENCH_MAX_LIVE` 256 refs (1 KB).
-Total ≈ 6.6 KB, matching the observed Pico RAM increase.
+`VM_TELEM_MAX_ALLOC` 64 (512 B), `VM_TELEM_MAX_FULLSCAN` 64 (1.25 KB),
+`VM_TELEM_BENCH_MAX_LIVE` 256 refs (1 KB). Total ≈ 7.9 KB (the original
+6.6 KB plus the 64-entry FULLSCAN buffer).
 
 ---
 
@@ -301,9 +325,9 @@ GCC builds the VM, it does not produce guest code.
      `tests/posix/test_load_vm_file.c` loads them, so the suite covers them.
 2. ~~Host-side analysis script~~ — **done**: `tools/analyze_telemetry.py`
    verifies the CRC, reports dropped samples, and computes pause stats
-   (n/mean/σ/min/p50/p99/max), Ef before and after each GC, and µs per
-   allocation. Use `--json` for machine-readable output and `--strict` to
-   fail on a CRC mismatch.
+   (n/mean/σ/min/p50/p99/max), Ef before and after each GC, full-heap `Ef_full`
+   from `FULLSCAN` rows, and µs per allocation. Use `--json` for
+   machine-readable output and `--strict` to fail on a CRC mismatch.
 3. **Evaluation chapter**: one table per SOP variable, both runtimes, matched
    heaps, same seed.
 4. **References**: apply §6.1, then the scope and framework rewrites.

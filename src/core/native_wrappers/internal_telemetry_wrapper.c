@@ -71,6 +71,31 @@ void wrap_telemetry_flush(VM_Thread* thread){
     telemetry_flush();
 }
 
+/* full_heap_scan() - algorithm-independent Ef checkpoint.
+ *
+ * Runs vm_full_heap_scan() immediately (O(VM_HEAP_SLOTS)), stores a
+ * FULLSCAN row for the next telemetry_flush(), and pushes the resulting
+ * Ef_full as TYPE_FLOAT so the guest can branch on it right away. It reads
+ * the block headers in ram[], so it measures a buddy allocation, a slab
+ * sub-block and a linear block heap the same way. Nothing is printed here. */
+void wrap_full_heap_scan(VM_Thread* thread){
+    if(thread->vm == NULL){
+        vm_error("NATIVE", "full_heap_scan called without a VM");
+        return;
+    }
+
+    VM_FullHeapStats stats;
+    vm_full_heap_scan(thread->vm, &stats);
+    telemetry_record_full_heap_scan(&stats);
+
+    prim_val result = make_prim_val(0, STATE_OPEN, TYPE_FLOAT);
+    result.float_data = measure_full_heap_frag(stats);
+
+    if(!push_stack(thread, result)){
+        vm_error("NATIVE", "Failed to push stack for native full_heap_scan");
+    }
+}
+
 /* set_gc_enabled(0) stops g_malloc from collecting, so external
  * fragmentation and fast-path latency can be measured on the allocator
  * alone. The flag is inverted in the VM struct (gc_disabled) so a zeroed
@@ -132,4 +157,5 @@ void register_internal_telemetry_wrappers(void) {
     native_register("telemetry_flush", wrap_telemetry_flush);
     native_register("bench_alloc", wrap_bench_alloc);
     native_register("set_gc_enabled", wrap_set_gc_enabled);
+    native_register("full_heap_scan", wrap_full_heap_scan);
 }

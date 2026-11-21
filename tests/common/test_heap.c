@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "grrvm/prim_val.h"
+#include "grrvm/telemetry/gc_telemetry.h"
 #include "grrvm/vm.h"
 #include "grrvm/vm_alloc.h"
 #include "grrvm/vm_mem.h"
@@ -259,6 +260,110 @@ static void test_slab_cache_reclaim(void) {
     free(thread);
 }
 
+/* ------------------------------------------------------------------
+ * 8. Full heap scan on an empty heap: the whole heap is one free run,
+ *    so Ef_full is 0.0 (not NAN - there is free memory).
+ * ------------------------------------------------------------------ */
+static void test_full_heap_scan_empty(void) {
+    printf("test_full_heap_scan_empty\n");
+    reset_vm();
+
+    VM_FullHeapStats s;
+    vm_full_heap_scan(&vm, &s);
+
+    CHECK(s.total_slots == VM_HEAP_SLOTS, "scan covers the whole heap");
+    CHECK(s.allocated_slots == 0, "no allocated slots on a fresh heap");
+    CHECK(s.free_slots == VM_HEAP_SLOTS, "every slot is free");
+    CHECK(s.free_regions == 1, "a fresh heap is one contiguous free region");
+    CHECK(s.longest_free_region == VM_HEAP_SLOTS, "longest run is the whole heap");
+    CHECK(measure_full_heap_frag(s) == 0.0f, "Ef_full is 0.0 on an empty heap");
+}
+
+/* ------------------------------------------------------------------
+ * 9. The scan must find slab sub-blocks through their TYPE_HEAP_BLOCK
+ *    headers, not through the free list. A fresh slab cache is claimed
+ *    from the leftmost buddy base block, so allocating one 8-slot
+ *    sub-block leaves a single free run after it. This is the case the
+ *    allocator-aware metric cannot express: vm_heap_stats() says the
+ *    longest slab block is 8, while the physical layout keeps the rest
+ *    of the heap contiguous.
+ * ------------------------------------------------------------------ */
+static void test_full_heap_scan_slab(void) {
+    printf("test_full_heap_scan_slab\n");
+    reset_vm();
+    VM_Thread* thread = make_thread();
+    if (thread == NULL) { CHECK(0, "could not allocate a VM_Thread"); return; }
+
+    prim_val ref = g_malloc(thread, 7); /* total_needed = 8 -> class 8 */
+    word class_size = VM_SLAB_CLASS_SIZES[0];
+
+    VM_FullHeapStats s;
+    vm_full_heap_scan(&vm, &s);
+    CHECK(s.allocated_slots == class_size, "one 8-slot slab sub-block is allocated");
+    CHECK(s.free_slots == VM_HEAP_SLOTS - class_size, "only the used sub-block is excluded from free memory");
+    CHECK(s.free_regions == 1, "remaining sub-blocks and the rest of the heap form one run");
+    CHECK(s.longest_free_region == VM_HEAP_SLOTS - class_size, "the free run crosses the slab cache boundary");
+
+    g_free(thread, ref);
+    vm_full_heap_scan(&vm, &s);
+    CHECK(s.allocated_slots == 0 && s.free_slots == VM_HEAP_SLOTS,
+          "freeing the sub-block returns it to the unified free map");
+    free(thread);
+}
+
+/* ------------------------------------------------------------------
+ * 10. Fill the heap with 64-slot buddy blocks, then free every other
+ *     one. The scan must report alternating 64-slot free runs - no run
+ *     may span a live block - and an Ef that matches that layout.
+ *     Filling first is what makes the metric meaningful: on a mostly
+ *     empty heap the untouched tail is the longest run, not a fragment.
+ * ------------------------------------------------------------------ */
+static void test_full_heap_scan_fragmented(void) {
+    printf("test_full_heap_scan_fragmented\n");
+    reset_vm();
+    VM_Thread* thread = make_thread();
+    if (thread == NULL) { CHECK(0, "could not allocate a VM_Thread"); return; }
+
+    const word n = VM_NUM_BASE_BLOCKS; /* one order-0 block each */
+    prim_val* refs = (prim_val*)malloc(sizeof(prim_val) * n);
+    if (refs == NULL) { CHECK(0, "could not allocate the reference array"); free(thread); return; }
+
+    word allocated = 0;
+    for (word i = 0; i < n; i++) {
+        /* total_needed = 64 -> order 0 (one whole base block). */
+        refs[i] = g_malloc(thread, VM_BUDDY_BASE_BLOCK_SLOTS - 1);
+        if (get_prim_type(refs[i]) != TYPE_REFERENCE) break;
+        allocated++;
+    }
+    CHECK(allocated == n, "the heap fills with one block per base block");
+    if (allocated != n) { free(refs); free(thread); return; }
+
+    for (word i = 0; i < n; i += 2) g_free(thread, refs[i]);
+
+    VM_FullHeapStats s;
+    vm_full_heap_scan(&vm, &s);
+
+    const word block = VM_BUDDY_BASE_BLOCK_SLOTS;
+    word freed = (n / 2) * block;
+
+    CHECK(s.allocated_slots == freed, "half the base blocks remain allocated");
+    CHECK(s.free_slots == freed, "free slots are exactly the freed base blocks");
+    CHECK(s.free_regions == n / 2, "one free region per freed block, separated by live ones");
+    CHECK(s.longest_free_region == block, "no run spans a live buddy block");
+
+    float expect = 1.0f - ((float)block / (float)freed);
+    float diff = measure_full_heap_frag(s) - expect;
+    CHECK(diff < 1e-6f && diff > -1e-6f, "Ef_full matches the scanned layout");
+
+    for (word i = 1; i < n; i += 2) g_free(thread, refs[i]);
+    vm_full_heap_scan(&vm, &s);
+    CHECK(s.allocated_slots == 0 && s.free_regions == 1,
+          "freeing the rest coalesces back to one region");
+
+    free(refs);
+    free(thread);
+}
+
 int test_heap(void) {
     ram_storage = test_heap_arena();
     if (ram_storage == NULL) {
@@ -273,6 +378,9 @@ int test_heap(void) {
     test_double_free();
     test_buddy_coalesce();
     test_slab_cache_reclaim();
+    test_full_heap_scan_empty();
+    test_full_heap_scan_slab();
+    test_full_heap_scan_fragmented();
 
     ram_storage = NULL;
 

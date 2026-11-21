@@ -1,0 +1,105 @@
+; Full heap scan workload.
+;
+; Demonstrates INVOKE_NATIVE full_heap_scan, which walks ram[] linearly and
+; uses every TYPE_HEAP_BLOCK header to build one allocated/free region map
+; over buddy and slab allocations alike. Each call records a FULLSCAN row
+; (emitted by telemetry_flush) and pushes Ef_full = 1 - longest_free_region /
+; free_slots as a TYPE_FLOAT, popped here because the dump keeps the record.
+;
+; Four checkpoints:
+;   1. empty heap                  -> one free region, Ef_full = 0
+;   2. all blocks live             -> slab caches leave small free gaps
+;   3. middle big block freed      -> one 8192-slot hole between live blocks
+;   4. everything freed            -> slab caches return to the buddy forest,
+;                                     the heap coalesces back to one region
+;
+; The three 8191-slot requests reserve 8192 slots each (header plus buddy
+; rounding) = 24,576 slots, which fits the Pico's 25,600-slot heap. The
+; small requests cover the slab path: 7/15/31 slots plus the header round to
+; the 8/16/32-slot classes, and the second 7-slot block reuses the class-8
+; cache. References live in locals 1..7 because the call frame is the only
+; GC root that can keep a block alive across a collection; full_heap_scan
+; itself allocates nothing.
+;
+; On POSIX the heap is larger, so the untouched tail is the longest free run
+; and checkpoint 2 reports Ef_full near zero. The same image still reports
+; the correct allocated/free totals and region count on every checkpoint;
+; compare runs only at matched heap capacities.
+
+::_global
+    INVOKE_NATIVE telemetry_reset
+
+    ; 1. Empty heap.
+    INVOKE_NATIVE full_heap_scan
+    POP
+
+    ; Three large buddy blocks: 8191 + header = 8192 slots each.
+    PUSH 8191
+    H_ALLOC
+    STORE_L 1
+
+    PUSH 8191
+    H_ALLOC
+    STORE_L 2
+
+    PUSH 8191
+    H_ALLOC
+    STORE_L 3
+
+    ; Slab allocations: 8-, 16- and 32-slot classes, plus a second 8-slot
+    ; block in the same cache.
+    PUSH 7
+    H_ALLOC
+    STORE_L 4
+
+    PUSH 15
+    H_ALLOC
+    STORE_L 5
+
+    PUSH 31
+    H_ALLOC
+    STORE_L 6
+
+    PUSH 7
+    H_ALLOC
+    STORE_L 7
+
+    ; 2. All seven blocks live.
+    INVOKE_NATIVE full_heap_scan
+    POP
+
+    ; Free the middle big block. Its neighbours stay live, so the freed
+    ; region cannot coalesce - this is the fragmentation checkpoint.
+    LOAD_L 2
+    H_FREE
+
+    ; 3. Fragmented heap.
+    INVOKE_NATIVE full_heap_scan
+    POP
+
+    ; Free everything. Emptied slab caches hand their base blocks back to
+    ; the buddy forest, so the whole heap coalesces.
+    LOAD_L 1
+    H_FREE
+
+    LOAD_L 3
+    H_FREE
+
+    LOAD_L 4
+    H_FREE
+
+    LOAD_L 5
+    H_FREE
+
+    LOAD_L 6
+    H_FREE
+
+    LOAD_L 7
+    H_FREE
+
+    ; 4. Empty heap again.
+    INVOKE_NATIVE full_heap_scan
+    POP
+
+    INVOKE_NATIVE telemetry_flush
+    HALT
