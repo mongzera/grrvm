@@ -28,6 +28,11 @@ typedef struct VM {
     global_var_table global_var_table;
     VM_Allocator allocator;
     struct VM_Thread* vm_threads;
+    /* Inverted so a zeroed VM (vm_create's memset, and the test suite's
+     * memset followed by vm_alloc_init) keeps collection enabled. Only
+     * set_gc_enabled(0) turns it off, to isolate allocator behaviour
+     * (fast-path latency, Ef without reclamation) from the collector. */
+    byte gc_disabled;
 } VM;
 
 VM* vm_create(void);

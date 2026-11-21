@@ -32,7 +32,38 @@ void wrap_math_rng_range(VM_Thread* thread) {
 
 }
 
+/* rand_seed(seed) - fixes the RNG sequence so a workload draws the same
+ * block sizes on every run and every runtime. Required for an evaluation
+ * that claims reproducibility: the POSIX port otherwise seeds from
+ * /dev/urandom at boot, and Pico from hal_rng_init(0). A seed of 0 means
+ * "reseed from entropy" and must not be used for measurement. */
+void wrap_math_rand_seed(VM_Thread* thread) {
+    prim_val seed;
+
+    if(!pop_stack(thread, &seed)){
+        vm_error("NATIVE ERROR", "Pop stack failed");
+        set_thread_inactive(thread);
+        return;
+    }
+
+    if(!type_check_int(seed)){
+        vm_error("NATIVE ERROR", "rand_seed expects an integer seed");
+        set_thread_inactive(thread);
+        return;
+    }
+
+    if(seed.data == 0){
+        vm_error("NATIVE ERROR", "rand_seed(0) reseeds from entropy; use a "
+                 "non-zero seed for a reproducible run");
+        set_thread_inactive(thread);
+        return;
+    }
+
+    hal_rng_init((g_u32)seed.data);
+}
+
 // Bulk register all functions in this file
 void register_math_wrappers(void) {
     native_register("math_rng_range", wrap_math_rng_range);
+    native_register("rand_seed", wrap_math_rand_seed);
 }

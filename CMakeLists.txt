@@ -286,6 +286,8 @@ if(PORT STREQUAL "pico")
             hardware_flash
             pico_flash
             hardware_sync
+            pico_stdio_usb
+
     )
 
     # The final executable also links against the Pico SDK.

@@ -12,5 +12,13 @@ void wrap_dump_ext_frag_telemetry(VM_Thread* thread);
 
 void __wrap__timer_us(VM_Thread* thread);
 
+/* Telemetry control surface (see grrvm/telemetry/gc_telemetry.h).
+ * telemetry_flush is the only native that prints; it is meant to be the
+ * last thing a guest program invokes. */
+void wrap_telemetry_reset(VM_Thread* thread);
+void wrap_telemetry_flush(VM_Thread* thread);
+void wrap_bench_alloc(VM_Thread* thread);
+void wrap_set_gc_enabled(VM_Thread* thread);
+
 void register_internal_telemetry_wrappers(void);
 #endif /* GRRVM_NATIVE_WRAPPERS_INTERNAL_TELEMETRY_WRAPPER_H */

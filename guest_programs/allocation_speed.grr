@@ -1,147 +1,32 @@
-::_global
-    PUSH_T int32 10
-    H_ALLOC
-    DUP
-    H_SET_TYPE uint32
-    STORE_L 0
-    PUSH_T uint32 3
-    LOAD_L 0
-    H_STORE
-    PUSH_T uint32 2
-    LOAD_L 0
-    PUSH 1
-    ADD
-    H_STORE
-    PUSH_T uint32 1
-    LOAD_L 0
-    PUSH 2
-    ADD
-    H_STORE
-    PUSH_T uint32 4
-    LOAD_L 0
-    PUSH 3
-    ADD
-    H_STORE
-    PUSH_T uint32 13
-    LOAD_L 0
-    PUSH 4
-    ADD
-    H_STORE
-    PUSH_T uint32 1
-    LOAD_L 0
-    PUSH 5
-    ADD
-    H_STORE
-    PUSH_T uint32 0
-    LOAD_L 0
-    PUSH 6
-    ADD
-    H_STORE
-    PUSH_T uint32 2
-    LOAD_L 0
-    PUSH 7
-    ADD
-    H_STORE
-    PUSH_T uint32 41
-    LOAD_L 0
-    PUSH 8
-    ADD
-    H_STORE
-    PUSH_T uint32 0
-    LOAD_L 0
-    PUSH 9
-    ADD
-    H_STORE
-    LOAD_L 0
-    PUSH_T int32 10
-    CALL bubble_sort
-    INVOKE_NATIVE dump_heap_file
-    HALT
+; Allocation speed workload.
+;
+; Measures the SOP variable: allocation latency, as elapsed_us / allocs per
+; timed batch. 30 batches matches the SOP's n = 30.
+;
+; Each batch allocates 64 random-sized blocks on the no-GC fast path, then
+; releases them AFTER the timer stops, so the measured window contains only
+; allocation work. The sizes span both fast paths: a request of n slots
+; reserves n + 1 (header) and is served from a slab cache when that fits in
+; 32 slots, so 8..31 slots exercise slabs and 32..255 exercise buddy blocks.
+;
+; Peak live heap is bounded by per_batch * 256 = 16,384 slots (128 KiB):
+; max_slots is 255, not 256, because 256 requested slots plus the header is
+; 257 and would round up to a 512-slot buddy block, i.e. 64 * 512 = 32,768
+; slots, which exceeds the Pico's 25,600-slot (200 KiB) heap.
+;
+; 30 * 64 = 1,920 timed allocations per run (~2,000 as the SOP specifies).
+;
+; bench_alloc(batches, per_batch, min_slots, max_slots, seed)
 
-::bubble_sort
-    STORE_L 1
-    STORE_L 0
-    PUSH_T uint8 0
-    STORE_L 2
-    PUSH_T uint32 0
-    STORE_L 3
-    .for_cond_0:
-    LOAD_L 3
-    LOAD_L 1
-    PUSH_T int32 1
-    SUB
-    CMPLT
-    JZ .for_end_2
-    PUSH_T uint8 0
-    STORE_L 2
-    PUSH_T uint32 0
-    STORE_L 4
-    .for_cond_3:
-    LOAD_L 4
-    LOAD_L 1
-    LOAD_L 3
-    SUB
-    PUSH_T int32 1
-    SUB
-    CMPLT
-    JZ .for_end_5
-    LOAD_L 0
-    LOAD_L 4
-    ADD
-    H_LOAD
-    LOAD_L 0
-    LOAD_L 4
-    PUSH_T uint32 1
-    ADD
-    ADD
-    H_LOAD
-    CMPGT
-    JZ .endif_6
-    LOAD_L 0
-    LOAD_L 4
-    ADD
-    H_LOAD
-    STORE_L 5
-    LOAD_L 0
-    LOAD_L 4
-    PUSH_T uint32 1
-    ADD
-    ADD
-    H_LOAD
-    LOAD_L 0
-    LOAD_L 4
-    ADD
-    H_STORE
-    LOAD_L 5
-    LOAD_L 0
-    LOAD_L 4
-    PUSH_T uint32 1
-    ADD
-    ADD
-    H_STORE
-    PUSH_T uint8 1
-    STORE_L 2
-    .endif_6:
-    .for_step_4:
-    LOAD_L 4
-    DUP
-    INC 1
-    STORE_L 4
-    POP
-    JUMP .for_cond_3
-    .for_end_5:
-    LOAD_L 2
-    PUSH_T uint8 0
-    CMPEQ
-    JZ .endif_7
-    JUMP .for_end_2
-    .endif_7:
-    .for_step_1:
-    LOAD_L 3
-    DUP
-    INC 1
-    STORE_L 3
-    POP
-    JUMP .for_cond_0
-    .for_end_2:
-    RET
+::_global
+    INVOKE_NATIVE telemetry_reset
+
+    PUSH 30
+    PUSH 64
+    PUSH 8
+    PUSH 255
+    PUSH_T uint32 20261
+    INVOKE_NATIVE bench_alloc
+
+    INVOKE_NATIVE telemetry_flush
+    HALT
