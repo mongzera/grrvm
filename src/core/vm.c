@@ -48,6 +48,122 @@ GRR_WEAK int vm_host_poll(void) {
     return 0;
 }
 
+#if defined(GRRVM_COMPUTED_GOTO) && GRRVM_COMPUTED_GOTO
+
+void vm_loop(VM* vm) {
+    int consecutive_skip = 0;
+    uint32_t poll_counter = 0;
+
+    static const void* const dispatch_table[256] = {
+        [OPC_STACK_OPERAND] = &&op_stack,
+        [OPC_ARITHMETIC]   = &&op_arithmetic,
+        [OPC_CONDITIONAL]  = &&op_conditional,
+        [OPC_BRANCHING]    = &&op_branching,
+        [OPC_BITWISE]      = &&op_bitwise,
+        [OPC_MEMORY_LOCAL] = &&op_memory_local,
+        [OPC_MEMORY_GLOBAL]= &&op_memory_global,
+        [OPC_MEMORY_HEAP]  = &&op_memory_heap,
+        [OPC_NATIVE]      = &&op_native
+    };
+
+    while (1) {
+
+        if (consecutive_skip > VM_MAX_THREADS)
+            break;
+
+        /* Host polling */
+        if ((poll_counter++ & 0xFFu) == 0u && vm_host_poll()) {
+            vm_info("VM LOOP", "Host requested execution stop!");
+
+            for (int i = 0; i < VM_MAX_THREADS; i++) {
+                set_thread_inactive(&vm->vm_threads[i]);
+            }
+
+            break;
+        }
+
+        /* Thread scheduling */
+        for (int i = 0; i < VM_MAX_THREADS; i++) {
+
+            VM_Thread* thread = &vm->vm_threads[i];
+
+            if (!is_thread_active(thread)) {
+                consecutive_skip++;
+                continue;
+            }
+
+            consecutive_skip = 0;
+
+            word opcode = get_instruction(thread);
+            uint32_t category = get_opcode_cat(opcode);
+
+            /* Opcode dispatch */
+            if (category >= 256)
+                goto op_invalid;
+
+            if (dispatch_table[category] == NULL)
+                goto op_invalid;
+
+            goto *dispatch_table[category];
+
+            /* ==============================
+             * Opcode routines
+             * ============================== */
+
+            op_stack:
+                eval_stack_operand(thread, opcode);
+                goto op_done;
+
+            op_arithmetic:
+                eval_arithmetic_operand(thread, opcode);
+                goto op_done;
+
+            op_conditional:
+                eval_conditional_operand(thread, opcode);
+                goto op_done;
+
+            op_branching:
+                eval_branching_operand(thread, opcode);
+                goto op_done;
+
+            op_bitwise:
+                eval_bitwise_operand(thread, opcode);
+                goto op_done;
+
+            op_memory_local:
+                eval_memory_local_operand(thread, opcode);
+                goto op_done;
+
+            op_memory_global:
+                eval_memory_global_operand(thread, opcode);
+                goto op_done;
+
+            op_memory_heap:
+                eval_memory_heap_operand(thread, opcode);
+                goto op_done;
+
+            op_native:
+                eval_native_operand(thread, opcode);
+                goto op_done;
+
+            op_invalid:
+                vm_error(
+                    "OPCODE INVALID",
+                    "Cannot recognize [0x%X] as opcode!",
+                    opcode
+                );
+
+                set_thread_inactive(thread);
+                goto op_done;
+
+            op_done:
+                continue;
+        }
+    }
+}
+
+#else
+
 void vm_loop(VM* vm){
     int consecutive_skip = 0;
     uint32_t poll_counter = 0;
@@ -103,6 +219,9 @@ void vm_loop(VM* vm){
         }
     }
 }
+
+#endif
+
 
 void vm_terminate(VM* vm){
     if (vm == NULL) return;

@@ -23,6 +23,7 @@ cd "$(dirname "$0")"
 # Defaults
 # ==============================================================================
 
+COMPUTED_GOTO=false
 CLEAN_BUILD=false
 BUILD_TYPE="Debug"
 TARGET_PORT="posix"
@@ -68,6 +69,14 @@ for arg in "$@"; do
 
         --no-test)
             RUN_TESTS=false
+            ;;
+
+        --goto)
+            COMPUTED_GOTO=true
+            ;;
+
+        --switch)
+            COMPUTED_GOTO=false
             ;;
 
         --help|-h)
@@ -161,6 +170,11 @@ if [ "$CLEAN_BUILD" = true ]; then
 
 fi
 
+if [ "$COMPUTED_GOTO" = true ]; then
+    DISPATCH_FLAG="ON"
+else
+    DISPATCH_FLAG="OFF"
+fi
 
 # ==============================================================================
 # Configure
@@ -174,7 +188,8 @@ cmake \
     -DPORT="${TARGET_PORT}" \
     -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
     -DVM_DEBUG_ENABLE="${VM_DEBUG_FLAG}" \
-    -DGRRVM_BUILD_TESTS="${BUILD_TESTS_FLAG}"
+    -DGRRVM_BUILD_TESTS="${BUILD_TESTS_FLAG}" \
+    -DGRRVM_COMPUTED_GOTO="${DISPATCH_FLAG}"
 
 # ==============================================================================
 # Build

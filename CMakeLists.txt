@@ -198,6 +198,12 @@ option(
     ON
 )
 
+option(
+    GRRVM_COMPUTED_GOTO
+    "Enable computed goto instruction dispatch"
+    OFF
+)
+
 if(VM_DEBUG_ENABLE)
 
     target_compile_definitions(grrvm_core
@@ -214,6 +220,13 @@ if(ENABLE_VM_COLORS)
             VM_LOG_COLORS_ENABLE=1
     )
 
+endif()
+
+if(GRRVM_COMPUTED_GOTO)
+    target_compile_definitions(grrvm_core
+        PUBLIC
+            GRRVM_COMPUTED_GOTO=1
+    )
 endif()
 
 # Public so the port's init.c can run the test suite before the runtime
