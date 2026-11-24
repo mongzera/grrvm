@@ -1,0 +1,17 @@
+::_global
+	PUSH 0
+	STORE_L 0
+
+	.increment:
+		LOAD_L 0
+		INC 1
+		DUP
+		PUSH 100000
+		CMPEQ
+		JNZ .exit
+		STORE_L 0
+		JUMP .increment
+
+	.exit:
+		POP
+	HALT
