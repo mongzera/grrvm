@@ -1,0 +1,10 @@
+::_global
+    PUSH 100000
+
+    .decrement:
+        DEC 1
+        DUP
+        JNZ .decrement
+
+    POP
+    HALT
