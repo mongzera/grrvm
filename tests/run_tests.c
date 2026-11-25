@@ -70,6 +70,7 @@ int run_all_tests(void) {
     failures += run_suite("program_transfer", test_program_transfer);
     failures += run_suite("ref_guard", test_ref_guard);
     failures += run_suite("heap", test_heap);
+    failures += run_suite("h_set_type", test_h_set_type);
 
 #if defined(GRRVM_TEST_POSIX)
     failures += run_suite("load_vm_file", test_load_vm_file);

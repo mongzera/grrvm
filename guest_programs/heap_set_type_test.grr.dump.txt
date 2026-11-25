@@ -1,0 +1,53 @@
+Dumpfile for [heap_set_type_test.grr]
+Created at: 2026-11-26T01:14:16.552802588
+=======================================================================
+::_global [Instruction Count: 27]
+0 | PUSH 4
+2 | H_ALLOC
+3 | STORE_L 0
+5 | LOAD_L 0
+7 | H_SET_TYPE 3
+9 | PUSH_T 5 5
+12 | LOAD_L 0
+14 | H_STORE
+15 | LOAD_L 0
+17 | H_LOAD
+18 | PUSH 1
+20 | INVOKE_NATIVE 896976083
+22 | POP
+23 | LOAD_L 0
+25 | H_FREE
+26 | HALT
+
+
+===========================[BINARY]=============================
+0x3
+0x1b
+0x0
+0x1
+0x4
+0x70
+0x50
+0x0
+0x51
+0x0
+0x76
+0x3
+0x7
+0x5
+0x5
+0x51
+0x0
+0x72
+0x51
+0x0
+0x73
+0x1
+0x1
+0xa0
+0x3576c4d3
+0x2
+0x51
+0x0
+0x71
+0x0

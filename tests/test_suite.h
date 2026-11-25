@@ -17,6 +17,7 @@ int test_program_transfer(void);
 int test_ref_guard(void);
 int test_sha256(void);
 int test_heap(void);
+int test_h_set_type(void);
 
 /* tests/posix */
 int test_load_vm_file(void);

@@ -46,7 +46,7 @@ public class ISA {
             if(datatype.isEmpty()) DebugMsg.asm_error("ARGUMENT INVALID", "Argument [datatype] is required for PUSH_T");
             if(value.isEmpty()) DebugMsg.asm_error("ARGUMENT INVALID", "Argument [value] is required for PUSH_T");
 
-            int datatypeCode = Data.matchTypeStr(datatype.trim().toUpperCase());
+            int datatypeCode = Data.matchRuntimeTypeStr(datatype.trim().toUpperCase());
 
             instruction.setArg(0, Integer.toString(datatypeCode));
             instruction.setArg(1, value.trim());
@@ -167,12 +167,11 @@ public class ISA {
         operationCodes.add(new OpCode(OPC_MEMORY_HEAP , (byte) 0x04, (byte) 0, "H_STORE_OFF"));
         operationCodes.add(new OpCode(OPC_MEMORY_HEAP , (byte) 0x05, (byte) 0, "H_LOAD_OFF"));
         operationCodes.add(new OpCode(OPC_MEMORY_HEAP , (byte) 0x06, (byte) 1, "H_SET_TYPE", (bytecode, segment, instruction) -> {
-            DebugMsg.asm_info("ARGUMENTS", String.format("ARG0: %s, ARG1: %s, ARG2", instruction.getArg(0), instruction.getArg(1), instruction.getArg(2)));
             String datatype = instruction.getArg(0);
 
-            if(datatype.isEmpty()) DebugMsg.asm_error("ARGUMENT INVALID", "Argument [datatype] is required for PUSH_T");
+            if(datatype.isEmpty()) DebugMsg.asm_error("ARGUMENT INVALID", "Argument [datatype] is required for H_SET_TYPE");
 
-            int datatypeCode = Data.matchTypeStr(datatype.trim().toUpperCase());
+            int datatypeCode = Data.matchRuntimeTypeStr(datatype.trim().toUpperCase());
 
             instruction.setArg(0, Integer.toString(datatypeCode));
 

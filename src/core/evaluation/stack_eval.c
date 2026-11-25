@@ -4,6 +4,7 @@
 #include "grrvm/opcodes.h"
 #include "grrvm/vm_mem.h"
 #include "grrvm/vm_thread.h"
+#include "parser/bytecode_parse.h"
 
 void eval_stack_operand(VM_Thread *thread, word opcode) {
 
@@ -53,8 +54,15 @@ void eval_stack_operand(VM_Thread *thread, word opcode) {
         }
 
         case PUSH_T: {
-            prim_type data_type = get_instruction(thread);
+            prim_type data_type = asm_to_vm_primtype((byte) get_instruction(thread));
             word raw_data = get_instruction(thread);
+
+            if (data_type == TYPE_NULL) {
+                vm_error("PUSH_T", "Unsupported datatype code for PUSH_T!");
+                has_error = 1;
+                break;
+            }
+
             prim_val val = make_prim_val(raw_data, STATE_OPEN, data_type);
             if(get_prim_type(val) != TYPE_FLOAT) vm_info("PUSH_T", "VALUE: %d", val.data);
             else vm_info("PUSH_T", "FLOAT VALUE: %f", val.float_data);

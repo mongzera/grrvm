@@ -227,17 +227,25 @@ void eval_memory_heap_operand(VM_Thread *thread, word opcode){
 
             prim_val reference;
             if(!pop_stack(thread, &reference)){
-                vm_error("MEMORY HEAP OPERAND", "Failed to pop stack for H_SET_TYPE: Offset");
+                vm_error("MEMORY HEAP OPERAND", "Failed to pop stack for H_SET_TYPE: Reference");
+                set_thread_inactive(thread);
+                break;
             }
 
             word datatype = get_instruction(thread);
 
-            prim_type prim_type = asm_to_vm_primtype(datatype);
+            prim_type heap_type = asm_to_vm_primtype((byte) datatype);
 
-            set_heap_block_type(thread->vm, reference.data, prim_type);
+            if (heap_type == TYPE_NULL) {
+                vm_error("MEMORY HEAP OPERAND", "Unsupported datatype code [0x%X] for H_SET_TYPE", datatype);
+                set_thread_inactive(thread);
+                break;
+            }
 
-            // vm_error("OPCODE", "Not implemented: H_SET_TYPE");
-            // set_thread_inactive(thread);
+            if (set_heap_block_type(thread->vm, reference.data, heap_type) == STATE_ERROR) {
+                set_thread_inactive(thread);
+                break;
+            }
             break;
         }
 

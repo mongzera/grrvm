@@ -73,6 +73,31 @@ public class Data {
         return 0;
     }
 
+    /* Datatype immediates carried by PUSH_T and H_SET_TYPE must be decodable
+     * by the VM (see asm_to_vm_primtype() in include/parser/bytecode_parse.h).
+     * UINT64, INT64, DOUBLE and CHAR have assembler codes but no prim_type
+     * counterpart, so accept only the types the VM can actually represent.
+     * Data declarations keep using matchTypeStr(); the loader rejects their
+     * headers itself. */
+    public static byte matchRuntimeTypeStr(String typeStr){
+        switch (typeStr.toUpperCase()){
+            case "UINT8":
+            case "UINT16":
+            case "UINT32":
+            case "INT8":
+            case "INT16":
+            case "INT32":
+            case "FLOAT":
+                return matchTypeStr(typeStr);
+            default:
+                DebugMsg.asm_error(GrrError.INVALID_DATATYPE,
+                        typeStr + " is not supported by the VM (expected UINT8, UINT16, UINT32, INT8, INT16, INT32 or FLOAT)");
+                break;
+        }
+
+        return 0;
+    }
+
     public void resolve(Bytecode bytecode, boolean isConstant) {
         this.isConstant = isConstant;
         assignedGlobalTableSlot = bytecode.getCurrentTableSlot();

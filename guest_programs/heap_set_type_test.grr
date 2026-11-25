@@ -1,0 +1,27 @@
+; End-to-end coverage for H_SET_TYPE: retag a heap block as uint32, then show
+; that an int8 store is promoted to uint32 on the way in. vm_stack_debug prints
+; the operand stack, so the loaded slot should show data 5 and metadata 3
+; (STATE_OPEN | TYPE_U32).
+
+::_global
+
+    PUSH 4
+    H_ALLOC
+    STORE_L 0
+
+    LOAD_L 0
+    H_SET_TYPE uint32
+
+    PUSH_T int8 5
+    LOAD_L 0
+    H_STORE
+
+    LOAD_L 0
+    H_LOAD
+    PUSH 1
+    INVOKE_NATIVE vm_stack_debug
+    POP
+
+    LOAD_L 0
+    H_FREE
+    HALT
