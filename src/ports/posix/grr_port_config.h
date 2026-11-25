@@ -2,7 +2,7 @@
 #define GRR_PORT_CONFIG_H
 
 // virtual threads
-#define VM_MAX_THREADS 1
+#define VM_MAX_THREADS 24
 
 // guest program
 #define VM_PROGRAM_MAX_SIZE (256 * 1024)
