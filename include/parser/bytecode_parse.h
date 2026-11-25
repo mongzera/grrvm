@@ -41,12 +41,14 @@ static inline int is_supported_asm_header(uint32_t asm_metadata){
     return asm_to_vm_primtype((byte)(asm_metadata & 0x7Fu)) != TYPE_NULL;
 }
 
-static inline byte asm_to_vm_metadata(uint32_t asm_metadata){
-    prim_state is_constant = ((byte)(asm_metadata >> 24)) ? STATE_CONSTANT : STATE_OPEN;
-    byte type = (byte)(asm_metadata & 0xFF);
+static inline byte asm_to_vm_metadata(uint32_t asm_metadata) {
+    prim_state state = (asm_metadata & 0x80u) ? STATE_CONSTANT : STATE_OPEN;
+
+    byte type = (byte)(asm_metadata & 0x7Fu);
+
     prim_type t = asm_to_vm_primtype(type);
 
-    return pack_meta(is_constant, t);
+    return pack_meta(state, t);
 }
 
 typedef struct global_data {
